@@ -87,10 +87,12 @@ describe("the score curve", () => {
 });
 
 describe("static checks on captured pages", () => {
-  it("spots the stock shadcn v3 zinc theme in a popular shadcn landing template", () => {
+  it("spots the stock shadcn v3 zinc theme", () => {
     expect(
       hit(
-        staticFacts("shadcn-landing-page.vercel.app", ["style-1.css"]),
+        cssFacts(
+          ":root{--foreground:240 10% 3.9%;--muted:240 4.8% 95.9%;--border:240 5.9% 90%}"
+        ),
         "stock-tokens"
       )?.evidence
     ).toContain("--foreground: 240 10% 3.9%");
@@ -116,9 +118,10 @@ describe("static checks on captured pages", () => {
     );
   });
 
-  it("finds template phrases in shadcnblocks.com's copy and none on a hand-written page", () => {
+  it("finds template phrases in marketing copy and none on a hand-written page", () => {
     expect(
-      hit(staticFacts("shadcnblocks.com", []), "buzzwords")?.evidence
+      hit(proseFacts("A seamless, effortless way to work."), "buzzwords")
+        ?.evidence
     ).toMatch(/seamless/u);
     expect(
       hitIds(staticFacts("alexandrejoly.me", ["style-1.css"]))

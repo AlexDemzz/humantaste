@@ -21,7 +21,35 @@
   --container-column: 43rem;
   --ease-swap: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-roll: cubic-bezier(0.77, 0, 0.175, 1);
   --font-weight-book: 450;
+  --animate-scan-sweep: scan-sweep 1800ms cubic-bezier(0.45, 0, 0.55, 1)
+    infinite;
+  --animate-card-land: card-land 620ms var(--ease-out) backwards;
+
+  @keyframes scan-sweep {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(11px);
+    }
+  }
+
+  /* A sealed card comes down flat from a slight tilt. */
+  @keyframes card-land {
+    from {
+      opacity: 0;
+      transform: perspective(1600px) translateY(28px) rotateX(16deg) scale(0.96);
+    }
+
+    to {
+      opacity: 1;
+      transform: perspective(1600px) translateY(0) rotateX(0deg) scale(1);
+    }
+  }
 }
 
 @theme inline {

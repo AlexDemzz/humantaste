@@ -1,10 +1,11 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { HoloCard } from "@/components/holo-card/holo-card";
 import { Page } from "@/components/page";
 import { Details, Patterns, scoredAt } from "@/components/report";
 import { ScanForm } from "@/components/scan-form";
+import { ScanLoader } from "@/components/scan-loader";
 import { ShareActions } from "@/components/share-actions";
 import { TasteSkills } from "@/components/taste-skills";
 import { peekScanFn, runScanFn } from "@/lib/scan.functions";
@@ -25,24 +26,6 @@ const failure = (error: unknown): ScanOutcome => ({
       ? error.message
       : "Unable to score this page. Try again in a minute.",
 });
-
-const Elapsed = ({ slug }: { slug: string }) => {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const started = Date.now();
-    const id = window.setInterval(
-      () => setElapsed(Math.floor((Date.now() - started) / 1000)),
-      500
-    );
-    return () => window.clearInterval(id);
-  }, []);
-  return (
-    <p className="text-sm tabular-nums">
-      Scoring {slug}: fetching the HTML and CSS, rendering in headless Chrome,
-      measuring what painted. {elapsed}s, usually under 20.
-    </p>
-  );
-};
 
 /** The counts, when the scan ran, and a way to run it again. */
 const ScanMeta = ({ result }: { result: AnalysisResult }) => {
@@ -101,8 +84,8 @@ const ScanMeta = ({ result }: { result: AnalysisResult }) => {
 };
 
 /**
- * One card for the whole scan, so the same element turns over when the result lands.
- * A stored scan is known from the first render and starts on the front.
+ * A fresh scan waits in the loader and its card only exists once it is ready to peel.
+ * A stored scan is known from the first render and shows its card at once.
  */
 const Scan = () => {
   const { slug, stored, invalid, pending } = Route.useLoaderData();
@@ -111,6 +94,8 @@ const Scan = () => {
     () => invalid ?? (stored ? { ok: true, result: stored } : null)
   );
   const [outcome, setOutcome] = useState(initial);
+  const [revealed, setRevealed] = useState(initial !== null);
+  const reveal = useCallback(() => setRevealed(true), []);
 
   useEffect(() => {
     let live = true;
@@ -144,7 +129,8 @@ const Scan = () => {
     );
   }
 
-  const result = outcome?.result ?? null;
+  const scanned = outcome?.result ?? null;
+  const result = revealed ? scanned : null;
   return (
     <>
       <section className="flex flex-col gap-4" aria-live="polite">
@@ -153,18 +139,38 @@ const Scan = () => {
             ? `${slug} scores ${result.score} out of 100`
             : `Scoring ${slug}`}
         </h1>
-        <HoloCard
-          slug={slug}
-          card={result && cardFromResult(result)}
-          sealed={initial === null}
-        />
+        <div
+          className="grid aspect-1200/630 *:[grid-area:1/1]"
+          aria-busy={!result}
+        >
+          {initial === null && (
+            <ScanLoader
+              finishing={scanned !== null}
+              covered={revealed}
+              onFinished={reveal}
+            />
+          )}
+          {result && (
+            <div
+              className={cn(
+                initial === null &&
+                  "motion-safe:animate-card-land motion-reduce:animate-in motion-reduce:fade-in origin-bottom motion-reduce:duration-200"
+              )}
+            >
+              <HoloCard
+                card={cardFromResult(result)}
+                sealed={initial === null}
+              />
+            </div>
+          )}
+        </div>
         {result ? (
           <>
             <ShareActions result={result} />
             <ScanMeta result={result} />
           </>
         ) : (
-          <Elapsed slug={slug} />
+          <div className="min-h-10" />
         )}
       </section>
       {result && (

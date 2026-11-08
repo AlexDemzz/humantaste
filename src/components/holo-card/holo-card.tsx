@@ -123,51 +123,35 @@ const Front = ({ card }: { card: ShareCard }) => (
 );
 
 /**
- * The scan as a holo card. Without a `card` it shows its back, which sways while the scan runs; nothing printed on it
- * changes. When a `card` arrives it turns once, top over bottom, to the front. Mounted with a `card`, it starts on the front.
- * With `sealed` (a fresh scan), the card arrives under a cover printed like its back, which the reader peels off.
+ * The scan as a holo card, front up. With `sealed` (a fresh scan), it arrives under a cover printed like the back,
+ * which the reader peels off.
  */
 export const HoloCard = ({
-  slug,
   card,
   sealed: startSealed = false,
 }: {
-  slug: string;
-  card: ShareCard | null;
+  card: ShareCard;
   sealed?: boolean;
 }) => {
   const ref = useRef<HTMLElement>(null);
   const [sealed, setSealed] = useState(startSealed);
-  const done = card !== null;
-  const covered = done && sealed;
-  useTilt(ref, { idle: !done, still: covered });
+  useTilt(ref, { still: sealed });
 
   return (
     <div className="holo-stage">
       <article
         ref={ref}
         className="holo"
-        data-state={done ? "done" : "loading"}
-        data-sealed={covered || undefined}
-        data-tier={card ? tierFor(card.score) : undefined}
-        aria-busy={!done}
-        aria-label={
-          card
-            ? `${card.host} scores ${card.score} out of 100`
-            : `Scoring ${slug}`
-        }
+        data-sealed={sealed || undefined}
+        data-tier={tierFor(card.score)}
+        aria-label={`${card.host} scores ${card.score} out of 100`}
       >
-        <div className="holo-flipper">
-          <div className="holo-side holo-back" aria-hidden={done}>
-            <BackArt />
-          </div>
-          <div className="holo-side holo-front" aria-hidden={!done}>
-            <div className="holo-etch" aria-hidden="true" />
-            {card && <Front card={card} />}
-            <Light />
-          </div>
+        <div className="holo-side holo-front">
+          <div className="holo-etch" aria-hidden="true" />
+          <Front card={card} />
+          <Light />
         </div>
-        {covered && (
+        {sealed && (
           <HoloPeel onRevealed={() => setSealed(false)}>
             <BackArt />
           </HoloPeel>

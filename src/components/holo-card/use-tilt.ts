@@ -85,25 +85,23 @@ const settled = (a: Axis) =>
 /**
  * Springs the card toward the pointer and writes the result as custom properties on the card:
  * --rx/--ry (tilt in deg), --px/--py (pointer, 0–100 %), --hyp (0 at the centre, 1 at a corner), --active (0–1).
- * With `idle`, the card sways on its own until the pointer takes over. With `still`, the card springs flat and the
- * light comes to rest; only the phone's gyroscope still moves it, since the phone itself is tilting.
+ * With `still`, the card springs flat and the light comes to rest; only the phone's gyroscope still moves it, since the
+ * phone itself is tilting.
  *
  * On touch-only screens the card stays flat: --rx/--ry hold at 0deg and the phone's gyroscope moves only the light,
  * measured from the pose the phone rests in and clamped at ±20°. iOS asks for gyroscope access on the first tap on the
- * card; without access the light keeps its pointer and idle behaviour.
+ * card; without access the light keeps its pointer behaviour.
  */
 export const useTilt = (
   ref: RefObject<HTMLElement | null>,
-  { idle = false, still = false }: { idle?: boolean; still?: boolean } = {}
+  { still = false }: { still?: boolean } = {}
 ) => {
-  const idleRef = useRef(idle);
   const stillRef = useRef(still);
   const wakeRef = useRef<(() => void) | null>(null);
   useLayoutEffect(() => {
-    idleRef.current = idle;
     stillRef.current = still;
     wakeRef.current?.();
-  }, [idle, still]);
+  }, [still]);
   useEffect(() => {
     const el = ref.current;
     if (!el || prefersReducedMotion()) {
@@ -120,7 +118,6 @@ export const useTilt = (
       null;
     let frame = 0;
     let last = performance.now();
-    const started = last;
 
     const write = () => {
       const dx = x.value - 0.5;
@@ -140,16 +137,14 @@ export const useTilt = (
     const tick = (now: number) => {
       const dt = Math.min(0.032, (now - last) / 1000);
       last = now;
-      const swaying = idleRef.current && !gyro;
       if (stillRef.current && !gyro) {
         // A card that isn't moving reflects nothing new: the light rests until the card tilts again.
         x.target = 0.5;
         y.target = 0.5;
         active.target = 0;
       } else if (!(hovering || gyro)) {
-        const t = (now - started) / 1000;
-        x.target = swaying ? 0.5 + Math.sin(t * 1.1) * 0.28 : 0.5;
-        y.target = swaying ? 0.5 + Math.cos(t * 0.8) * 0.18 : 0.5;
+        x.target = 0.5;
+        y.target = 0.5;
       }
       step(x, dt);
       step(y, dt);
@@ -158,10 +153,9 @@ export const useTilt = (
       step(lean, dt);
       write();
       frame =
-        swaying ||
-        !(settled(x) && settled(y) && settled(active) && settled(lean))
-          ? requestAnimationFrame(tick)
-          : 0;
+        settled(x) && settled(y) && settled(active) && settled(lean)
+          ? 0
+          : requestAnimationFrame(tick);
     };
 
     const wake = () => {
@@ -244,7 +238,7 @@ export const useTilt = (
           listenToGyro();
         }
       } catch {
-        // Denied or unavailable: the light keeps its pointer and idle behaviour.
+        // Denied or unavailable: the light keeps its pointer behaviour.
       }
     };
     if (requestPermission) {

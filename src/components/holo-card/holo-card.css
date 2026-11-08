@@ -35,7 +35,7 @@
   initial-value: 0;
 }
 
-/* 0 while scanning, 1 once the front is up. Transitioned, so the foil fades in. */
+/* 0 under the cover, 1 once it is off. Transitioned, so the foil fades in. */
 @property --lit {
   syntax: "<number>";
   inherits: true;
@@ -44,12 +44,14 @@
 
 :root {
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-turn: cubic-bezier(0.34, 1.18, 0.64, 1);
 }
 
 /* Stage: the one card the page allows, as wide as the column. */
 
 .holo-stage {
+  /* The peeled cover swings past the card: above the rest of the page, under portalled layers (z-50). */
+  position: relative;
+  z-index: 40;
   inline-size: 100%;
   container-type: inline-size;
   perspective: 1600px;
@@ -104,24 +106,15 @@
   -webkit-user-select: none;
 }
 
-.holo[data-state="done"] {
+.holo {
   --lit: 1;
 
   transition: --lit 700ms var(--ease-out) 300ms;
 }
 
 /* Under the cover the front stays unlit; it lights up once the cover is off. */
-.holo[data-state="done"][data-sealed] {
+.holo[data-sealed] {
   --lit: 0;
-}
-
-/* Two sides back to back. */
-
-.holo-flipper {
-  grid-area: 1 / 1;
-  display: grid;
-  border-radius: var(--holo-radius);
-  transform-style: preserve-3d;
 }
 
 .holo-side {
@@ -143,12 +136,7 @@
   grid-area: 1 / 1;
 }
 
-/* The front turns top over bottom. */
-.holo-front {
-  transform: rotateX(180deg);
-}
-
-/* Back: dark foil and the logo. */
+/* The cover's print: dark foil and the logo. */
 
 .holo-back {
   color: oklch(0.95 0.003 70);
@@ -383,48 +371,10 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .holo[data-state="done"]:not([data-sealed]) .holo-front .holo-sweep {
+  .holo:not([data-sealed]) .holo-front .holo-sweep {
     animation: holo-sweep 900ms var(--ease-in-out) 650ms both;
   }
 }
-
-/* Without motion, the back fades out over the front instead of turning. */
-@media (prefers-reduced-motion: reduce) {
-  .holo-front {
-    transform: none;
-    opacity: 0;
-  }
-
-  .holo-front,
-  .holo-back {
-    transition: opacity 200ms ease;
-  }
-
-  .holo[data-state="done"] .holo-front {
-    opacity: 1;
-  }
-
-  .holo[data-state="done"] .holo-back {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .holo-flipper {
-    transition: transform 850ms var(--ease-turn);
-  }
-
-  .holo[data-state="done"] .holo-flipper {
-    transform: rotateX(180deg);
-  }
-
-  /* A sealed card turns at once: the cover wears the back's print, so the turn can't be seen. */
-  .holo[data-sealed] .holo-flipper {
-    transition: none;
-  }
-}
-
-/* Jev's read in one sentence at the foot. */
 
 /* Foot: Jev's read on the left, our logo on the right in the same grey. */
 .holo-foot {
@@ -659,7 +609,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .holo[data-tier="prismatic"][data-state="done"] .holo-front .holo-sweep {
+  .holo[data-tier="prismatic"] .holo-front .holo-sweep {
     animation-iteration-count: 2;
   }
 

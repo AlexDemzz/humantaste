@@ -1,0 +1,470 @@
+{
+  "url": "https://linear.app/",
+  "rendered": {
+    "lang": "en",
+    "pageBackground": "rgb(8, 9, 10)",
+    "h1": {
+      "text": "The product development system for teams and agents The product development system for teams and agents",
+      "color": "rgb(247, 248, 248)",
+      "fontStyle": "normal",
+      "centered": false
+    },
+    "gradients": [
+      {
+        "css": "linear-gradient(rgba(11, 11, 11, 0.8) 0%, oklab(0.149576 0.00000680983 0.00000298768 / 0.761905) 100%)",
+        "tag": "header.TZTsQG_header.TZTsQG_header",
+        "area": 105120,
+        "isText": false,
+        "top": 0,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(52.53% 57.5% at 50% 100%, rgba(8, 9, 10, 0) 0%, rgba(8, 9, 10, 0.5) 100%), linear-gradient(rgb(8, 9, 10) 10%, rgb(208, 214, 224) 100%)",
+        "tag": "div.WS84WW_background",
+        "area": 1087488,
+        "isText": false,
+        "top": 527,
+        "size": "auto, auto"
+      },
+      {
+        "css": "radial-gradient(50% 50%, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 90%)",
+        "tag": "div.WS84WW_glow",
+        "area": 160000,
+        "isText": false,
+        "top": 336,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03)), none",
+        "tag": "div.KFZpfa_commentCard.Fzcv4W_edgeHighlightRing",
+        "area": 98469,
+        "isText": false,
+        "top": 868,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03)), none",
+        "tag": "div.KFZpfa_connectedCard.Fzcv4W_edgeHighlightRing",
+        "area": 60221,
+        "isText": false,
+        "top": 1036,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3001,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3105,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3209,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3313,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3001,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3105,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3209,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3313,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3001,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3105,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3209,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3001,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3105,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3209,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3313,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), none",
+        "tag": "div._5k-xcq_card.qM9FAa_issue",
+        "area": 28800,
+        "isText": false,
+        "top": 3417,
+        "size": "auto, auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0) 50%)",
+        "tag": "div.qM9FAa_glow.MwJdiW_glow",
+        "area": 160000,
+        "isText": false,
+        "top": 2727,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0) 50%)",
+        "tag": "div.MwJdiW_glow.qM9FAa_slackGlow",
+        "area": 160000,
+        "isText": false,
+        "top": 2698,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), none",
+        "tag": "div._rhIjq_solid._rhIjq_solidWithTail",
+        "area": 7680,
+        "isText": false,
+        "top": 4307,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(90deg, color(srgb 0 0 0 / 0) 0%, color(srgb 0.921569 0.341176 0.341176 / 0.2) 100%), linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), none",
+        "tag": "div._rhIjq_tail",
+        "area": 3072,
+        "isText": false,
+        "top": 4307,
+        "size": "auto, auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), none",
+        "tag": "div._rhIjq_solid._rhIjq_solidWithTail",
+        "area": 12456,
+        "isText": false,
+        "top": 4415,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(90deg, color(srgb 0 0 0 / 0) 0%, color(srgb 0.129412 0.701961 1 / 0.2) 100%), linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), none",
+        "tag": "div._rhIjq_tail",
+        "area": 5544,
+        "isText": false,
+        "top": 4415,
+        "size": "auto, auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), none",
+        "tag": "div._rhIjq_solid._rhIjq_solidWithTail",
+        "area": 12456,
+        "isText": false,
+        "top": 4523,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(90deg, color(srgb 0 0 0 / 0) 0%, color(srgb 0.129412 0.701961 1 / 0.2) 100%), linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), none",
+        "tag": "div._rhIjq_tail",
+        "area": 5544,
+        "isText": false,
+        "top": 4523,
+        "size": "auto, auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)), none",
+        "tag": "div._rhIjq_solid",
+        "area": 12456,
+        "isText": false,
+        "top": 4631,
+        "size": "auto, auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0) 50%)",
+        "tag": "div._9Zs8oG_glow.MwJdiW_glow",
+        "area": 160000,
+        "isText": false,
+        "top": 3963,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0) 50%)",
+        "tag": "div._9Zs8oG_initiativesBoxGlow.MwJdiW_glow",
+        "area": 160000,
+        "isText": false,
+        "top": 3930,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), none",
+        "tag": "p.q1lnWq_bubble",
+        "area": 27360,
+        "isText": false,
+        "top": 5536,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), none",
+        "tag": "p.q1lnWq_bubble",
+        "area": 20520,
+        "isText": false,
+        "top": 5536,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), none",
+        "tag": "p.q1lnWq_bubble",
+        "area": 20520,
+        "isText": false,
+        "top": 5536,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), none",
+        "tag": "p.q1lnWq_bubble",
+        "area": 20520,
+        "isText": false,
+        "top": 5536,
+        "size": "auto, auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0) 50%)",
+        "tag": "div.MwJdiW_glow",
+        "area": 160000,
+        "isText": false,
+        "top": 6475,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0) 50%)",
+        "tag": "div.MwJdiW_glow",
+        "area": 160000,
+        "isText": false,
+        "top": 6442,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(0deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.4) 100%), linear-gradient(rgb(178, 213, 255) 0%, rgb(223, 209, 255) 100%)",
+        "tag": "a.Ey56KW_customerCard.Ey56KW_primary.I_mUeq_root",
+        "area": 422400,
+        "isText": false,
+        "top": 8238,
+        "size": "auto, auto"
+      }
+    ],
+    "backdropBlur": [
+      {
+        "tag": "header.TZTsQG_header.TZTsQG_header",
+        "px": 20,
+        "width": 1440,
+        "navBar": true,
+        "bgAlpha": 0
+      },
+      {
+        "tag": "a.S36ykG_root.S36ykG_variant-secondary.S36ykG_size-large",
+        "px": 4,
+        "width": 144,
+        "navBar": false,
+        "bgAlpha": 0.05
+      }
+    ],
+    "shadows": [
+      {
+        "css": "rgba(0, 0, 0, 0.2) 0px 0px 12px 0px inset",
+        "count": 7,
+        "example": "div._rhIjq_solid._rhIjq_solidWithTail"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0.2) 0px 0px 0px 1px",
+        "count": 6,
+        "example": "div.KFZpfa_commentCard.Fzcv4W_edgeHighlightRing"
+      },
+      {
+        "css": "rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset",
+        "count": 4,
+        "example": "button._1uFtza_pillButton"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0.25) 0px 2px 32px 0px",
+        "count": 4,
+        "example": "div.GkoSzG_panel"
+      },
+      {
+        "css": "rgb(35, 37, 42) 0px 0px 0px 1px inset",
+        "count": 3,
+        "example": "div.MwJdiW_panel.qM9FAa_panel"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0) 0px 8px 2px 0px, rgba(0, 0, 0, 0.01) 0px 5px 2px 0px, rgba(0, 0, 0, 0.04) 0px 3px 2px 0px, rgba(0, 0, 0, 0.07) 0px 1px 1px 0px, rgba(0, 0, 0, 0.08) 0px 0px 1px 0px",
+        "count": 2,
+        "example": "a.S36ykG_root.S36ykG_variant-invert.S36ykG_size-small"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0.2) 0px 0px 0px 2px",
+        "count": 1,
+        "example": "div.WS84WW_view"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0.4) 0px 1px 0px 0px",
+        "count": 1,
+        "example": "header.qM9FAa_header"
+      },
+      {
+        "css": "rgba(94, 106, 210, 0.4) 0px 0px 0px 3px",
+        "count": 1,
+        "example": "div.qM9FAa_sendButtonGroup"
+      },
+      {
+        "css": "rgb(35, 37, 42) 0px 0px 0px 1px inset, rgba(8, 9, 10, 0.8) 0px 0px 32px 0px",
+        "count": 1,
+        "example": "div.MwJdiW_panel._8fVXdW_diffPanel"
+      },
+      {
+        "css": "rgb(35, 37, 42) 1px 0px 0px 0px inset",
+        "count": 1,
+        "example": "div._8fVXdW_codeColumn"
+      },
+      {
+        "css": "rgba(255, 255, 255, 0.03) 0px 0px 0px 1px inset, rgba(255, 255, 255, 0.04) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.6) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 4px 4px 0px",
+        "count": 1,
+        "example": "a.S36ykG_root.S36ykG_variant-secondary.S36ykG_size-large"
+      }
+    ],
+    "orbs": [],
+    "patterns": [],
+    "stripes": [],
+    "trackedLabels": [],
+    "buttonFills": [
+      {
+        "css": "rgb(229, 229, 230)",
+        "count": 2
+      },
+      {
+        "css": "rgb(94, 106, 210)",
+        "count": 1
+      }
+    ],
+    "hiddenAtRest": {
+      "count": 3,
+      "examples": [
+        "div.qM9FAa_chatMessage { opacity: 0 }",
+        "div.q1lnWq_turn { opacity: 0 }"
+      ]
+    },
+    "headlineAccent": null,
+    "faceNames": {
+      "heading": "Inter Variable",
+      "body": "Inter Variable"
+    },
+    "centered": {
+      "total": 28,
+      "centered": 1
+    },
+    "cardGrids": [],
+    "iconTiles": {
+      "count": 0,
+      "lucide": 0,
+      "example": ""
+    },
+    "pill": null,
+    "statBanner": null,
+    "numbered": null,
+    "emojiIcons": [],
+    "sparkles": 0,
+    "lucideLogo": false,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "fonts": [
+      {
+        "family": "Inter Variable",
+        "glyphs": 1433,
+        "webfont": true
+      },
+      {
+        "family": "SF Pro Display",
+        "glyphs": 1,
+        "webfont": false
+      }
+    ],
+    "headingFonts": [
+      {
+        "family": "Inter Variable",
+        "glyphs": 333,
+        "webfont": true
+      }
+    ]
+  }
+}

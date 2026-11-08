@@ -1,0 +1,70 @@
+{
+  "url": "https://alexandrejoly.me/",
+  "rendered": {
+    "lang": "en",
+    "pageBackground": "oklch(0.988 0.003 70)",
+    "h1": {
+      "text": "Alexandre Joly",
+      "color": "oklch(0.238 0.005 70)",
+      "fontStyle": "normal",
+      "centered": false
+    },
+    "gradients": [],
+    "backdropBlur": [],
+    "shadows": [
+      {
+        "css": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px, rgba(0, 0, 0, 0.06) 0px 1px 2px -1px, rgba(0, 0, 0, 0.04) 0px 2px 4px 0px",
+        "count": 19,
+        "example": "div"
+      }
+    ],
+    "orbs": [],
+    "patterns": [],
+    "stripes": [],
+    "trackedLabels": [],
+    "buttonFills": [],
+    "hiddenAtRest": {
+      "count": 0,
+      "examples": []
+    },
+    "headlineAccent": null,
+    "faceNames": {
+      "heading": "ui-sans-serif",
+      "body": "ui-sans-serif"
+    },
+    "centered": {
+      "total": 21,
+      "centered": 0
+    },
+    "cardGrids": [],
+    "iconTiles": {
+      "count": 0,
+      "lucide": 0,
+      "example": ""
+    },
+    "pill": null,
+    "statBanner": null,
+    "numbered": null,
+    "emojiIcons": [],
+    "sparkles": 0,
+    "lucideLogo": false,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "fonts": [
+      {
+        "family": ".SF NS",
+        "glyphs": 1599,
+        "webfont": false
+      }
+    ],
+    "headingFonts": [
+      {
+        "family": ".SF NS",
+        "glyphs": 65,
+        "webfont": false
+      }
+    ]
+  }
+}

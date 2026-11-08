@@ -1,0 +1,482 @@
+/* Written every frame by useTilt; registered so reduced motion and first paint get a resting value. */
+@property --rx {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@property --ry {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@property --px {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --py {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --hyp {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --active {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* 0 while scanning, 1 once the front is up. Transitioned, so the foil fades in. */
+@property --lit {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-turn: cubic-bezier(0.34, 1.18, 0.64, 1);
+}
+
+/* Stage: the one card the page allows, as wide as the column. */
+
+.holo-stage {
+  inline-size: 100%;
+  container-type: inline-size;
+  perspective: 1600px;
+}
+
+.holo {
+  /* One card unit is one pixel of the 1200×630 OG image. */
+  --u: calc(100cqi / 1200);
+  --holo-radius: calc(36 * var(--u));
+  --card-bg: light-dark(oklch(0.995 0.003 70), oklch(0.205 0.005 70));
+  --card-rule: light-dark(oklch(0.9 0.004 70), oklch(0.3 0.005 70));
+  /* Cool hues only: yellows and oranges screened onto the dark back read as brown. */
+  --holo-rainbow: repeating-linear-gradient(
+    115deg,
+    oklch(0.58 0.2 340) 0%,
+    oklch(0.55 0.2 300) 6%,
+    oklch(0.55 0.17 265) 12%,
+    oklch(0.65 0.13 220) 18%,
+    oklch(0.68 0.13 180) 24%,
+    oklch(0.6 0.16 300) 30%,
+    oklch(0.58 0.2 340) 36%
+  );
+  --holo-ink: repeating-linear-gradient(
+    115deg,
+    oklch(0.82 0.13 330) 0%,
+    oklch(0.8 0.12 270) 10%,
+    oklch(0.85 0.1 200) 20%,
+    oklch(0.88 0.12 140) 30%,
+    oklch(0.88 0.12 80) 40%,
+    oklch(0.82 0.13 330) 50%
+  );
+
+  /* The card is always dark, whatever the page's theme: light-dark() tokens resolve to their dark side inside it. */
+  color-scheme: dark;
+  /* The page's dark tokens, held here so the card stays dark in a light page. */
+  --foreground: oklch(0.95 0.003 70);
+  --muted-foreground: oklch(0.7 0.006 70);
+  --meter-off: oklch(0.32 0.005 70);
+  position: relative;
+  display: grid;
+  aspect-ratio: 1200 / 630;
+  border-radius: var(--holo-radius);
+  color: var(--foreground);
+  font-size: calc(28 * var(--u));
+  line-height: 1.3;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.holo[data-state="done"] {
+  --lit: 1;
+
+  transition: --lit 700ms var(--ease-out) 300ms;
+}
+
+/* Two sides back to back. */
+
+.holo-flipper {
+  display: grid;
+  border-radius: var(--holo-radius);
+  transform-style: preserve-3d;
+}
+
+.holo-side {
+  grid-area: 1 / 1;
+  display: grid;
+  border-radius: var(--holo-radius);
+  overflow: clip;
+  isolation: isolate;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: var(--card-bg);
+  box-shadow:
+    0 0 0 1px var(--card-rule),
+    0 calc(36 * var(--u)) calc(72 * var(--u)) calc(-30 * var(--u))
+      oklch(0.25 0.01 70 / 0.3);
+}
+
+.holo-side > * {
+  grid-area: 1 / 1;
+}
+
+/* The front turns top over bottom. */
+.holo-front {
+  transform: rotateX(180deg);
+}
+
+/* Back: dark foil and the wordmark. */
+
+.holo-back {
+  color: oklch(0.95 0.003 70);
+  background:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      oklch(1 0 none / 0.07) 0 calc(2 * var(--u)),
+      transparent calc(2 * var(--u)) calc(16 * var(--u))
+    ),
+    oklch(0.19 0.006 70);
+}
+
+.holo-back-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(20 * var(--u));
+}
+
+.holo-wordmark {
+  font-weight: 600;
+  font-size: calc(132 * var(--u));
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.holo-back-host {
+  font-size: calc(26 * var(--u));
+  color: oklch(0.75 0.006 70);
+}
+
+/* Front: our URL, then the score first and the site second. */
+
+.holo-face {
+  display: flex;
+  flex-direction: column;
+  padding-block: calc(60 * var(--u));
+  padding-inline: calc(72 * var(--u));
+}
+
+.holo-ours {
+  font-size: calc(24 * var(--u));
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.holo-score {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(32 * var(--u));
+  margin-block: auto calc(40 * var(--u));
+}
+
+/* The number and its chrome copy share one cell; the copy sits behind, pushed down and right. */
+.holo-figure {
+  flex: none;
+  display: grid;
+}
+
+.holo-number,
+.holo-number-chrome {
+  grid-area: 1 / 1;
+  font-family: "Kanit", sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: calc(250 * var(--u));
+  line-height: 0.72;
+  letter-spacing: -0.05em;
+}
+
+/* A copy in the card colour cuts a gap between the number and its chrome. */
+.holo-number {
+  filter: drop-shadow(calc(7 * var(--u)) calc(7 * var(--u)) 0 var(--card-bg));
+}
+
+.holo-score-side {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--u));
+  padding-block-end: calc(4 * var(--u));
+}
+
+.holo-host {
+  font-size: calc(var(--host-size, 64) * var(--u));
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.holo-verdict {
+  font-size: calc(30 * var(--u));
+  color: var(--muted-foreground);
+  text-wrap: balance;
+}
+
+.holo-ticks {
+  --value: 0;
+  /* Whole pixels, so every tick and gap paints the same width at any card size. */
+  --tick: max(2px, round(down, 7.5 * var(--u), 1px));
+  --pitch: max(4px, round(nearest, 10.56 * var(--u), 1px));
+
+  position: relative;
+  flex: none;
+  block-size: calc(22 * var(--u));
+  background: repeating-linear-gradient(
+    to right,
+    var(--meter-off) 0 var(--tick),
+    transparent var(--tick) var(--pitch)
+  );
+}
+
+.holo-ticks::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  inline-size: min(
+    100%,
+    max(var(--tick), round(up, var(--value) * 1%, var(--pitch)))
+  );
+  background-image: var(--holo-ink);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+  mask-image: repeating-linear-gradient(
+    to right,
+    oklch(0 0 none) 0 var(--tick),
+    transparent var(--tick) var(--pitch)
+  );
+}
+
+/* Light: foil and glare over each side, never taking the pointer. */
+
+.holo-foil,
+.holo-glare,
+.holo-sweep {
+  pointer-events: none;
+}
+
+.holo-foil {
+  background-image: var(--holo-rainbow);
+  background-size: 400% 400%;
+  background-position: var(--px) var(--py);
+  mix-blend-mode: screen;
+}
+
+.holo-glare {
+  background: radial-gradient(
+    farthest-corner circle at var(--px) var(--py),
+    oklch(1 0 none / 0.8) 0%,
+    oklch(1 0 none / 0.14) 32%,
+    oklch(0 0 none / 0.16) 100%
+  );
+  mix-blend-mode: overlay;
+}
+
+.holo-sweep {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    oklch(1 0 none / 0.75) 50%,
+    transparent 65%
+  );
+  mix-blend-mode: overlay;
+  translate: -100% 0;
+}
+
+.holo-back .holo-foil {
+  mask-image: radial-gradient(
+    farthest-corner circle at var(--px) var(--py),
+    oklch(0 0 none) 0%,
+    oklch(0 0 none / 0.35) 80%
+  );
+  opacity: 0.8;
+}
+
+.holo-back .holo-glare {
+  opacity: calc(0.35 + var(--active) * 0.5);
+}
+
+/* The front keeps its foil to a frame, the number and the lit ticks. */
+.holo-front .holo-foil {
+  margin: calc(16 * var(--u));
+  border: calc(5 * var(--u)) solid transparent;
+  border-radius: calc(22 * var(--u));
+  background-image: var(--holo-ink);
+  background-origin: border-box;
+  mix-blend-mode: normal;
+  mask:
+    linear-gradient(oklch(0 0 none) 0 0) padding-box exclude,
+    linear-gradient(oklch(0 0 none) 0 0) border-box;
+  opacity: calc(var(--lit) * (0.75 + var(--active) * 0.25));
+}
+
+.holo-front .holo-glare {
+  opacity: calc(var(--lit) * var(--active) * 0.85);
+}
+
+/* background-clip: text only paints inside the box: pad it so tall figures and the italic's lean keep their ink, and pull the layout back. */
+.holo-front .holo-number,
+.holo-front .holo-number-chrome {
+  padding-block: 0.3em;
+  padding-inline-end: 0.1em;
+  margin-block: -0.3em;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The bright band follows the tilt like light on metal. */
+.holo-front .holo-number-chrome {
+  translate: calc(13 * var(--u)) calc(13 * var(--u));
+  background-image: linear-gradient(
+    180deg,
+    oklch(0.98 0 none) 0%,
+    oklch(0.82 0.008 250) 28%,
+    oklch(0.42 0.012 250) 47%,
+    oklch(0.95 0.004 250) 53%,
+    oklch(0.68 0.01 250) 76%,
+    oklch(0.9 0.004 250) 100%
+  );
+  background-size: 100% 260%;
+  background-position: 50% var(--py);
+}
+
+.holo-front .holo-number {
+  background-image: var(--holo-ink);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+}
+
+@keyframes holo-sweep {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .holo[data-state="done"] .holo-front .holo-sweep {
+    animation: holo-sweep 900ms var(--ease-in-out) 650ms both;
+  }
+}
+
+/* Without motion, the back fades out over the front instead of turning. */
+@media (prefers-reduced-motion: reduce) {
+  .holo-front {
+    transform: none;
+    opacity: 0;
+  }
+
+  .holo-front,
+  .holo-back {
+    transition: opacity 200ms ease;
+  }
+
+  .holo[data-state="done"] .holo-front {
+    opacity: 1;
+  }
+
+  .holo[data-state="done"] .holo-back {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .holo-flipper {
+    transition: transform 850ms var(--ease-turn);
+  }
+
+  .holo[data-state="done"] .holo-flipper {
+    transform: rotateX(180deg);
+  }
+}
+
+/* Jev's read in one sentence at the foot. */
+
+.holo-design {
+  margin-block-start: calc(28 * var(--u));
+  font-size: calc(26 * var(--u));
+  color: var(--muted-foreground);
+}
+
+.holo-design strong {
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--foreground);
+}
+
+.holo-jev {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25em;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.holo-jev-logo {
+  flex: none;
+  block-size: 1.05em;
+  inline-size: auto;
+  align-self: center;
+  overflow: visible;
+}
+
+/* Top row: our URL on the left, the scan's QR code on the right. */
+.holo-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: calc(24 * var(--u));
+}
+
+.holo-qr {
+  flex: none;
+  inline-size: calc(150 * var(--u));
+  aspect-ratio: 1;
+  background-image: var(--holo-ink);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+  mask-image: var(--qr);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
+/* The scanned site wears the same foil ink as the score; the padding keeps descenders inside the painted box. */
+.holo-front .holo-host {
+  padding-block: 0.15em;
+  margin-block: -0.15em;
+  background-image: var(--holo-ink);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

@@ -1,0 +1,32 @@
+{
+  "indigo-500": {
+    "lab": "lab(48.2954 38.3224 -81.9751)",
+    "srgb": "color(srgb 0.38213 0.371924 1.00775)",
+    "gradient": "linear-gradient(to right, oklch(0.585 0.233 277.117), rgb(255, 255, 255))"
+  },
+  "purple-500": {
+    "lab": "lab(52.0182 66.1205 -78.2405)",
+    "srgb": "color(srgb 0.677871 0.275996 1.02715)",
+    "gradient": "linear-gradient(to right, oklch(0.627 0.265 303.9), rgb(255, 255, 255))"
+  },
+  "pink-500": {
+    "lab": "lab(56.9291 76.825 -8.0783)",
+    "srgb": "color(srgb 0.965758 0.198214 0.604372)",
+    "gradient": "linear-gradient(to right, oklch(0.656 0.241 354.308), rgb(255, 255, 255))"
+  },
+  "blue-500": {
+    "lab": "lab(54.1743 13.3451 -74.6915)",
+    "srgb": "color(srgb 0.169184 0.498083 1.02289)",
+    "gradient": "linear-gradient(to right, oklch(0.623 0.214 259.815), rgb(255, 255, 255))"
+  },
+  "emerald-500": {
+    "lab": "lab(66.9761 -58.2727 19.5374)",
+    "srgb": "color(srgb -0.216948 0.73882 0.489318)",
+    "gradient": "linear-gradient(to right, oklch(0.696 0.17 162.48), rgb(255, 255, 255))"
+  },
+  "neutral-500": {
+    "lab": "lab(48.496 0.00193715 -0.00493526)",
+    "srgb": "color(srgb 0.451457 0.451545 0.451553)",
+    "gradient": "linear-gradient(to right, oklch(0.556 0 0), rgb(255, 255, 255))"
+  }
+}

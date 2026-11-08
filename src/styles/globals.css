@@ -1,0 +1,144 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark follows the system only (DESIGN.md › Colour). */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+/* Hover effects only where a pointer can hover (DESIGN.md › States). */
+@custom-variant can-hover (@media (hover: hover) and (pointer: fine));
+
+/* Kanit Black Italic (OFL): the score's face and the wordmark's, like a number on a race bike. */
+@font-face {
+  font-family: "Kanit";
+  src: url("../../assets/fonts/display/Kanit-BlackItalic.ttf")
+    format("truetype");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  --container-column: 43rem;
+  --ease-swap: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --font-weight-book: 450;
+}
+
+@theme inline {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-sans);
+  --font-display: "Kanit", var(--font-sans);
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-faint-foreground: var(--faint-foreground);
+  --color-meter-off: var(--meter-off);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Light, warmed to hue 70. */
+:root {
+  color-scheme: light dark;
+  --background: oklch(0.985 0.002 70);
+  --foreground: oklch(0.22 0.006 70);
+  --card: oklch(0.995 0.002 70);
+  --card-foreground: oklch(0.22 0.006 70);
+  --popover: oklch(0.995 0.002 70);
+  --popover-foreground: oklch(0.22 0.006 70);
+  --primary: oklch(0.22 0.006 70);
+  --primary-foreground: oklch(0.985 0.002 70);
+  --secondary: oklch(0.955 0.003 70);
+  --secondary-foreground: oklch(0.22 0.006 70);
+  --muted: oklch(0.955 0.003 70);
+  --muted-foreground: oklch(0.5 0.008 70);
+  --faint-foreground: oklch(0.54 0.006 70);
+  --accent: oklch(0.955 0.003 70);
+  --accent-foreground: oklch(0.22 0.006 70);
+  --destructive: oklch(0.52 0.17 30);
+  --border: oklch(0.91 0.004 70);
+  --input: oklch(0.64 0.006 70);
+  --ring: oklch(0.5 0.008 70);
+  --meter-off: oklch(0.89 0.004 70);
+  --radius: 0.5rem;
+}
+
+/* Dark, same hue, chroma held low. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.17 0.004 70);
+    --foreground: oklch(0.95 0.003 70);
+    --card: oklch(0.205 0.005 70);
+    --card-foreground: oklch(0.95 0.003 70);
+    --popover: oklch(0.205 0.005 70);
+    --popover-foreground: oklch(0.95 0.003 70);
+    --primary: oklch(0.95 0.003 70);
+    --primary-foreground: oklch(0.17 0.004 70);
+    --secondary: oklch(0.22 0.005 70);
+    --secondary-foreground: oklch(0.95 0.003 70);
+    --muted: oklch(0.22 0.005 70);
+    --muted-foreground: oklch(0.7 0.006 70);
+    --faint-foreground: oklch(0.6 0.006 70);
+    --accent: oklch(0.22 0.005 70);
+    --accent-foreground: oklch(0.95 0.003 70);
+    --destructive: oklch(0.72 0.14 30);
+    --border: oklch(0.28 0.005 70);
+    --input: oklch(0.52 0.006 70);
+    --ring: oklch(0.7 0.006 70);
+    --meter-off: oklch(0.32 0.005 70);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans antialiased;
+    font-variant-ligatures: none;
+    scrollbar-gutter: stable;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-muted-foreground min-h-svh leading-relaxed;
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--foreground) 14%, transparent);
+  }
+}
+
+/* A link in running text: foreground, a quiet underline that darkens on hover. */
+@utility text-link {
+  @apply text-foreground decoration-border can-hover:hover:decoration-muted-foreground cursor-pointer underline underline-offset-3 transition-colors duration-200 ease-out;
+}

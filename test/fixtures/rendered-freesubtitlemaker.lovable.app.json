@@ -1,0 +1,450 @@
+{
+  "url": "https://freesubtitlemaker.lovable.app/",
+  "rendered": {
+    "lang": "en",
+    "pageBackground": "lab(4.3565 0.0705868 -5.96651)",
+    "h1": {
+      "text": "Generate & Edit Professional Video Captions in Seconds",
+      "color": "lab(95.3187 -0.284493 -3.76985)",
+      "fontStyle": "normal",
+      "centered": true
+    },
+    "gradients": [
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.text-gradient",
+        "area": 1258,
+        "isText": true,
+        "top": 21,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(120% 120% at 50% 0%, lab(63.5921 9.6058 -63.9018 / 0.2) 0%, rgba(0, 0, 0, 0) 60%)",
+        "tag": "section.relative.overflow-hidden.bg-gradient-hero",
+        "area": 1346400,
+        "isText": false,
+        "top": 65,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.text-gradient",
+        "area": 88397,
+        "isText": true,
+        "top": 290,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1229,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1229,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1229,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1463,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1463,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1463,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.mx-auto.flex.h-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1937,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.mx-auto.flex.h-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1937,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.mx-auto.flex.h-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1937,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.mx-auto.flex.h-12",
+        "area": 2304,
+        "isText": false,
+        "top": 1937,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 2427,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.absolute.right-4.top-4",
+        "area": 2368,
+        "isText": false,
+        "top": 2419,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 2427,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 2427,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 2693,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(135deg, lab(61.2419 10.0937 -63.852), lab(62.9231 33.3667 -49.8432))",
+        "tag": "span.flex.h-12.w-12",
+        "area": 2304,
+        "isText": false,
+        "top": 2693,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(120% 120% at 50% 0%, lab(63.5921 9.6058 -63.9018 / 0.2) 0%, rgba(0, 0, 0, 0) 60%)",
+        "tag": "div.pointer-events-none.absolute.inset-0",
+        "area": 319580,
+        "isText": false,
+        "top": 3055,
+        "size": "auto"
+      }
+    ],
+    "backdropBlur": [
+      {
+        "tag": "header.sticky.top-0.z-40",
+        "px": 16,
+        "width": 1440,
+        "navBar": true,
+        "bgAlpha": 0.8
+      },
+      {
+        "tag": "span.inline-flex.items-center.gap-1.5",
+        "px": 8,
+        "width": 232,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 226,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 226,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 226,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.rounded-2xl.p-6",
+        "px": 20,
+        "width": 226,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.group.relative",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.group.relative",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.group.relative",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.group.relative",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.group.relative",
+        "px": 20,
+        "width": 352,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "div.glass.relative.overflow-hidden",
+        "px": 20,
+        "width": 1104,
+        "navBar": false,
+        "bgAlpha": 0.6
+      },
+      {
+        "tag": "span.inline-flex.items-center.gap-1.5",
+        "px": 8,
+        "width": 177,
+        "navBar": false,
+        "bgAlpha": 0.6
+      }
+    ],
+    "shadows": [
+      {
+        "css": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(0 0 0 / 0.04) 0px 1px 2px 0px, lab(0 0 0 / 0.06) 0px 8px 24px 0px",
+        "count": 17,
+        "example": "span.flex.h-9.w-9"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+        "count": 9,
+        "example": "button.flex.items-center.justify-between"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.699992 -0.0167348 -0.159101 / 0.6) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+        "count": 1,
+        "example": "div.glass.group.relative"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0.88) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 1px 0px 0px, rgba(0, 0, 0, 0.08) 0px 2px 2px -1px, rgba(0, 0, 0, 0.08) 0px 4px 4px -2px, rgba(0, 0, 0, 0.08) 0px 8px 8px -4px, rgba(0, 0, 0, 0.08) 0px 16px 16px -8px",
+        "count": 1,
+        "example": "aside"
+      }
+    ],
+    "orbs": [
+      {
+        "tag": "div.animate-blob.absolute.-left-32",
+        "blur": 64,
+        "size": "394×394",
+        "background": "oklab(0.699992 -0.0167348 -0.159101 / 0.25)"
+      },
+      {
+        "tag": "div.animate-blob.absolute.right-0",
+        "blur": 64,
+        "size": "338×338",
+        "background": "oklab(0.666998 0.23291 -0.180983 / 0.2)"
+      },
+      {
+        "tag": "div.animate-aurora.absolute.bottom-0",
+        "blur": 64,
+        "size": "288×288",
+        "background": "oklab(0.684991 -0.0912492 -0.142231 / 0.2)"
+      },
+      {
+        "tag": "div.animate-blob.absolute.-left-20",
+        "blur": 64,
+        "size": "296×296",
+        "background": "oklab(0.699992 -0.0167348 -0.159101 / 0.2)"
+      },
+      {
+        "tag": "div.animate-aurora.absolute.bottom-0",
+        "blur": 64,
+        "size": "288×288",
+        "background": "oklab(0.666998 0.23291 -0.180983 / 0.15)"
+      }
+    ],
+    "patterns": [],
+    "stripes": [],
+    "trackedLabels": ["RECOMMENDED"],
+    "buttonFills": [
+      {
+        "css": "lab(63.8705 6.91339 -56.992)",
+        "count": 4
+      },
+      {
+        "css": "lab(4.3565 0.0705868 -5.96651)",
+        "count": 4
+      }
+    ],
+    "hiddenAtRest": {
+      "count": 0,
+      "examples": []
+    },
+    "headlineAccent": {
+      "word": "Professional Video Captions",
+      "colour": null,
+      "italic": false,
+      "font": null,
+      "gradient": true
+    },
+    "faceNames": {
+      "heading": "Sora",
+      "body": "Inter"
+    },
+    "centered": {
+      "total": 49,
+      "centered": 24
+    },
+    "cardGrids": [
+      {
+        "radius": 21.6,
+        "shadow": false,
+        "example": "div.glass.rounded-2xl.p-6"
+      },
+      {
+        "radius": 21.6,
+        "shadow": true,
+        "example": "div.glass.group.relative"
+      }
+    ],
+    "iconTiles": {
+      "count": 15,
+      "lucide": 15,
+      "example": "span.flex.h-12.w-12 (48px, radius 18px, gradient fill)"
+    },
+    "pill": {
+      "text": "Free forever · No login required",
+      "href": null
+    },
+    "statBanner": null,
+    "numbered": null,
+    "emojiIcons": [],
+    "sparkles": 7,
+    "lucideLogo": true,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "fonts": [
+      {
+        "family": "Inter",
+        "glyphs": 1870,
+        "webfont": true
+      },
+      {
+        "family": "Sora",
+        "glyphs": 723,
+        "webfont": true
+      },
+      {
+        "family": ".SF NS",
+        "glyphs": 18,
+        "webfont": false
+      }
+    ],
+    "headingFonts": [
+      {
+        "family": "Sora",
+        "glyphs": 195,
+        "webfont": true
+      }
+    ]
+  }
+}

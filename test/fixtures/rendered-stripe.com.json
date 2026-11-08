@@ -1,0 +1,298 @@
+{
+  "url": "https://stripe.com/en-fr",
+  "rendered": {
+    "lang": "en-fr",
+    "pageBackground": "rgb(255, 255, 255)",
+    "h1": {
+      "text": "Financial infrastructure to grow your revenue. Accept payments, offer financial services and implement custom revenue models – from your first transaction to your billionth.",
+      "color": "rgb(129, 184, 26)",
+      "fontStyle": "normal",
+      "centered": false
+    },
+    "gradients": [
+      {
+        "css": "radial-gradient(circle, rgb(127, 125, 252), rgb(244, 75, 204) 33%, rgb(229, 237, 245) 66%)",
+        "tag": "div.modular-solutions-bento-card__border-color-gradient",
+        "area": 567268,
+        "isText": false,
+        "top": 988,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgb(127, 125, 252), rgb(244, 75, 204) 33%, rgb(229, 237, 245) 66%)",
+        "tag": "div.modular-solutions-bento-card__border-color-gradient",
+        "area": 304704,
+        "isText": false,
+        "top": 1089,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(50% 50%, rgba(83, 58, 253, 0.8) 62.5%, rgba(83, 58, 253, 0) 100%)",
+        "tag": "div.billing-plan-graphic__background-gradient-1",
+        "area": 299808,
+        "isText": false,
+        "top": 1736,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(50% 50%, rgba(243, 99, 243, 0.8) 53.85%, rgba(243, 99, 243, 0) 100%)",
+        "tag": "div.billing-plan-graphic__background-gradient-2",
+        "area": 289201,
+        "isText": false,
+        "top": 1592,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(50% 50%, rgb(255, 207, 94) 41.35%, rgba(255, 207, 94, 0) 100%)",
+        "tag": "div.billing-plan-graphic__background-gradient-3",
+        "area": 304059,
+        "isText": false,
+        "top": 1479,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(rgb(255, 255, 255) 41.35%, rgba(255, 255, 255, 0))",
+        "tag": "div.billing-plan-graphic__background-gradient-4",
+        "area": 217601,
+        "isText": false,
+        "top": 1408,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(90deg, rgb(114, 50, 241) 3.13%, rgb(251, 118, 250) 50%, rgb(255, 207, 94))",
+        "tag": "div.billing-plan-graphic__usage-progress",
+        "area": 2300,
+        "isText": false,
+        "top": 1324,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgb(127, 125, 252), rgb(244, 75, 204) 33%, rgb(229, 237, 245) 66%)",
+        "tag": "div.modular-solutions-bento-card__border-color-gradient",
+        "area": 304704,
+        "isText": false,
+        "top": 1781,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgb(127, 125, 252), rgb(244, 75, 204) 33%, rgb(229, 237, 245) 66%)",
+        "tag": "div.modular-solutions-bento-card__border-color-gradient",
+        "area": 304704,
+        "isText": false,
+        "top": 1781,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgb(127, 125, 252), rgb(244, 75, 204) 33%, rgb(229, 237, 245) 66%)",
+        "tag": "div.modular-solutions-bento-card__border-color-gradient",
+        "area": 304704,
+        "isText": false,
+        "top": 1781,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgb(127, 125, 252), rgb(244, 75, 204) 33%, rgb(229, 237, 245) 66%)",
+        "tag": "div.modular-solutions-bento-card__border-color-gradient",
+        "area": 419094,
+        "isText": false,
+        "top": 2312,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(103.24% 102.63% at 50% 102.63%, rgb(72, 111, 253) 0px, rgb(127, 129, 243) 9.84%, rgb(196, 137, 255) 20.83%, rgb(218, 192, 255) 34.13%, rgb(234, 220, 255) 44.86%, rgb(249, 246, 255) 58.59%, rgb(248, 250, 253) 100%)",
+        "tag": "div.stats-animation-gradient__gradient.stats-animation-gradient__gradient--pre-dawn",
+        "area": 1407578,
+        "isText": false,
+        "top": 3517,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(102.68% 99.11% at 50% 104.6%, rgb(203, 131, 255) 0px, rgb(255, 144, 185) 15.77%, rgb(255, 201, 119) 30.62%, rgb(255, 215, 155) 38.04%, rgb(255, 241, 220) 50.11%, rgb(255, 255, 255) 63.1%, rgb(252, 253, 254) 77.95%, rgb(248, 250, 253) 98.81%)",
+        "tag": "div.stats-animation-gradient__gradient.stats-animation-gradient__gradient--sunrise",
+        "area": 1407578,
+        "isText": false,
+        "top": 3517,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(102.84% 104.98% at 50% 104.98%, rgb(0, 113, 193) 1.33%, rgb(96, 168, 226) 15.71%, rgb(180, 216, 255) 33.15%, rgb(217, 235, 255) 45%, rgb(248, 250, 253) 60%)",
+        "tag": "div.stats-animation-gradient__gradient.stats-animation-gradient__gradient--daytime.stats-animation-gradient__gradient--active",
+        "area": 1407578,
+        "isText": false,
+        "top": 3517,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(102.83% 103.24% at 49.98% 104.51%, rgb(255, 180, 81) 0px, rgb(239, 198, 128) 16.73%, rgb(180, 216, 255) 33.03%, rgb(210, 232, 255) 43.38%, rgb(250, 253, 255) 59.16%, rgb(253, 254, 255) 76.24%, rgb(248, 250, 253) 100%)",
+        "tag": "div.stats-animation-gradient__gradient.stats-animation-gradient__gradient--dusk",
+        "area": 1407578,
+        "isText": false,
+        "top": 3517,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(103.12% 100% at 50% 100%, rgb(255, 165, 119) 0px, rgb(255, 144, 161) 15.52%, rgb(221, 173, 255) 30.09%, rgb(236, 216, 255) 45.72%, rgb(245, 234, 255) 54.96%, rgb(248, 250, 253) 88.16%)",
+        "tag": "div.stats-animation-gradient__gradient.stats-animation-gradient__gradient--sunset",
+        "area": 1407578,
+        "isText": false,
+        "top": 3517,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(102.82% 106.44% at 50% 106.44%, rgb(252, 253, 254) 1.11%, rgb(103, 99, 228) 28.73%, rgb(69, 59, 179) 45.76%, rgb(41, 34, 125) 63.37%, rgb(30, 32, 100) 78.67%, rgb(20, 30, 75) 100%)",
+        "tag": "div.stats-animation-gradient__gradient.stats-animation-gradient__gradient--night",
+        "area": 1407578,
+        "isText": false,
+        "top": 3517,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgb(247, 45, 243), rgb(83, 58, 253) 33%, rgb(229, 237, 245) 66%)",
+        "tag": "div.startups-program-card__border-color-gradient",
+        "area": 115834,
+        "isText": false,
+        "top": 7109,
+        "size": "auto"
+      },
+      {
+        "css": "radial-gradient(circle, rgb(255, 173, 0), rgb(255, 118, 0) 33%, rgb(229, 237, 245) 66%)",
+        "tag": "div.startups-program-card__border-color-gradient",
+        "area": 115834,
+        "isText": false,
+        "top": 7109,
+        "size": "auto"
+      },
+      {
+        "css": "linear-gradient(68deg, rgba(83, 58, 253, 0.08) 0.78%, rgba(255, 140, 108, 0.8) 30.61%, rgba(218, 75, 254, 0.8) 79.02%), none",
+        "tag": "h4.hds-heading.developers-scale-subsection__stats-grid-item-heading--orange.hds-heading--xl",
+        "area": 7579,
+        "isText": false,
+        "top": 10492,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(73.3deg, rgba(218, 75, 254, 0.8) 9.85%, rgba(113, 92, 255, 0.48) 61.94%), none",
+        "tag": "h4.hds-heading.developers-scale-subsection__stats-grid-item-heading--pink.hds-heading--xl",
+        "area": 4903,
+        "isText": false,
+        "top": 10492,
+        "size": "auto, auto"
+      },
+      {
+        "css": "linear-gradient(74.71deg, rgba(83, 58, 253, 0.08) -215.1%, rgba(255, 140, 108, 0.8) -169.26%, rgba(218, 75, 254, 0.8) -12.8%, rgba(113, 92, 255, 0.8) 18.59%, rgba(83, 58, 253, 0.8) 39.04%), none",
+        "tag": "h4.hds-heading.developers-scale-subsection__stats-grid-item-heading--purple.hds-heading--xl",
+        "area": 6186,
+        "isText": false,
+        "top": 10492,
+        "size": "auto, auto"
+      }
+    ],
+    "backdropBlur": [
+      {
+        "tag": "div.browser-graphic__window",
+        "px": 12,
+        "width": 630,
+        "navBar": false,
+        "bgAlpha": 0.45
+      },
+      {
+        "tag": "div.CookieSettings_CookieSettings__H9pSM",
+        "px": 20,
+        "width": 380,
+        "navBar": true,
+        "bgAlpha": 1
+      }
+    ],
+    "shadows": [
+      {
+        "css": "rgba(50, 50, 93, 0.12) 0px 16px 32px 0px",
+        "count": 2,
+        "example": "div.dom-graphic__content.dom-graphic__content--horizontal-scale-left"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0.1) 0px 30px 60px -50px, rgba(50, 50, 93, 0.25) 0px 30px 60px -10px",
+        "count": 1,
+        "example": "div.navigation-menu__background"
+      },
+      {
+        "css": "rgba(23, 23, 23, 0.08) 0px 15px 35px 0px",
+        "count": 1,
+        "example": "div.browser-graphic__window"
+      },
+      {
+        "css": "rgba(23, 23, 23, 0.06) 0px 3px 6px 0px",
+        "count": 1,
+        "example": "div.browser-graphic__page"
+      },
+      {
+        "css": "rgba(0, 0, 0, 0.06) 0px 4px 24px 0px, rgba(0, 0, 0, 0.03) 0px 1px 2px 0px",
+        "count": 1,
+        "example": "div.CookieSettings_CookieSettings__H9pSM"
+      }
+    ],
+    "orbs": [],
+    "patterns": [],
+    "stripes": [],
+    "trackedLabels": [],
+    "buttonFills": [
+      {
+        "css": "rgb(83, 58, 253)",
+        "count": 7
+      },
+      {
+        "css": "rgba(255, 255, 255, 0.65)",
+        "count": 1
+      },
+      {
+        "css": "rgb(255, 255, 255)",
+        "count": 1
+      }
+    ],
+    "hiddenAtRest": {
+      "count": 8,
+      "examples": [
+        "div.payments-graphic__checkout-payment-methods-item { opacity: 0; transform: matrix(1, 0, 0, 1, 0, 0) }",
+        "div.squeezy-carousel__item-details { opacity: 0; transform: matrix(1, 0, 0, 1, -1232, 0) }"
+      ]
+    },
+    "headlineAccent": null,
+    "faceNames": {
+      "heading": "sohne-var",
+      "body": "sohne-var"
+    },
+    "centered": {
+      "total": 72,
+      "centered": 1
+    },
+    "cardGrids": [],
+    "iconTiles": {
+      "count": 0,
+      "lucide": 0,
+      "example": ""
+    },
+    "pill": null,
+    "statBanner": ["500m+", "10k+", "150k+"],
+    "numbered": null,
+    "emojiIcons": [],
+    "sparkles": 0,
+    "lucideLogo": false,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "fonts": [
+      {
+        "family": "Copyright Klim Type Foundry",
+        "glyphs": 1117,
+        "webfont": true
+      }
+    ],
+    "headingFonts": [
+      {
+        "family": "Copyright Klim Type Foundry",
+        "glyphs": 518,
+        "webfont": true
+      }
+    ]
+  }
+}

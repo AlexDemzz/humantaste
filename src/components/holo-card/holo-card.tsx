@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { encode } from "uqr";
 
@@ -7,6 +7,7 @@ import { tierFor } from "@/lib/score";
 import { SITE_HOST } from "@/lib/share";
 import type { ShareCard } from "@/lib/share";
 
+import { HoloPeel } from "./holo-peel";
 import { useTilt } from "./use-tilt";
 
 const HOST_MAX_SIZE = 64;
@@ -18,6 +19,17 @@ const Light = () => (
     <div className="holo-foil" aria-hidden="true" />
     <div className="holo-glare" aria-hidden="true" />
     <div className="holo-sweep" aria-hidden="true" />
+  </>
+);
+
+/** The back's print: the logo over dark foil. The peel-off cover wears it too. */
+const BackArt = () => (
+  <>
+    <div className="holo-back-art">
+      <Logo className="holo-wordmark" />
+      <span className="holo-back-host">{SITE_HOST}</span>
+    </div>
+    <Light />
   </>
 );
 
@@ -113,17 +125,22 @@ const Front = ({ card }: { card: ShareCard }) => (
 /**
  * The scan as a holo card. Without a `card` it shows its back, which sways while the scan runs; nothing printed on it
  * changes. When a `card` arrives it turns once, top over bottom, to the front. Mounted with a `card`, it starts on the front.
+ * With `sealed` (a fresh scan), the card arrives under a cover printed like its back, which the reader peels off.
  */
 export const HoloCard = ({
   slug,
   card,
+  sealed: startSealed = false,
 }: {
   slug: string;
   card: ShareCard | null;
+  sealed?: boolean;
 }) => {
   const ref = useRef<HTMLElement>(null);
+  const [sealed, setSealed] = useState(startSealed);
   const done = card !== null;
-  useTilt(ref, { idle: !done });
+  const covered = done && sealed;
+  useTilt(ref, { idle: !done, still: covered });
 
   return (
     <div className="holo-stage">
@@ -131,6 +148,7 @@ export const HoloCard = ({
         ref={ref}
         className="holo"
         data-state={done ? "done" : "loading"}
+        data-sealed={covered || undefined}
         data-tier={card ? tierFor(card.score) : undefined}
         aria-busy={!done}
         aria-label={
@@ -141,11 +159,7 @@ export const HoloCard = ({
       >
         <div className="holo-flipper">
           <div className="holo-side holo-back" aria-hidden={done}>
-            <div className="holo-back-art">
-              <Logo className="holo-wordmark" />
-              <span className="holo-back-host">{SITE_HOST}</span>
-            </div>
-            <Light />
+            <BackArt />
           </div>
           <div className="holo-side holo-front" aria-hidden={!done}>
             <div className="holo-etch" aria-hidden="true" />
@@ -153,6 +167,11 @@ export const HoloCard = ({
             <Light />
           </div>
         </div>
+        {covered && (
+          <HoloPeel onRevealed={() => setSealed(false)}>
+            <BackArt />
+          </HoloPeel>
+        )}
       </article>
     </div>
   );

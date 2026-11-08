@@ -85,7 +85,8 @@ const settled = (a: Axis) =>
 /**
  * Springs the card toward the pointer and writes the result as custom properties on the card:
  * --rx/--ry (tilt in deg), --px/--py (pointer, 0–100 %), --hyp (0 at the centre, 1 at a corner), --active (0–1).
- * With `idle`, the card sways on its own until the pointer takes over.
+ * With `idle`, the card sways on its own until the pointer takes over. With `still`, the card springs flat and the
+ * light comes to rest; only the phone's gyroscope still moves it, since the phone itself is tilting.
  *
  * On touch-only screens the card stays flat: --rx/--ry hold at 0deg and the phone's gyroscope moves only the light,
  * measured from the pose the phone rests in and clamped at ±20°. iOS asks for gyroscope access on the first tap on the
@@ -93,12 +94,16 @@ const settled = (a: Axis) =>
  */
 export const useTilt = (
   ref: RefObject<HTMLElement | null>,
-  { idle = false }: { idle?: boolean } = {}
+  { idle = false, still = false }: { idle?: boolean; still?: boolean } = {}
 ) => {
   const idleRef = useRef(idle);
+  const stillRef = useRef(still);
+  const wakeRef = useRef<(() => void) | null>(null);
   useLayoutEffect(() => {
     idleRef.current = idle;
-  }, [idle]);
+    stillRef.current = still;
+    wakeRef.current?.();
+  }, [idle, still]);
   useEffect(() => {
     const el = ref.current;
     if (!el || prefersReducedMotion()) {
@@ -107,6 +112,7 @@ export const useTilt = (
     const x = axis(0.5);
     const y = axis(0.5);
     const active = axis(0);
+    const lean = axis(stillRef.current ? 0 : 1);
     const flat = isTouchOnly();
     let hovering = false;
     let gyro = false;
@@ -119,7 +125,7 @@ export const useTilt = (
     const write = () => {
       const dx = x.value - 0.5;
       const dy = y.value - 0.5;
-      const tilt = flat ? 0 : 2 * MAX_TILT_DEG;
+      const tilt = flat ? 0 : 2 * MAX_TILT_DEG * lean.value;
       el.style.setProperty("--rx", `${(-dy * tilt).toFixed(2)}deg`);
       el.style.setProperty("--ry", `${(dx * tilt).toFixed(2)}deg`);
       el.style.setProperty("--px", `${(x.value * 100).toFixed(2)}%`);
@@ -135,17 +141,25 @@ export const useTilt = (
       const dt = Math.min(0.032, (now - last) / 1000);
       last = now;
       const swaying = idleRef.current && !gyro;
-      if (!(hovering || gyro)) {
+      if (stillRef.current && !gyro) {
+        // A card that isn't moving reflects nothing new: the light rests until the card tilts again.
+        x.target = 0.5;
+        y.target = 0.5;
+        active.target = 0;
+      } else if (!(hovering || gyro)) {
         const t = (now - started) / 1000;
         x.target = swaying ? 0.5 + Math.sin(t * 1.1) * 0.28 : 0.5;
         y.target = swaying ? 0.5 + Math.cos(t * 0.8) * 0.18 : 0.5;
       }
       step(x, dt);
       step(y, dt);
+      lean.target = stillRef.current ? 0 : 1;
       step(active, dt);
+      step(lean, dt);
       write();
       frame =
-        swaying || !(settled(x) && settled(y) && settled(active))
+        swaying ||
+        !(settled(x) && settled(y) && settled(active) && settled(lean))
           ? requestAnimationFrame(tick)
           : 0;
     };
@@ -156,9 +170,10 @@ export const useTilt = (
         frame = requestAnimationFrame(tick);
       }
     };
+    wakeRef.current = wake;
 
     const onMove = (event: PointerEvent) => {
-      if (gyro) {
+      if (gyro || stillRef.current) {
         return;
       }
       const rect = el.getBoundingClientRect();
@@ -245,6 +260,7 @@ export const useTilt = (
     wake();
     return () => {
       disposed = true;
+      wakeRef.current = null;
       cancelAnimationFrame(frame);
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerleave", onLeave);

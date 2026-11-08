@@ -145,7 +145,11 @@ const Scan = () => {
             ? `${slug} scores ${result.score} out of 100`
             : `Scoring ${slug}`}
         </h1>
-        <HoloCard slug={slug} card={result && cardFromResult(result)} />
+        <HoloCard
+          slug={slug}
+          card={result && cardFromResult(result)}
+          sealed={initial === null}
+        />
         {result ? (
           <>
             <ShareActions result={result} />

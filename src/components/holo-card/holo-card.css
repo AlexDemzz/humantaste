@@ -72,7 +72,8 @@
     oklch(0.6 0.16 300) 30%,
     oklch(0.58 0.2 340) 36%
   );
-  --holo-ink: repeating-linear-gradient(
+  /* The foil ink. Tiers swap --holo-ink; the peel-off cover keeps the foil whatever the tier. */
+  --holo-foil-ink: repeating-linear-gradient(
     115deg,
     oklch(0.82 0.13 330) 0%,
     oklch(0.8 0.12 270) 10%,
@@ -81,6 +82,7 @@
     oklch(0.88 0.12 80) 40%,
     oklch(0.82 0.13 330) 50%
   );
+  --holo-ink: var(--holo-foil-ink);
 
   /* The card is always dark, whatever the page's theme: light-dark() tokens resolve to their dark side inside it. */
   color-scheme: dark;
@@ -108,9 +110,15 @@
   transition: --lit 700ms var(--ease-out) 300ms;
 }
 
+/* Under the cover the front stays unlit; it lights up once the cover is off. */
+.holo[data-state="done"][data-sealed] {
+  --lit: 0;
+}
+
 /* Two sides back to back. */
 
 .holo-flipper {
+  grid-area: 1 / 1;
   display: grid;
   border-radius: var(--holo-radius);
   transform-style: preserve-3d;
@@ -375,7 +383,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .holo[data-state="done"] .holo-front .holo-sweep {
+  .holo[data-state="done"]:not([data-sealed]) .holo-front .holo-sweep {
     animation: holo-sweep 900ms var(--ease-in-out) 650ms both;
   }
 }
@@ -408,6 +416,11 @@
 
   .holo[data-state="done"] .holo-flipper {
     transform: rotateX(180deg);
+  }
+
+  /* A sealed card turns at once: the cover wears the back's print, so the turn can't be seen. */
+  .holo[data-sealed] .holo-flipper {
+    transition: none;
   }
 }
 
@@ -650,9 +663,255 @@
     animation-iteration-count: 2;
   }
 
-  .holo[data-tier="prismatic"] .holo-front .holo-foil,
-  .holo[data-tier="prismatic"] .holo-etch,
-  .holo[data-tier="prismatic"] .holo-front::after {
+  .holo[data-tier="prismatic"]:not([data-sealed]) .holo-front .holo-foil,
+  .holo[data-tier="prismatic"]:not([data-sealed]) .holo-etch,
+  .holo[data-tier="prismatic"]:not([data-sealed]) .holo-front::after {
     animation: holo-flare 1400ms var(--ease-out) 250ms backwards;
+  }
+}
+
+/* Peel-off cover: a fresh scan lands under a cover printed like the back. holo-peel.tsx writes the clip paths and the
+   fold's mirror every frame. */
+
+.holo-peel {
+  grid-area: 1 / 1;
+  position: relative;
+  display: grid;
+  /* Off the front's plane, so the cover never fights it for depth. */
+  transform: translateZ(1px);
+  pointer-events: none;
+}
+
+.holo-peel-film,
+.holo-peel-shade {
+  grid-area: 1 / 1;
+}
+
+.holo-peel-shade {
+  position: relative;
+  opacity: 0;
+  overflow: clip;
+  border-radius: var(--holo-radius);
+}
+
+/* A strip that starts on the fold line and runs toward the lifted corner; its width is the fold's depth. */
+.holo-peel-band {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  transform-origin: 0 50%;
+}
+
+.holo-peel-shade .holo-peel-band {
+  background: linear-gradient(
+    to right,
+    oklch(0 0 none / 0.55) 0%,
+    oklch(0 0 none / 0.18) 18%,
+    transparent 55%
+  );
+}
+
+/* The lifted part, turned about the fold. holo-peel.tsx writes its transform and its shadow. */
+.holo-peel-flap {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+/* Its top face is the cover's own print; its underside is bare foil. Only one shows at a time. */
+.holo-peel-top,
+.holo-peel-under {
+  position: absolute;
+  inset: 0;
+  /* Until the first frame is laid out, nothing is lifted. */
+  visibility: hidden;
+}
+
+/* The cover is a reflection only while it moves: flat on the card, it shows its print and no glare. */
+.holo-peel .holo-glare,
+.holo-peel .holo-sweep {
+  display: none;
+}
+
+.holo-peel-under {
+  overflow: clip;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  border-radius: var(--holo-radius);
+  background:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      oklch(1 0 none / 0.12) 0 calc(2 * var(--u)),
+      transparent calc(2 * var(--u)) calc(14 * var(--u))
+    ),
+    var(--holo-foil-ink);
+  background-size:
+    auto,
+    140% 140%;
+}
+
+/* The crease catches the light; the far end of the flap curls into shadow. */
+.holo-peel-under .holo-peel-band {
+  background: linear-gradient(
+    to right,
+    oklch(1 0 none / 0.75) 0%,
+    oklch(1 0 none / 0.2) 14%,
+    transparent 40%,
+    oklch(0 0 none / 0.22) 100%
+  );
+}
+
+/* Darkens a face as it turns away from the viewer. */
+.holo-peel-dim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: oklch(0 0 none);
+  opacity: 0;
+}
+
+/* The tab: the same plastic run past the rounded corner. Drawn in card units around the corner (holo-peel.tsx). */
+.holo-peel-tab {
+  position: absolute;
+  left: calc(100% - 80 * var(--u));
+  top: calc(100% - 80 * var(--u));
+  inline-size: calc(160 * var(--u));
+  block-size: calc(160 * var(--u));
+  overflow: visible;
+}
+
+.holo-tab-ink-0 {
+  stop-color: oklch(0.28 0.025 215 / 0.92);
+}
+
+.holo-tab-ink-1 {
+  stop-color: oklch(0.33 0.02 225 / 0.62);
+}
+
+.holo-tab-ink-2 {
+  stop-color: oklch(0.5 0.012 240 / 0.2);
+}
+
+.holo-tab-ink-3 {
+  stop-color: oklch(0.62 0.01 250 / 0.08);
+}
+
+.holo-tab-light {
+  stop-color: oklch(1 0 none / 0.7);
+}
+
+.holo-tab-clear {
+  stop-color: oklch(1 0 none / 0);
+}
+
+/* The mask keeps the plastic outside the card and cuts away whatever falls inside its rounded corner. */
+.holo-tab-keep {
+  fill: oklch(1 0 none);
+}
+
+.holo-tab-cut {
+  fill: oklch(0 0 none);
+}
+
+/* The cut edge of the plastic: a hairline. */
+.holo-peel-tab-body {
+  stroke: oklch(0.5 0.01 250 / 0.25);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Light runs across the plastic only while it turns; holo-peel.tsx writes the opacity from the turning speed. */
+.holo-peel-sheen {
+  opacity: 0;
+}
+
+/* The opening instruction, printed in the cover's ink beside the tab. */
+.holo-peel-print {
+  align-self: end;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  margin-inline-end: calc(64 * var(--u));
+  margin-block-end: calc(34 * var(--u));
+  font-size: calc(26 * var(--u));
+  font-weight: 500;
+  line-height: 1;
+  color: oklch(0.92 0.008 250 / 0.7);
+}
+
+.holo-peel-print svg {
+  inline-size: calc(26 * var(--u));
+  block-size: calc(26 * var(--u));
+}
+
+/* The hit area around the tab: bigger than it looks, and it takes the drag from the page's scroll. */
+.holo-peel-grip {
+  position: absolute;
+  inset-inline-end: -24px;
+  inset-block-end: -24px;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 9999px;
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.holo-peel-grip:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--ring) 50%, transparent);
+  outline-offset: 0;
+}
+
+.holo-peel[data-dragging] .holo-peel-grip,
+.holo-peel[data-dragging] .holo-peel-under {
+  cursor: grabbing;
+}
+
+/* The hand that shows the gesture: a white glove with an ink outline, like the system's grab cursor. */
+.holo-peel-hand {
+  --hand: 44px;
+
+  position: absolute;
+  inset-block-start: calc(var(--hand) * -0.3);
+  inset-inline-start: calc(var(--hand) * -0.45);
+  inline-size: var(--hand);
+  block-size: var(--hand);
+  opacity: 0;
+  transform-origin: 45% 30%;
+  filter: drop-shadow(0 2px 3px oklch(0 0 none / 0.35));
+}
+
+.holo-hand-open,
+.holo-hand-grab {
+  position: absolute;
+  inset: 0;
+}
+
+.holo-peel-hand svg {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.holo-hand-fill {
+  color: oklch(1 0 none);
+}
+
+.holo-hand-line {
+  color: oklch(0.2 0.005 60);
+}
+
+.holo-peel-hand[data-grab="true"] .holo-hand-open,
+.holo-peel-hand:not([data-grab="true"]) .holo-hand-grab {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo-peel {
+    display: none;
   }
 }

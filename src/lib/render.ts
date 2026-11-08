@@ -3,6 +3,7 @@ import type { Browser, Page, Response } from "@cloudflare/playwright";
 import { env } from "cloudflare:workers";
 
 import { COLLECT } from "./collect";
+import { withinDeadline } from "./deadline";
 import { errorMessage } from "./errors";
 import { CSS_LIMIT, MAX_STYLESHEETS } from "./fetch-page";
 import type { Stylesheet } from "./fetch-page";
@@ -16,6 +17,8 @@ const LOAD_GRACE_MS = 8000;
 export const VIEWPORT = { width: 1440, height: 900 };
 const FONT_SAMPLE_SELECTOR = "h1, h2, h3, h4, p, li, a, button, label, span";
 const FONT_SAMPLE_LIMIT = 160;
+const FONT_SAMPLE_BUDGET_MS = 8000;
+const RENDER_BUDGET_MS = 55_000;
 
 const settle = async (
   page: Page,
@@ -29,8 +32,11 @@ const settle = async (
   }
 };
 
-/** Asks Chrome which font files actually painted the text, so next/font aliases and fallbacks resolve to real names. */
-const collectFonts = async (
+/**
+ * Asks Chrome which font files actually painted the text, so next/font aliases and fallbacks resolve to real names.
+ * A page busy animating answers each query slowly, so the sample ends when its budget does.
+ */
+export const collectFonts = async (
   page: Page,
   selector: string
 ): Promise<RenderedFont[]> => {
@@ -44,7 +50,11 @@ const collectFonts = async (
       selector,
     });
     const totals = new Map<string, RenderedFont>();
+    const deadline = Date.now() + FONT_SAMPLE_BUDGET_MS;
     for (const nodeId of nodeIds.slice(0, FONT_SAMPLE_LIMIT)) {
+      if (Date.now() >= deadline) {
+        break;
+      }
       try {
         // oxlint-disable-next-line no-await-in-loop -- one CDP query at a time keeps up to 160 node lookups from flooding the session
         const { fonts } = await cdp.send("CSS.getPlatformFontsForNode", {
@@ -113,73 +123,92 @@ const readStylesheet = async (
   }
 };
 
+/**
+ * A page animating on its main thread can take minutes to answer the reads that follow, so its scripts stop once it has
+ * painted. The CDP session stays attached because the override ends with it.
+ */
+const freezeScripts = async (page: Page): Promise<void> => {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setScriptExecutionDisabled", { value: true });
+};
+
+const readPage = async (
+  browser: Browser,
+  url: string
+): Promise<RenderOutput> => {
+  const context = await browser.newContext({
+    viewport: VIEWPORT,
+    colorScheme: "light",
+    deviceScaleFactor: 1,
+    serviceWorkers: "block",
+  });
+  const page = await context.newPage();
+  const hostCache = new Map<string, Promise<boolean>>();
+  await page.route("**/*", async (route) => {
+    const target = new URL(route.request().url());
+    if (target.protocol === "data:" || target.protocol === "blob:") {
+      await route.continue();
+      return;
+    }
+    if (target.protocol !== "http:" && target.protocol !== "https:") {
+      await route.abort("blockedbyclient");
+      return;
+    }
+    let ok = hostCache.get(target.hostname);
+    if (!ok) {
+      ok = resolvesPublic(target.hostname);
+      hostCache.set(target.hostname, ok);
+    }
+    const allowed = await ok;
+    await (allowed ? route.continue() : route.abort("blockedbyclient"));
+  });
+  const stylesheets: Promise<Stylesheet | null>[] = [];
+  page.on("response", (response) => {
+    if (
+      response.request().resourceType() !== "stylesheet" ||
+      stylesheets.length >= MAX_STYLESHEETS
+    ) {
+      return;
+    }
+    stylesheets.push(readStylesheet(response));
+  });
+  const mainDocument = await page.goto(url, {
+    waitUntil: "domcontentloaded",
+    timeout: NAV_TIMEOUT_MS,
+  });
+  await settle(page, "load", LOAD_GRACE_MS);
+  await settle(page, "networkidle", 4000);
+  await page.waitForTimeout(SETTLE_MS);
+  await freezeScripts(page);
+  await page.evaluate("document.fonts.ready");
+
+  const collected = (await page.evaluate(COLLECT)) as Omit<
+    RenderedFacts,
+    "fonts" | "headingFonts"
+  >;
+  const fonts = await collectFonts(page, FONT_SAMPLE_SELECTOR);
+  const headingFonts = await collectFonts(page, "h1, h2");
+  const screenshot = await page.screenshot({ type: "jpeg", quality: 70 });
+  const html = await page.content();
+  const loaded = await Promise.all(stylesheets);
+  return {
+    documentStatus: mainDocument?.status() ?? null,
+    finalUrl: page.url(),
+    facts: { ...collected, fonts, headingFonts },
+    html,
+    stylesheets: loaded.filter((sheet): sheet is Stylesheet => sheet !== null),
+    screenshot,
+  };
+};
+
 export const renderPage = async (url: string): Promise<RenderOutput> => {
   const browser = await launchBrowser();
   try {
-    const context = await browser.newContext({
-      viewport: VIEWPORT,
-      colorScheme: "light",
-      deviceScaleFactor: 1,
-      serviceWorkers: "block",
-    });
-    const page = await context.newPage();
-    const hostCache = new Map<string, Promise<boolean>>();
-    await page.route("**/*", async (route) => {
-      const target = new URL(route.request().url());
-      if (target.protocol === "data:" || target.protocol === "blob:") {
-        await route.continue();
-        return;
-      }
-      if (target.protocol !== "http:" && target.protocol !== "https:") {
-        await route.abort("blockedbyclient");
-        return;
-      }
-      let ok = hostCache.get(target.hostname);
-      if (!ok) {
-        ok = resolvesPublic(target.hostname);
-        hostCache.set(target.hostname, ok);
-      }
-      const allowed = await ok;
-      await (allowed ? route.continue() : route.abort("blockedbyclient"));
-    });
-    const stylesheets: Promise<Stylesheet | null>[] = [];
-    page.on("response", (response) => {
-      if (
-        response.request().resourceType() !== "stylesheet" ||
-        stylesheets.length >= MAX_STYLESHEETS
-      ) {
-        return;
-      }
-      stylesheets.push(readStylesheet(response));
-    });
-    const mainDocument = await page.goto(url, {
-      waitUntil: "domcontentloaded",
-      timeout: NAV_TIMEOUT_MS,
-    });
-    await settle(page, "load", LOAD_GRACE_MS);
-    await settle(page, "networkidle", 4000);
-    await page.waitForTimeout(SETTLE_MS);
-    await page.evaluate("document.fonts.ready");
-
-    const collected = (await page.evaluate(COLLECT)) as Omit<
-      RenderedFacts,
-      "fonts" | "headingFonts"
-    >;
-    const fonts = await collectFonts(page, FONT_SAMPLE_SELECTOR);
-    const headingFonts = await collectFonts(page, "h1, h2");
-    const screenshot = await page.screenshot({ type: "jpeg", quality: 70 });
-    const html = await page.content();
-    const loaded = await Promise.all(stylesheets);
-    return {
-      documentStatus: mainDocument?.status() ?? null,
-      finalUrl: page.url(),
-      facts: { ...collected, fonts, headingFonts },
-      html,
-      stylesheets: loaded.filter(
-        (sheet): sheet is Stylesheet => sheet !== null
-      ),
-      screenshot,
-    };
+    return await withinDeadline(
+      readPage(browser, url),
+      RENDER_BUDGET_MS,
+      "the page took too long to read"
+    );
   } finally {
     await browser.close();
   }

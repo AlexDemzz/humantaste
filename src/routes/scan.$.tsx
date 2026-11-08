@@ -88,33 +88,41 @@ const ScanMeta = ({ result }: { result: AnalysisResult }) => {
  * A stored scan is known from the first render and shows its card at once.
  */
 const Scan = () => {
-  const { slug, stored, invalid, pending } = Route.useLoaderData();
+  const { slug, stored, invalid } = Route.useLoaderData();
   // oxlint-disable-next-line react/hook-use-state -- the first outcome is fixed for this mount; it decides whether the evidence fades in
   const [initial] = useState<ScanOutcome | null>(
     () => invalid ?? (stored ? { ok: true, result: stored } : null)
   );
-  const [outcome, setOutcome] = useState(initial);
+  const [settled, setSettled] = useState(initial);
+  // "Score again" reloads the route, so a stored report is always the newest one.
+  const outcome: ScanOutcome | null = stored
+    ? { ok: true, result: stored }
+    : settled;
   const [revealed, setRevealed] = useState(initial !== null);
   const reveal = useCallback(() => setRevealed(true), []);
 
+  // The browser asks for the scan itself: a promise streamed from SSR dies with the stream's 60s serialization timeout.
   useEffect(() => {
+    if (initial) {
+      return;
+    }
     let live = true;
     const settle = async () => {
       let next: ScanOutcome;
       try {
-        next = await pending;
+        next = await runScanFn({ data: { slug } });
       } catch (error) {
         next = failure(error);
       }
       if (live) {
-        setOutcome(next);
+        setSettled(next);
       }
     };
     settle();
     return () => {
       live = false;
     };
-  }, [pending]);
+  }, [initial, slug]);
 
   if (outcome && !outcome.ok) {
     return (
@@ -219,21 +227,13 @@ export const Route = createFileRoute("/scan/$")({
             ? error.message
             : "Enter a web address, like linear.app.",
       };
-      return {
-        slug: raw,
-        stored: null,
-        invalid,
-        pending: Promise.resolve(invalid),
-      };
+      return { slug: raw, stored: null, invalid };
     }
     if (slug !== raw) {
       throw redirect({ to: "/scan/$", params: { _splat: slug } });
     }
     const stored = await peekScanFn({ data: slug });
-    const pending: Promise<ScanOutcome> = stored
-      ? Promise.resolve({ ok: true, result: stored })
-      : runScanFn({ data: { slug } });
-    return { slug, stored, invalid: null, pending };
+    return { slug, stored, invalid: null };
   },
   head: ({ loaderData }) => {
     const links = [{ rel: "stylesheet", href: holoCardCss }];

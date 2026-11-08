@@ -7,7 +7,6 @@ import { BlockedUrlError } from "./net-guard";
 import { reserveDailyScan } from "./quota.server";
 import type { QuotaRefusal } from "./quota.server";
 import { BrowserUnavailableError } from "./render";
-import { takeScanLease } from "./scan-lease.server";
 import { runScan } from "./scan.server";
 import { loadScan } from "./store.server";
 import { InvalidTargetError, parseTarget } from "./target";
@@ -16,7 +15,14 @@ import type { AnalysisResult } from "./types";
 
 export type ScanOutcome =
   | { ok: true; result: AnalysisResult }
-  | { ok: false; error: string };
+  /** `refused` marks a limit on this visitor, which says nothing about anyone else waiting on the same scan. */
+  | { ok: false; error: string; refused?: true };
+
+export interface ScanRequest {
+  target: Target;
+  fresh: boolean;
+  ip: string;
+}
 
 const QUOTA_REFUSALS: Record<QuotaRefusal, string> = {
   client:
@@ -24,12 +30,11 @@ const QUOTA_REFUSALS: Record<QuotaRefusal, string> = {
   site: "Everyone has scored as many pages as we can take today. Existing reports are still here; score a new page tomorrow.",
 };
 
-const SCORING_IN_PROGRESS =
-  "This page is being scored right now. Reload in a minute to see its report.";
+const SCAN_INTERRUPTED = "Scoring was interrupted. Try again in a minute.";
 
 type ScanAdmission =
   | { ok: true; release: () => Promise<void> }
-  | { ok: false; error: string };
+  | { ok: false; error: string; refused: true };
 
 const admitScan = async (ip: string): Promise<ScanAdmission> => {
   if (import.meta.env.DEV) {
@@ -41,15 +46,20 @@ const admitScan = async (ip: string): Promise<ScanAdmission> => {
     return {
       ok: false,
       error: "That's a lot of pages in a row. Give it a few minutes.",
+      refused: true,
     };
   }
   const reservation = await reserveDailyScan(key);
   return reservation.ok
     ? reservation
-    : { ok: false, error: QUOTA_REFUSALS[reservation.refusedBy] };
+    : {
+        ok: false,
+        error: QUOTA_REFUSALS[reservation.refusedBy],
+        refused: true,
+      };
 };
 
-/** A failed give-back must not replace the visitor's report or the scan's own error; leases expire and quotas reset. */
+/** A failed give-back must not replace the visitor's report or the scan's own error; quotas reset. */
 const giveBack = async (
   what: string,
   release: () => Promise<void>
@@ -84,10 +94,11 @@ const friendlyError = (error: unknown): string => {
   return "Couldn't fetch that page. Check the address and try again.";
 };
 
-const scanWithinQuota = async (target: Target): Promise<ScanOutcome> => {
-  const admission = await admitScan(
-    getRequestHeader("cf-connecting-ip") ?? "unknown"
-  );
+const scanWithinQuota = async (
+  target: Target,
+  ip: string
+): Promise<ScanOutcome> => {
+  const admission = await admitScan(ip);
   if (!admission.ok) {
     return admission;
   }
@@ -99,7 +110,24 @@ const scanWithinQuota = async (target: Target): Promise<ScanOutcome> => {
   }
 };
 
-/** The stored report unless a fresh scan is asked for; otherwise one leased, quota-limited scan. Never throws: errors come back as readable text. */
+/** Runs inside the site's Durable Object, where the store is read again: a scan may have ended since the visitor asked. */
+export const attemptScan = async ({
+  target,
+  fresh,
+  ip,
+}: ScanRequest): Promise<ScanOutcome> => {
+  try {
+    const stored = fresh ? null : await loadScan(target.slug);
+    if (stored) {
+      return { ok: true, result: stored };
+    }
+    return await scanWithinQuota(target, ip);
+  } catch (error) {
+    return { ok: false, error: friendlyError(error) };
+  }
+};
+
+/** The stored report without waiting on any rescan, else the site's one running scan. Never throws: errors come back as readable text. */
 export const requestScan = async (
   slug: string,
   { fresh = false } = {}
@@ -110,17 +138,17 @@ export const requestScan = async (
     if (stored) {
       return { ok: true, result: stored };
     }
-    const lease = await takeScanLease(target.slug);
-    if (!lease) {
-      return { ok: false, error: SCORING_IN_PROGRESS };
-    }
-    try {
-      return await scanWithinQuota(target);
-    } finally {
-      await giveBack("lease", lease.release);
-    }
+    return await env.SITE_SCAN.getByName(target.slug).scan({
+      target,
+      fresh,
+      ip: getRequestHeader("cf-connecting-ip") ?? "unknown",
+    });
   } catch (error) {
-    return { ok: false, error: friendlyError(error) };
+    return {
+      ok: false,
+      error:
+        error instanceof InvalidTargetError ? error.message : SCAN_INTERRUPTED,
+    };
   }
 };
 

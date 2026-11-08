@@ -1,13 +1,13 @@
-import { chromium } from "playwright-core";
-import type { Browser, Page } from "playwright-core";
+import { launch } from "@cloudflare/playwright";
+import type { Browser, Page, Response } from "@cloudflare/playwright";
+import { env } from "cloudflare:workers";
 
 import { COLLECT } from "./collect";
+import { CSS_LIMIT, MAX_STYLESHEETS } from "./fetch-page";
+import type { Stylesheet } from "./fetch-page";
 import { resolvesPublic } from "./net-guard";
 import type { RenderedFacts, RenderedFont } from "./types";
 
-const CHROME_PATH =
-  process.env.CHROME_PATH ??
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const NAV_TIMEOUT_MS = 15_000;
 const SETTLE_MS = 1200;
 /** Slow trackers and chat widgets can hold the load event forever; the page is usually painted long before. */
@@ -15,36 +15,6 @@ const LOAD_GRACE_MS = 8000;
 export const VIEWPORT = { width: 1440, height: 900 };
 const FONT_SAMPLE_SELECTOR = "h1, h2, h3, h4, p, li, a, button, label, span";
 const FONT_SAMPLE_LIMIT = 160;
-
-let browserPromise: Promise<Browser> | null = null;
-
-const launchBrowser = async (): Promise<Browser> => {
-  try {
-    return await chromium.launch({
-      executablePath: CHROME_PATH,
-      headless: true,
-    });
-  } catch (error) {
-    browserPromise = null;
-    throw error;
-  }
-};
-
-const getBrowser = (): Promise<Browser> => {
-  if (!browserPromise) {
-    browserPromise = launchBrowser();
-  }
-  return browserPromise;
-};
-
-export const closeBrowser = async (): Promise<void> => {
-  const pending = browserPromise;
-  browserPromise = null;
-  if (pending) {
-    const browser = await pending;
-    await browser.close();
-  }
-};
 
 const settle = async (
   page: Page,
@@ -99,20 +69,56 @@ const collectFonts = async (
 };
 
 export interface RenderOutput {
+  finalUrl: string;
   facts: RenderedFacts;
   html: string;
+  /** What the browser loaded, for when the site refused to serve the stylesheets to us directly. */
+  stylesheets: Stylesheet[];
   screenshot: Buffer;
 }
 
-export const renderPage = async (url: string): Promise<RenderOutput> => {
-  const browser = await getBrowser();
-  const context = await browser.newContext({
-    viewport: VIEWPORT,
-    colorScheme: "light",
-    deviceScaleFactor: 1,
-    serviceWorkers: "block",
-  });
+/** No browser could be had: the scan must not be stored, or the site would keep a static-only score. */
+export class BrowserUnavailableError extends Error {
+  override name = "BrowserUnavailableError";
+}
+
+const launchBrowser = async (): Promise<Browser> => {
   try {
+    return await launch(env.BROWSER);
+  } catch (error) {
+    console.error(
+      JSON.stringify({
+        message: "browser launch failed",
+        error: error instanceof Error ? error.message : String(error),
+      })
+    );
+    throw new BrowserUnavailableError(
+      "Scoring is busy right now. Try again in a minute.",
+      { cause: error }
+    );
+  }
+};
+
+const readStylesheet = async (
+  response: Response
+): Promise<Stylesheet | null> => {
+  try {
+    const text = await response.text();
+    return { href: response.url(), text: text.slice(0, CSS_LIMIT) };
+  } catch {
+    return null;
+  }
+};
+
+export const renderPage = async (url: string): Promise<RenderOutput> => {
+  const browser = await launchBrowser();
+  try {
+    const context = await browser.newContext({
+      viewport: VIEWPORT,
+      colorScheme: "light",
+      deviceScaleFactor: 1,
+      serviceWorkers: "block",
+    });
     const page = await context.newPage();
     const hostCache = new Map<string, Promise<boolean>>();
     await page.route("**/*", async (route) => {
@@ -133,6 +139,16 @@ export const renderPage = async (url: string): Promise<RenderOutput> => {
       const allowed = await ok;
       await (allowed ? route.continue() : route.abort("blockedbyclient"));
     });
+    const stylesheets: Promise<Stylesheet | null>[] = [];
+    page.on("response", (response) => {
+      if (
+        response.request().resourceType() !== "stylesheet" ||
+        stylesheets.length >= MAX_STYLESHEETS
+      ) {
+        return;
+      }
+      stylesheets.push(readStylesheet(response));
+    });
     await page.goto(url, {
       waitUntil: "domcontentloaded",
       timeout: NAV_TIMEOUT_MS,
@@ -150,8 +166,17 @@ export const renderPage = async (url: string): Promise<RenderOutput> => {
     const headingFonts = await collectFonts(page, "h1, h2");
     const screenshot = await page.screenshot({ type: "jpeg", quality: 70 });
     const html = await page.content();
-    return { facts: { ...collected, fonts, headingFonts }, html, screenshot };
+    const loaded = await Promise.all(stylesheets);
+    return {
+      finalUrl: page.url(),
+      facts: { ...collected, fonts, headingFonts },
+      html,
+      stylesheets: loaded.filter(
+        (sheet): sheet is Stylesheet => sheet !== null
+      ),
+      screenshot,
+    };
   } finally {
-    await context.close();
+    await browser.close();
   }
 };

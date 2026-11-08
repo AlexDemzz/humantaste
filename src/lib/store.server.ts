@@ -1,93 +1,94 @@
 import { createHash } from "node:crypto";
-import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
-import path from "node:path";
+
+import { env } from "cloudflare:workers";
 
 import { METHODOLOGY } from "./signals";
-import type { AnalysisResult } from "./types";
-
-const DIR =
-  process.env.SCAN_CACHE_DIR ?? path.join(process.cwd(), ".cache", "scans");
-export const SCAN_TTL_MS = 24 * 60 * 60 * 1000;
-
-const keyOf = (slug: string) =>
-  createHash("sha256").update(slug).digest("hex").slice(0, 32);
+import type { AnalysisResult, VisualRead } from "./types";
 
 export interface StoredScan {
   result: AnalysisResult;
-  screenshot: Buffer | null;
+  screenshot: Uint8Array | null;
+  screenshotHash: string | null;
 }
 
+export interface RecentScan {
+  slug: string;
+  score: number;
+}
+
+const shotKey = (slug: string) => `shots/${encodeURIComponent(slug)}.jpg`;
+
+/** A site's latest scan. One scored under an older methodology counts as missing, so the page offers a new scan. */
 export const loadScan = async (
   slug: string
 ): Promise<AnalysisResult | null> => {
-  try {
-    const result = JSON.parse(
-      await readFile(path.join(DIR, `${keyOf(slug)}.json`), "utf-8")
-    ) as AnalysisResult;
-    const fresh = Date.now() - Date.parse(result.analyzedAt) < SCAN_TTL_MS;
-    return fresh && result.methodology === METHODOLOGY ? result : null;
-  } catch {
-    return null;
-  }
+  const row = await env.DB.prepare(
+    "SELECT result FROM scans WHERE slug = ? AND methodology = ?"
+  )
+    .bind(slug, METHODOLOGY)
+    .first<{ result: string }>();
+  return row ? (JSON.parse(row.result) as AnalysisResult) : null;
 };
 
-export const loadScreenshot = async (slug: string): Promise<Buffer | null> => {
-  try {
-    return await readFile(path.join(DIR, `${keyOf(slug)}.jpg`));
-  } catch {
-    return null;
-  }
+export const shotHash = (screenshot: Uint8Array): string =>
+  createHash("sha256").update(screenshot).digest("hex");
+
+export const loadVisual = async (
+  slug: string,
+  screenshotHash: string
+): Promise<VisualRead | null> => {
+  const row = await env.DB.prepare(
+    "SELECT json_extract(result, '$.visual') AS visual FROM scans WHERE slug = ? AND methodology = ? AND shot_hash = ?"
+  )
+    .bind(slug, METHODOLOGY, screenshotHash)
+    .first<{ visual: string | null }>();
+  return row?.visual ? (JSON.parse(row.visual) as VisualRead) : null;
 };
 
-const writeAtomic = async (
-  file: string,
-  data: string | Buffer
-): Promise<void> => {
-  const temp = `${file}.${process.pid}.tmp`;
-  await writeFile(temp, data);
-  await rename(temp, file);
+export const loadScreenshot = async (
+  slug: string
+): Promise<ReadableStream | null> => {
+  const object = await env.SHOTS.get(shotKey(slug));
+  return object?.body ?? null;
 };
 
+/** Replaces the site's previous scan: only "Score again" calls for a new one. */
 export const saveScan = async (
   slug: string,
-  { result, screenshot }: StoredScan
+  { result, screenshot, screenshotHash }: StoredScan
 ): Promise<void> => {
-  await mkdir(DIR, { recursive: true });
-  const key = keyOf(slug);
   if (screenshot) {
-    await writeAtomic(path.join(DIR, `${key}.jpg`), screenshot);
+    await env.SHOTS.put(shotKey(slug), screenshot, {
+      httpMetadata: { contentType: "image/jpeg" },
+    });
   }
-  await writeAtomic(path.join(DIR, `${key}.json`), JSON.stringify(result));
+  await env.DB.prepare(
+    `INSERT INTO scans (slug, methodology, score, analyzed_at, result, shot_hash)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT (slug) DO UPDATE SET
+       methodology = excluded.methodology,
+       score = excluded.score,
+       analyzed_at = excluded.analyzed_at,
+       result = excluded.result,
+       shot_hash = excluded.shot_hash`
+  )
+    .bind(
+      slug,
+      result.methodology,
+      result.score,
+      result.analyzedAt,
+      JSON.stringify(result),
+      screenshotHash
+    )
+    .run();
 };
 
-/** The freshest stored scans, newest first, for the home page. */
-export const recentScans = async (limit: number): Promise<AnalysisResult[]> => {
-  let names: string[];
-  try {
-    names = await readdir(DIR);
-  } catch {
-    return [];
-  }
-  const results = await Promise.all(
-    names
-      .filter((name) => name.endsWith(".json"))
-      .map(async (name) => {
-        try {
-          return JSON.parse(
-            await readFile(path.join(DIR, name), "utf-8")
-          ) as AnalysisResult;
-        } catch {
-          return null;
-        }
-      })
-  );
-  return results
-    .filter(
-      (result): result is AnalysisResult =>
-        result !== null &&
-        result.methodology === METHODOLOGY &&
-        Date.now() - Date.parse(result.analyzedAt) < SCAN_TTL_MS
-    )
-    .toSorted((a, b) => Date.parse(b.analyzedAt) - Date.parse(a.analyzedAt))
-    .slice(0, limit);
+/** The latest scans under the current methodology, newest first, for the home page. */
+export const recentScans = async (limit: number): Promise<RecentScan[]> => {
+  const { results } = await env.DB.prepare(
+    "SELECT slug, score FROM scans WHERE methodology = ? ORDER BY analyzed_at DESC LIMIT ?"
+  )
+    .bind(METHODOLOGY, limit)
+    .all<RecentScan>();
+  return results;
 };

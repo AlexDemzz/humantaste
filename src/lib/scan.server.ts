@@ -1,7 +1,9 @@
 import { extractStatic } from "./extract";
-import { fetchPage } from "./fetch-page";
+import { fetchPage, inlineStyles, SiteRefusedError } from "./fetch-page";
+import type { FetchedPage } from "./fetch-page";
 import { visualRead } from "./judge.server";
-import { renderPage } from "./render";
+import { BrowserUnavailableError, renderPage } from "./render";
+import type { RenderOutput } from "./render";
 import { scoreFromPoints, verdictFor } from "./score";
 import {
   evaluateCredits,
@@ -10,67 +12,112 @@ import {
   rawPoints,
   tellPoints,
 } from "./signals";
-import { loadScan, saveScan } from "./store.server";
+import { loadScan, loadVisual, saveScan, shotHash } from "./store.server";
 import type { Target } from "./target";
-import type { AnalysisResult, RenderedFacts, VisualRead } from "./types";
+import type { AnalysisResult, VisualRead } from "./types";
 
-const MAX_CONCURRENT_RENDERS = 2;
-const inFlight = new Map<string, Promise<AnalysisResult>>();
-let running = 0;
-const queue: (() => void)[] = [];
-
-const withSlot = async <T>(task: () => Promise<T>): Promise<T> => {
-  if (running >= MAX_CONCURRENT_RENDERS) {
-    // oxlint-disable-next-line promise/avoid-new -- parks the task until a render slot frees; the queue holds its resolver
-    await new Promise<void>((resolve) => {
-      queue.push(resolve);
-    });
-  }
-  running += 1;
+/** Bot shields often refuse a Worker's request but let a real browser through. */
+const fetchUnlessRefused = async (
+  url: string
+): Promise<FetchedPage | SiteRefusedError> => {
   try {
-    return await task();
-  } finally {
-    running -= 1;
-    queue.shift()?.();
+    return await fetchPage(url);
+  } catch (error) {
+    if (error instanceof SiteRefusedError) {
+      return error;
+    }
+    throw error;
   }
 };
 
-const analyze = async (target: Target): Promise<AnalysisResult> => {
-  const page = await fetchPage(target.url);
-  const notes = [...page.notes];
+interface PageSource {
+  finalUrl: string;
+  html: string;
+  css: string[];
+}
 
-  let rendered: RenderedFacts | null = null;
-  let renderedHtml: string | null = null;
-  let screenshot: Buffer | null = null;
+/** The fetched page when the site served it, else what the browser loaded. */
+const readSource = (
+  page: FetchedPage | null,
+  render: RenderOutput | null,
+  notes: string[]
+): PageSource | null => {
+  if (page) {
+    return {
+      finalUrl: page.finalUrl,
+      html: render?.html ?? page.html,
+      css: page.css.map((sheet) => sheet.text),
+    };
+  }
+  if (!render) {
+    return null;
+  }
+  notes.push(
+    "The site refused a direct request, so the HTML and CSS were read from the rendered page."
+  );
+  return {
+    finalUrl: render.finalUrl,
+    html: render.html,
+    css: [...render.stylesheets, ...inlineStyles(render.html)].map(
+      (sheet) => sheet.text
+    ),
+  };
+};
+
+/** The page rendered byte for byte the same: the previous Jev read still holds, and costs no second call. */
+const readVisual = async (
+  shot: { slug: string; screenshot: Buffer; screenshotHash: string },
+  url: string,
+  notes: string[]
+): Promise<VisualRead | null> => {
   try {
-    ({
-      facts: rendered,
-      html: renderedHtml,
-      screenshot,
-    } = await renderPage(page.finalUrl));
+    const reused = await loadVisual(shot.slug, shot.screenshotHash);
+    return reused ?? (await visualRead(shot.screenshot, url));
   } catch (error) {
+    notes.push(
+      `The visual read failed (${error instanceof Error ? error.message : "unknown error"}), so tell points are unweighted.`
+    );
+    return null;
+  }
+};
+
+export const runScan = async (target: Target): Promise<AnalysisResult> => {
+  const fetched = await fetchUnlessRefused(target.url);
+  const page = fetched instanceof SiteRefusedError ? null : fetched;
+  const notes = page ? [...page.notes] : [];
+
+  let render: RenderOutput | null = null;
+  try {
+    render = await renderPage(page?.finalUrl ?? target.url);
+  } catch (error) {
+    if (error instanceof BrowserUnavailableError) {
+      throw error;
+    }
     notes.push(
       `Rendering failed (${error instanceof Error ? error.message.split("\n")[0] : "unknown error"}), so layout checks were skipped.`
     );
   }
 
-  let visual: VisualRead | null = null;
-  if (screenshot) {
-    try {
-      visual = await visualRead(screenshot, page.finalUrl);
-    } catch (error) {
-      notes.push(
-        `The visual read failed (${error instanceof Error ? error.message : "unknown error"}), so tell points are unweighted.`
-      );
-    }
+  const source = readSource(page, render, notes);
+  if (!source) {
+    throw fetched;
   }
+  const rendered = render?.facts ?? null;
+  const screenshot = render?.screenshot ?? null;
+
+  const screenshotHash = screenshot ? shotHash(screenshot) : null;
+  const visual =
+    screenshot && screenshotHash
+      ? await readVisual(
+          { slug: target.slug, screenshot, screenshotHash },
+          source.finalUrl,
+          notes
+        )
+      : null;
 
   const facts = {
-    url: page.finalUrl,
-    static: extractStatic(
-      renderedHtml ?? page.html,
-      page.css.map((c) => c.text)
-    ),
+    url: source.finalUrl,
+    static: extractStatic(source.html, source.css),
     rendered,
   };
   const signals = evaluateSignals(facts);
@@ -81,7 +128,7 @@ const analyze = async (target: Target): Promise<AnalysisResult> => {
     slug: target.slug,
     methodology: METHODOLOGY,
     url: target.url,
-    finalUrl: page.finalUrl,
+    finalUrl: source.finalUrl,
     score,
     verdict: verdictFor(score),
     signals,
@@ -95,37 +142,9 @@ const analyze = async (target: Target): Promise<AnalysisResult> => {
     notes,
     analyzedAt: new Date().toISOString(),
   };
-  await saveScan(target.slug, { result, screenshot });
+  await saveScan(target.slug, { result, screenshot, screenshotHash });
   return result;
-};
-
-const analyzeOnce = async (target: Target): Promise<AnalysisResult> => {
-  try {
-    return await withSlot(() => analyze(target));
-  } finally {
-    inFlight.delete(target.slug);
-  }
 };
 
 export const peekScan = (target: Target): Promise<AnalysisResult | null> =>
   loadScan(target.slug);
-
-/** Returns the stored scan when it is fresh, otherwise scans once, however many requests ask at the same time. */
-export const getScan = async (
-  target: Target,
-  { fresh = false } = {}
-): Promise<AnalysisResult> => {
-  if (!fresh) {
-    const stored = await loadScan(target.slug);
-    if (stored) {
-      return stored;
-    }
-  }
-  const pending = inFlight.get(target.slug);
-  if (pending) {
-    return pending;
-  }
-  const job = analyzeOnce(target);
-  inFlight.set(target.slug, job);
-  return job;
-};

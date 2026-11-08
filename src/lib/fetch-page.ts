@@ -1,21 +1,20 @@
 import * as cheerio from "cheerio";
-import { Agent, fetch } from "undici";
 
-import { assertSafeUrl, BlockedUrlError, guardedLookup } from "./net-guard";
+import {
+  assertResolvesPublic,
+  assertSafeUrl,
+  BlockedUrlError,
+} from "./net-guard";
 
 const HTML_LIMIT = 3 * 1024 * 1024;
-const CSS_LIMIT = 2 * 1024 * 1024;
-const MAX_STYLESHEETS = 12;
+export const CSS_LIMIT = 2 * 1024 * 1024;
+export const MAX_STYLESHEETS = 12;
+/** Answers a bot shield gives a Worker's request while a real browser still gets the page. */
+const REFUSAL_STATUSES = new Set([401, 403, 429, 503]);
 const MAX_REDIRECTS = 5;
 const TIMEOUT_MS = 8000;
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0 Safari/537.36 humantaste/0.1";
-
-const agent = new Agent({
-  connect: { lookup: guardedLookup as never, timeout: TIMEOUT_MS },
-  headersTimeout: TIMEOUT_MS,
-  bodyTimeout: TIMEOUT_MS,
-});
 
 const readLimited = async (
   body: ReadableStream<Uint8Array> | null,
@@ -47,6 +46,25 @@ const readLimited = async (
   return { text: Buffer.concat(chunks).toString("utf-8"), truncated };
 };
 
+export class SiteRefusedError extends Error {
+  override name = "SiteRefusedError";
+}
+
+export interface Stylesheet {
+  href: string;
+  text: string;
+}
+
+export const inlineStyles = (html: string): Stylesheet[] => {
+  const $ = cheerio.load(html);
+  return $("style")
+    .map((index, el) => ({
+      href: `inline <style> #${index + 1}`,
+      text: $(el).text(),
+    }))
+    .get();
+};
+
 export const safeGet = async (
   rawUrl: string,
   limit: number,
@@ -60,8 +78,8 @@ export const safeGet = async (
   let current = assertSafeUrl(rawUrl);
   /* oxlint-disable no-await-in-loop -- each redirect hop needs the previous response's location */
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+    await assertResolvesPublic(current.hostname);
     const res = await fetch(current, {
-      dispatcher: agent,
       redirect: "manual",
       headers: { "user-agent": USER_AGENT, accept, "accept-language": "en" },
       signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -77,12 +95,12 @@ export const safeGet = async (
     }
     if (!res.ok) {
       await res.body?.cancel();
-      throw new Error(`The site answered ${res.status}.`);
+      const message = `The site answered ${res.status}.`;
+      throw REFUSAL_STATUSES.has(res.status)
+        ? new SiteRefusedError(message)
+        : new Error(message);
     }
-    const { text, truncated } = await readLimited(
-      res.body as ReadableStream<Uint8Array> | null,
-      limit
-    );
+    const { text, truncated } = await readLimited(res.body, limit);
     return {
       url: current.toString(),
       text,
@@ -97,7 +115,7 @@ export const safeGet = async (
 export interface FetchedPage {
   finalUrl: string;
   html: string;
-  css: { href: string; text: string }[];
+  css: Stylesheet[];
   notes: string[];
 }
 
@@ -146,8 +164,10 @@ export const fetchPage = async (rawUrl: string): Promise<FetchedPage> => {
       }
     })
   );
-  $("style").each((index, el) => {
-    css.push({ href: `inline <style> #${index + 1}`, text: $(el).text() });
-  });
-  return { finalUrl: page.url, html: page.text, css, notes };
+  return {
+    finalUrl: page.url,
+    html: page.text,
+    css: [...css, ...inlineStyles(page.text)],
+    notes,
+  };
 };

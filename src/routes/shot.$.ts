@@ -8,11 +8,11 @@ export const Route = createFileRoute("/shot/$")({
     handlers: {
       GET: async ({ params }) => {
         try {
-          const jpg = await loadScreenshot(
+          const shot = await loadScreenshot(
             parseTarget((params._splat ?? "").replace(/\.jpg$/u, "")).slug
           );
-          if (jpg) {
-            return new Response(new Uint8Array(jpg), {
+          if (shot) {
+            return new Response(shot, {
               headers: {
                 "content-type": "image/jpeg",
                 "cache-control": "public, max-age=3600",

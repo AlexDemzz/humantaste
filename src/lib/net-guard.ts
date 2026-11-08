@@ -1,5 +1,4 @@
-import { lookup as dnsLookup } from "node:dns";
-import { lookup as dnsLookupAll } from "node:dns/promises";
+import { resolve4, resolve6 } from "node:dns/promises";
 import { BlockList, isIP } from "node:net";
 
 const blocked = new BlockList();
@@ -33,6 +32,9 @@ for (const [net, prefix] of [
   blocked.addSubnet(net, prefix, "ipv6");
 }
 
+const unbracket = (hostname: string): string =>
+  hostname.replaceAll(/^\[|\]$/gu, "");
+
 export const isPublicIp = (ip: string): boolean => {
   const family = isIP(ip);
   if (family === 0) {
@@ -58,6 +60,24 @@ export const isPublicIp = (ip: string): boolean => {
   return !blocked.check(ip, "ipv4");
 };
 
+/** An IPv6 customer gets a whole /64, so abuse limits count the network rather than the address. */
+export const clientKey = (ip: string): string => {
+  if (isIP(ip) !== 6 || ip.includes(".")) {
+    return ip;
+  }
+  const [head = "", tail] = ip.toLowerCase().split("::");
+  const left = head ? head.split(":") : [];
+  const right = tail ? tail.split(":") : [];
+  const zeros = Array.from(
+    { length: tail === undefined ? 0 : 8 - left.length - right.length },
+    () => "0"
+  );
+  return [...left, ...zeros, ...right]
+    .slice(0, 4)
+    .map((group) => group.replace(/^0+(?=.)/u, ""))
+    .join(":");
+};
+
 export class BlockedUrlError extends Error {
   override name = "BlockedUrlError";
 }
@@ -78,7 +98,7 @@ export const assertSafeUrl = (raw: string): URL => {
   if (url.username || url.password) {
     throw new BlockedUrlError("URLs with credentials can't be scored.");
   }
-  const host = url.hostname.replaceAll(/^\[|\]$/gu, "");
+  const host = unbracket(url.hostname);
   if (
     host === "localhost" ||
     host.endsWith(".localhost") ||
@@ -96,58 +116,38 @@ export const assertSafeUrl = (raw: string): URL => {
   return url;
 };
 
-type LookupCallback = (
-  err: NodeJS.ErrnoException | null,
-  address: string | { address: string; family: number }[],
-  family?: number
-) => void;
-
-/* oxlint-disable promise/prefer-await-to-callbacks -- implements Node's callback-style dns.lookup contract for the undici connector */
-/** A dns.lookup replacement that refuses to resolve to private addresses (defeats DNS rebinding at connect time). */
-export const guardedLookup = (
-  hostname: string,
-  options: { all?: boolean } & Record<string, unknown>,
-  callback: LookupCallback
-): void => {
-  dnsLookup(hostname, { ...options, all: true }, (err, addresses) => {
-    if (err) {
-      callback(err, []);
-      return;
-    }
-    const list = addresses as { address: string; family: number }[];
-    const bad = list.find((entry) => !isPublicIp(entry.address));
-    const [first] = list;
-    if (bad || !first) {
-      callback(
-        Object.assign(new Error(`Blocked private address for ${hostname}`), {
-          code: "EBLOCKED",
-        }),
-        []
-      );
-      return;
-    }
-    if (options.all) {
-      callback(null, list);
-      return;
-    }
-    callback(null, first.address, first.family);
-  });
+const resolveAll = async (host: string): Promise<string[]> => {
+  const [v4, v6] = await Promise.all([
+    resolve4(host).catch(() => []),
+    resolve6(host).catch(() => []),
+  ]);
+  return [...v4, ...v6];
 };
-/* oxlint-enable promise/prefer-await-to-callbacks */
 
 export const resolvesPublic = async (hostname: string): Promise<boolean> => {
-  const host = hostname.replaceAll(/^\[|\]$/gu, "");
+  const host = unbracket(hostname);
   if (isIP(host)) {
     return isPublicIp(host);
   }
-  let addresses: { address: string }[];
-  try {
-    addresses = await dnsLookupAll(host, { all: true });
-  } catch {
-    return false;
+  const addresses = await resolveAll(host);
+  return addresses.length > 0 && addresses.every(isPublicIp);
+};
+
+/** Cloudflare already refuses private destinations at connect time; checking first turns its bare 530 into a reason people can act on. */
+export const assertResolvesPublic = async (hostname: string): Promise<void> => {
+  const host = unbracket(hostname);
+  if (isIP(host)) {
+    return;
   }
-  return (
-    addresses.length > 0 &&
-    addresses.every((entry) => isPublicIp(entry.address))
-  );
+  const addresses = await resolveAll(host);
+  if (addresses.length === 0) {
+    throw new BlockedUrlError(
+      "That domain doesn't resolve. Check the spelling."
+    );
+  }
+  if (!addresses.every(isPublicIp)) {
+    throw new BlockedUrlError(
+      "That host resolves to a private address, so it can't be scored."
+    );
+  }
 };

@@ -1,7 +1,11 @@
-import { getRequestIP } from "@tanstack/react-start/server";
+import { getRequestHeader } from "@tanstack/react-start/server";
+import { env } from "cloudflare:workers";
 
-import { BlockedUrlError } from "./net-guard";
-import { getScan, peekScan } from "./scan.server";
+import { BlockedUrlError, clientKey } from "./net-guard";
+import { takeDailyScan } from "./quota.server";
+import type { QuotaRefusal } from "./quota.server";
+import { BrowserUnavailableError } from "./render";
+import { peekScan, runScan } from "./scan.server";
 import { InvalidTargetError, parseTarget } from "./target";
 import type { AnalysisResult } from "./types";
 
@@ -9,47 +13,37 @@ export type ScanOutcome =
   | { ok: true; result: AnalysisResult }
   | { ok: false; error: string };
 
-const FRESH_SCANS_PER_WINDOW = 8;
-const WINDOW_MS = 10 * 60 * 1000;
-const freshScans = new Map<string, number[]>();
+const QUOTA_REFUSALS: Record<QuotaRefusal, string> = {
+  client:
+    "You've used today's scans. Existing reports are still here; score a new page tomorrow.",
+  site: "Today's scans have run out for everyone. Existing reports are still here; score a new page tomorrow.",
+};
 
-const allowFreshScan = (ip: string): boolean => {
+/** Why this client can't start a scan right now, or null when it can. */
+const scanRefusal = async (ip: string): Promise<string | null> => {
   if (import.meta.env.DEV) {
-    return true;
+    return null;
   }
-  const now = Date.now();
-  const recent = (freshScans.get(ip) ?? []).filter(
-    (at) => now - at < WINDOW_MS
-  );
-  if (recent.length >= FRESH_SCANS_PER_WINDOW) {
-    freshScans.set(ip, recent);
-    return false;
+  const key = clientKey(ip);
+  const { success } = await env.SCAN_LIMITER.limit({ key });
+  if (!success) {
+    return "That's a lot of scans in a row. Give it a few minutes.";
   }
-  recent.push(now);
-  freshScans.set(ip, recent);
-  return true;
+  const refusal = await takeDailyScan(key);
+  return refusal ? QUOTA_REFUSALS[refusal] : null;
 };
 
 const friendlyError = (error: unknown): string => {
   if (error instanceof InvalidTargetError) {
     return error.message;
   }
-  const cause =
-    error instanceof Error && error.cause instanceof Error
-      ? ` ${error.cause.message} ${(error.cause as NodeJS.ErrnoException).code ?? ""}`
-      : "";
-  const message = error instanceof Error ? `${error.message}${cause}` : "";
-  if (/EBLOCKED|Blocked private/u.test(message)) {
-    return "That host resolves to a private address, so it can't be scored.";
-  }
-  if (/ENOTFOUND|getaddrinfo/u.test(message)) {
-    return "That domain doesn't resolve.";
-  }
+  const message = error instanceof Error ? error.message : "";
   if (/timeout|aborted/iu.test(message)) {
     return "The site took too long to answer.";
   }
   if (
     error instanceof BlockedUrlError ||
+    error instanceof BrowserUnavailableError ||
     /answered|redirect|HTML page/iu.test(message)
   ) {
     return message;
@@ -68,13 +62,13 @@ export const requestScan = async (
     if (stored) {
       return { ok: true, result: stored };
     }
-    if (!allowFreshScan(getRequestIP({ xForwardedFor: true }) ?? "unknown")) {
-      return {
-        ok: false,
-        error: "That's a lot of scans in a row. Give it a few minutes.",
-      };
+    const refusal = await scanRefusal(
+      getRequestHeader("cf-connecting-ip") ?? "unknown"
+    );
+    if (refusal) {
+      return { ok: false, error: refusal };
     }
-    return { ok: true, result: await getScan(target, { fresh }) };
+    return { ok: true, result: await runScan(target) };
   } catch (error) {
     return { ok: false, error: friendlyError(error) };
   }

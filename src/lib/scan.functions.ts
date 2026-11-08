@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import type { ScanOutcome } from "./scan-request.server";
+import type { RecentScan } from "./store.server";
 import type { AnalysisResult } from "./types";
 
 export type { ScanOutcome } from "./scan-request.server";
+export type { RecentScan } from "./store.server";
 
 export const peekScanFn = createServerFn({ method: "GET" })
   .validator((slug: string) => slug)
@@ -19,15 +21,9 @@ export const runScanFn = createServerFn({ method: "POST" })
     return requestScan(data.slug, { fresh: data.fresh });
   });
 
-export interface RecentScan {
-  slug: string;
-  score: number;
-}
-
 export const recentScansFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<RecentScan[]> => {
     const { recentScans } = await import("./store.server");
-    const scans = await recentScans(12);
-    return scans.map(({ slug, score }) => ({ slug, score }));
+    return recentScans(12);
   }
 );

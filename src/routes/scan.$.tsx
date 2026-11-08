@@ -230,18 +230,23 @@ export const Route = createFileRoute("/scan/$")({
       stored?.verdict ??
       "How much of this page did a person choose? 0 is a pure AI template, 100 is every choice made on purpose.";
     const image = `${SITE_URL}${cardPath(slug)}`;
+    const imageMeta = stored
+      ? [
+          { property: "og:image", content: image },
+          { property: "og:image:width", content: "1200" },
+          { property: "og:image:height", content: "630" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:image", content: image },
+        ]
+      : [{ name: "twitter:card", content: "summary" }];
     return {
       meta: [
         { title },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:image", content: image },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
-        { name: "twitter:image", content: image },
+        ...imageMeta,
       ],
       links,
     };

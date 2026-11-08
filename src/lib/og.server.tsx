@@ -11,7 +11,7 @@ import type { ShareCard } from "./share";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
-/** A scan is cached on disk until it is rescanned, so its card can sit at the edge for a day. */
+/** A scan is kept until it is rescanned, so its card can sit at the edge for a day. */
 export const OG_CACHE = "public, max-age=3600, s-maxage=86400";
 
 /** The card's dark tokens from holo-card.css and styles.css, in hex: the renderer has no oklch(). */
@@ -573,7 +573,7 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
 export const renderShareCard = async (
   card: ShareCard
 ): Promise<ArrayBuffer> => {
-  const { ImageResponse } = await import("@cf-wasm/og/node");
+  const { ImageResponse } = await import("@cf-wasm/og");
   const image = new ImageResponse(<ShareCardImage card={card} />, {
     ...OG_SIZE,
     fonts: [

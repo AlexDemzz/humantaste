@@ -95,7 +95,7 @@ export const safeGet = async (
     }
     if (!res.ok) {
       await res.body?.cancel();
-      const message = `The site answered ${res.status}.`;
+      const message = `The site answered ${res.status}. Check the address, or try again in a few minutes.`;
       throw REFUSAL_STATUSES.has(res.status)
         ? new SiteRefusedError(message)
         : new Error(message);

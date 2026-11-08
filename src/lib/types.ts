@@ -179,6 +179,8 @@ export interface AnalysisResult {
   /** Raw measurements from the rendered page, for anyone who wants to check the maths. */
   renderedFacts: RenderedFacts | null;
   hasScreenshot: boolean;
+  /** The render or the visual read broke, so this result was shown but not stored. Absent on reports stored before this flag existed. */
+  degraded?: boolean;
   notes: string[];
   analyzedAt: string;
 }

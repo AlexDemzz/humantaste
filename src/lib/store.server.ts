@@ -1,14 +1,17 @@
-import { createHash } from "node:crypto";
-
 import { env } from "cloudflare:workers";
 
+import { sha256Hex } from "./sha256";
 import { METHODOLOGY } from "./signals";
 import type { AnalysisResult, VisualRead } from "./types";
 
+export interface Screenshot {
+  bytes: Buffer;
+  hash: string;
+}
+
 export interface StoredScan {
   result: AnalysisResult;
-  screenshot: Uint8Array | null;
-  screenshotHash: string | null;
+  screenshot: Screenshot | null;
 }
 
 export interface RecentScan {
@@ -30,8 +33,8 @@ export const loadScan = async (
   return row ? (JSON.parse(row.result) as AnalysisResult) : null;
 };
 
-export const shotHash = (screenshot: Uint8Array): string =>
-  createHash("sha256").update(screenshot).digest("hex");
+export const hashScreenshot = (screenshot: Uint8Array): string =>
+  sha256Hex(screenshot);
 
 export const loadVisual = async (
   slug: string,
@@ -55,10 +58,10 @@ export const loadScreenshot = async (
 /** Replaces the site's previous scan: only "Score again" calls for a new one. */
 export const saveScan = async (
   slug: string,
-  { result, screenshot, screenshotHash }: StoredScan
+  { result, screenshot }: StoredScan
 ): Promise<void> => {
   if (screenshot) {
-    await env.SHOTS.put(shotKey(slug), screenshot, {
+    await env.SHOTS.put(shotKey(slug), screenshot.bytes, {
       httpMetadata: { contentType: "image/jpeg" },
     });
   }
@@ -78,12 +81,11 @@ export const saveScan = async (
       result.score,
       result.analyzedAt,
       JSON.stringify(result),
-      screenshotHash
+      screenshot?.hash ?? null
     )
     .run();
 };
 
-/** The latest scans under the current methodology, newest first, for the home page. */
 export const recentScans = async (limit: number): Promise<RecentScan[]> => {
   const { results } = await env.DB.prepare(
     "SELECT slug, score FROM scans WHERE methodology = ? ORDER BY analyzed_at DESC LIMIT ?"

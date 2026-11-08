@@ -4,7 +4,7 @@
   "main": "@tanstack/react-start/server-entry",
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": true,
+  "workers_dev": false,
   "routes": [{ "pattern": "humantaste.xyz", "custom_domain": true }],
   "observability": { "enabled": true, "traces": { "enabled": true } },
   "browser": { "binding": "BROWSER", "remote": true },

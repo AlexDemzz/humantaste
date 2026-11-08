@@ -3,6 +3,7 @@ import type { Browser, Page, Response } from "@cloudflare/playwright";
 import { env } from "cloudflare:workers";
 
 import { COLLECT } from "./collect";
+import { errorMessage } from "./errors";
 import { CSS_LIMIT, MAX_STYLESHEETS } from "./fetch-page";
 import type { Stylesheet } from "./fetch-page";
 import { resolvesPublic } from "./net-guard";
@@ -69,6 +70,8 @@ const collectFonts = async (
 };
 
 export interface RenderOutput {
+  /** Null when the navigation produced no response for the main document. */
+  documentStatus: number | null;
   finalUrl: string;
   facts: RenderedFacts;
   html: string;
@@ -89,7 +92,7 @@ const launchBrowser = async (): Promise<Browser> => {
     console.error(
       JSON.stringify({
         message: "browser launch failed",
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage(error, String(error)),
       })
     );
     throw new BrowserUnavailableError(
@@ -149,7 +152,7 @@ export const renderPage = async (url: string): Promise<RenderOutput> => {
       }
       stylesheets.push(readStylesheet(response));
     });
-    await page.goto(url, {
+    const mainDocument = await page.goto(url, {
       waitUntil: "domcontentloaded",
       timeout: NAV_TIMEOUT_MS,
     });
@@ -168,6 +171,7 @@ export const renderPage = async (url: string): Promise<RenderOutput> => {
     const html = await page.content();
     const loaded = await Promise.all(stylesheets);
     return {
+      documentStatus: mainDocument?.status() ?? null,
       finalUrl: page.url(),
       facts: { ...collected, fonts, headingFonts },
       html,

@@ -1,11 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { resolve4, resolve6 } from "node:dns/promises";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  assertResolvesPublic,
   assertSafeUrl,
   BlockedUrlError,
-  clientKey,
   isPublicIp,
+  resolvesPublic,
 } from "@/lib/net-guard";
+
+vi.mock("node:dns/promises", () => ({
+  resolve4: vi.fn(),
+  resolve6: vi.fn(),
+}));
 
 describe("SSRF guard", () => {
   it.each([
@@ -42,15 +50,48 @@ describe("SSRF guard", () => {
     expect(isPublicIp("::ffff:c0a8:1")).toBe(false);
     expect(isPublicIp("::ffff:808:808")).toBe(true);
   });
+});
 
-  it("counts one IPv6 network as one client, however the address is written", () => {
-    const key = clientKey("2a01:e0a:12:340:aaaa:bbbb:cccc:1");
-    expect(clientKey("2A01:0E0A:0012:0340:1111::2")).toBe(key);
-    expect(clientKey("2a01:e0a:12:341::1")).not.toBe(key);
-    expect(clientKey("2001:db8::1")).toBe(clientKey("2001:db8:0:0:ffff::9"));
+const answers = (v4: string[] | null, v6: string[] | null) => {
+  vi.mocked(resolve4).mockImplementation(() =>
+    v4 ? Promise.resolve(v4) : Promise.reject(new Error("ENOTFOUND"))
+  );
+  vi.mocked(resolve6).mockImplementation(() =>
+    v6 ? Promise.resolve(v6) : Promise.reject(new Error("ENODATA"))
+  );
+};
+
+describe("host resolution", () => {
+  beforeEach(() => {
+    vi.mocked(resolve4).mockReset();
+    vi.mocked(resolve6).mockReset();
   });
 
-  it("keeps each IPv4 address as its own client", () => {
-    expect(clientKey("8.8.8.8")).not.toBe(clientKey("8.8.8.9"));
+  it("treats a host with one failing address family as resolved", async () => {
+    answers(["8.8.8.8"], null);
+    await expect(resolvesPublic("example.com")).resolves.toBe(true);
+    await expect(assertResolvesPublic("example.com")).resolves.toBeUndefined();
+  });
+
+  it("refuses a host when any address is private, and says what to do", async () => {
+    answers(["8.8.8.8"], ["fd00::1"]);
+    await expect(resolvesPublic("example.com")).resolves.toBe(false);
+    await expect(assertResolvesPublic("example.com")).rejects.toThrow(
+      /private address.*public address/u
+    );
+  });
+
+  it("reports a host nothing resolves for", async () => {
+    answers(null, null);
+    await expect(resolvesPublic("nope.example")).resolves.toBe(false);
+    await expect(assertResolvesPublic("nope.example")).rejects.toThrow(
+      /doesn't resolve/u
+    );
+  });
+
+  it("classifies a literal address without asking DNS", async () => {
+    await expect(resolvesPublic("[::1]")).resolves.toBe(false);
+    await expect(resolvesPublic("8.8.8.8")).resolves.toBe(true);
+    expect(resolve4).not.toHaveBeenCalled();
   });
 });

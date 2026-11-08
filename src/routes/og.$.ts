@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { OG_CACHE, OG_CONTENT_TYPE, renderShareCard } from "@/lib/og.server";
-import { peekScan } from "@/lib/scan.server";
 import { cardFromResult } from "@/lib/share";
+import { loadScan } from "@/lib/store.server";
 import { parseTarget } from "@/lib/target";
 
 export const Route = createFileRoute("/og/$")({
@@ -13,9 +13,9 @@ export const Route = createFileRoute("/og/$")({
           const target = parseTarget(
             (params._splat ?? "").replace(/\.png$/u, "")
           );
-          const stored = await peekScan(target);
+          const stored = await loadScan(target.slug);
           if (!stored) {
-            return new Response("That page has no score yet.", {
+            return new Response("That page has no score yet. Score it first.", {
               status: 404,
             });
           }
@@ -27,7 +27,10 @@ export const Route = createFileRoute("/og/$")({
             },
           });
         } catch {
-          return new Response("Couldn't score that page.", { status: 404 });
+          return new Response(
+            "Couldn't draw a card for that page. Score the page first, then try again.",
+            { status: 404 }
+          );
         }
       },
     },

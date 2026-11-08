@@ -61,6 +61,14 @@ const ScanMeta = ({ result }: { result: AnalysisResult }) => {
       setRescan({ busy: false, error: outcome.error });
       return;
     }
+    if (outcome.result.degraded) {
+      setRescan({
+        busy: false,
+        error:
+          "That new score came back incomplete, so this report stays as it was. Try again in a minute.",
+      });
+      return;
+    }
     await router.invalidate();
     setRescan({ busy: false, error: null });
   };

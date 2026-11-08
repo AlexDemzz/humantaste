@@ -60,24 +60,6 @@ export const isPublicIp = (ip: string): boolean => {
   return !blocked.check(ip, "ipv4");
 };
 
-/** An IPv6 customer gets a whole /64, so abuse limits count the network rather than the address. */
-export const clientKey = (ip: string): string => {
-  if (isIP(ip) !== 6 || ip.includes(".")) {
-    return ip;
-  }
-  const [head = "", tail] = ip.toLowerCase().split("::");
-  const left = head ? head.split(":") : [];
-  const right = tail ? tail.split(":") : [];
-  const zeros = Array.from(
-    { length: tail === undefined ? 0 : 8 - left.length - right.length },
-    () => "0"
-  );
-  return [...left, ...zeros, ...right]
-    .slice(0, 4)
-    .map((group) => group.replace(/^0+(?=.)/u, ""))
-    .join(":");
-};
-
 export class BlockedUrlError extends Error {
   override name = "BlockedUrlError";
 }
@@ -116,38 +98,53 @@ export const assertSafeUrl = (raw: string): URL => {
   return url;
 };
 
+const resolveOrNone = async (
+  resolve: (host: string) => Promise<string[]>,
+  host: string
+): Promise<string[]> => {
+  try {
+    return await resolve(host);
+  } catch {
+    return [];
+  }
+};
+
 const resolveAll = async (host: string): Promise<string[]> => {
   const [v4, v6] = await Promise.all([
-    resolve4(host).catch(() => []),
-    resolve6(host).catch(() => []),
+    resolveOrNone(resolve4, host),
+    resolveOrNone(resolve6, host),
   ]);
   return [...v4, ...v6];
 };
 
-export const resolvesPublic = async (hostname: string): Promise<boolean> => {
-  const host = unbracket(hostname);
-  if (isIP(host)) {
-    return isPublicIp(host);
-  }
-  const addresses = await resolveAll(host);
-  return addresses.length > 0 && addresses.every(isPublicIp);
-};
+type HostClass = "public" | "private" | "unresolved";
 
-/** Cloudflare already refuses private destinations at connect time; checking first turns its bare 530 into a reason people can act on. */
-export const assertResolvesPublic = async (hostname: string): Promise<void> => {
+const classifyHost = async (hostname: string): Promise<HostClass> => {
   const host = unbracket(hostname);
   if (isIP(host)) {
-    return;
+    return isPublicIp(host) ? "public" : "private";
   }
   const addresses = await resolveAll(host);
   if (addresses.length === 0) {
+    return "unresolved";
+  }
+  return addresses.every(isPublicIp) ? "public" : "private";
+};
+
+export const resolvesPublic = async (hostname: string): Promise<boolean> =>
+  (await classifyHost(hostname)) === "public";
+
+/** Cloudflare already refuses private destinations at connect time; checking first turns its bare 530 into a reason people can act on. */
+export const assertResolvesPublic = async (hostname: string): Promise<void> => {
+  const hostClass = await classifyHost(hostname);
+  if (hostClass === "unresolved") {
     throw new BlockedUrlError(
       "That domain doesn't resolve. Check the spelling."
     );
   }
-  if (!addresses.every(isPublicIp)) {
+  if (hostClass === "private") {
     throw new BlockedUrlError(
-      "That host resolves to a private address, so it can't be scored."
+      "That host resolves to a private address, so it can't be scored. Try a public address."
     );
   }
 };

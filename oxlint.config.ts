@@ -10,6 +10,34 @@ export default defineConfig({
   jsPlugins: shadcn.jsPlugins,
   overrides: [
     {
+      // Stock shadcn item: ItemGroup is a div with role="list".
+      files: ["src/components/ui/item.tsx"],
+      rules: { "jsx-a11y/prefer-tag-over-role": "off" },
+    },
+    {
+      // Stock shadcn input group: role="group" divs, and an addon click that
+      // only focuses the input, which the keyboard already reaches by Tab.
+      files: ["src/components/ui/input-group.tsx"],
+      rules: {
+        "jsx-a11y/click-events-have-key-events": "off",
+        "jsx-a11y/no-noninteractive-element-interactions": "off",
+        "jsx-a11y/prefer-tag-over-role": "off",
+      },
+    },
+    {
+      // Stock shadcn code block: the scrollable <pre> takes focus so the keyboard can scroll it,
+      // line numbers start from an inline counter-reset, and the copy button chains its promise.
+      files: ["src/components/ui/code-block.tsx"],
+      rules: {
+        "eslint/no-empty-function": "off",
+        "eslint/no-use-before-define": "off",
+        "eslint/require-unicode-regexp": "off",
+        "jsx-a11y/no-noninteractive-tabindex": "off",
+        "promise/prefer-await-to-then": "off",
+        "shadcn/no-inline-styles": "off",
+      },
+    },
+    {
       // Satori draws the share card from inline styles alone, in the card's own hex palette.
       files: ["src/lib/og.server.tsx"],
       rules: {

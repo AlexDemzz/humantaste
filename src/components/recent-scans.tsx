@@ -1,6 +1,12 @@
 import { Link } from "@tanstack/react-router";
 
 import { Meter } from "@/components/meter";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemTitle,
+} from "@/components/ui/item";
 import type { RecentScan } from "@/lib/scan.functions";
 
 export const RecentScans = ({ scans }: { scans: RecentScan[] }) => {
@@ -9,23 +15,26 @@ export const RecentScans = ({ scans }: { scans: RecentScan[] }) => {
   }
   return (
     <section className="flex flex-col gap-4" aria-labelledby="recent">
-      <h2 id="recent" className="text-foreground font-medium">
+      <h2 id="recent" className="text-foreground font-semibold">
         Recently scored
       </h2>
-      <ul>
+      <ul className="flex flex-col gap-2">
         {scans.map((scan) => (
-          <li key={scan.slug} className="border-b last:border-b-0">
-            <Link
-              to="/scan/$"
-              params={{ _splat: scan.slug }}
-              className="group text-foreground flex items-center gap-4 py-2.5"
+          <li key={scan.slug}>
+            <Item
+              variant="outline"
+              render={<Link to="/scan/$" params={{ _splat: scan.slug }} />}
             >
-              <span className="font-book can-hover:group-hover:decoration-border min-w-0 flex-1 truncate underline decoration-transparent underline-offset-3 transition-colors duration-200 ease-out">
-                {scan.slug}
-              </span>
-              <Meter score={scan.score} />
-              <span className="w-8 text-right tabular-nums">{scan.score}</span>
-            </Link>
+              <ItemContent>
+                <ItemTitle>{scan.slug}</ItemTitle>
+              </ItemContent>
+              <ItemActions>
+                <Meter score={scan.score} />
+                <span className="text-foreground w-8 text-right tabular-nums">
+                  {scan.score}
+                </span>
+              </ItemActions>
+            </Item>
           </li>
         ))}
       </ul>

@@ -2,8 +2,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import type { FormEvent } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { parseTarget } from "@/lib/target";
 
 const EXAMPLES = [
@@ -29,7 +33,7 @@ export const ScanForm = ({
       const { slug } = parseTarget(raw);
       setError(null);
       setInput(slug);
-      void navigate({ to: "/scan/$", params: { _splat: slug } });
+      navigate({ params: { _splat: slug }, to: "/scan/$" });
     } catch (error_) {
       setError(
         error_ instanceof Error
@@ -46,27 +50,30 @@ export const ScanForm = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <form className="flex flex-wrap gap-2" onSubmit={onSubmit} noValidate>
+      <form onSubmit={onSubmit} noValidate>
         <label className="sr-only" htmlFor={id}>
           Website URL
         </label>
-        <Input
-          id={id}
-          name="url"
-          type="url"
-          inputMode="url"
-          autoComplete="url"
-          spellCheck={false}
-          placeholder="yoursite.com"
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${id}-error` : undefined}
-          className="flex-1 basis-40"
-        />
-        <Button type="submit" size="lg">
-          Score it
-        </Button>
+        <InputGroup>
+          <InputGroupInput
+            id={id}
+            name="url"
+            type="url"
+            inputMode="url"
+            autoComplete="url"
+            spellCheck={false}
+            placeholder="yoursite.com"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${id}-error` : undefined}
+          />
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton type="submit" variant="default" size="sm">
+              Score it
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
       </form>
       {error && (
         <p id={`${id}-error`} className="text-destructive text-sm">

@@ -173,26 +173,18 @@
   color: oklch(0.75 0.006 70);
 }
 
-/* Front: our URL, then the score first and the site second. */
+/* Front: the score and the QR code at the top, everything else at the foot; the free height sits between them. */
 
 .holo-face {
+  /* The same space above and below the meter. */
+  --meter-gap: calc(32 * var(--u));
+  /* The share image's line height, so the space around the meter reads the same here: the page's 1.625 pads the text. */
+  --card-leading: 1.2;
+
   display: flex;
   flex-direction: column;
   padding-block: calc(60 * var(--u));
   padding-inline: calc(72 * var(--u));
-}
-
-.holo-ours {
-  font-size: calc(24 * var(--u));
-  font-weight: 500;
-  color: var(--muted-foreground);
-}
-
-.holo-score {
-  display: flex;
-  align-items: flex-end;
-  gap: calc(32 * var(--u));
-  margin-block: auto calc(40 * var(--u));
 }
 
 /* The number and its chrome copy share one cell; the copy sits behind, pushed down and right. */
@@ -221,7 +213,8 @@
   display: flex;
   flex-direction: column;
   gap: calc(10 * var(--u));
-  padding-block-end: calc(4 * var(--u));
+  margin-block: auto var(--meter-gap);
+  padding-block-start: calc(40 * var(--u));
 }
 
 .holo-host {
@@ -235,6 +228,7 @@
 
 .holo-verdict {
   font-size: calc(30 * var(--u));
+  line-height: var(--card-leading);
   color: var(--muted-foreground);
   text-wrap: balance;
 }
@@ -421,10 +415,38 @@
 
 /* Jev's read in one sentence at the foot. */
 
-.holo-design {
-  margin-block-start: calc(28 * var(--u));
+/* Foot: Jev's read on the left, our logo on the right in the same grey. */
+.holo-foot {
+  display: flex;
+  align-items: center;
+  gap: calc(24 * var(--u));
+  margin-block-start: var(--meter-gap);
   font-size: calc(26 * var(--u));
+  line-height: var(--card-leading);
   color: var(--muted-foreground);
+}
+
+.holo-design {
+  margin: 0;
+}
+
+.holo-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+  margin-inline-start: auto;
+  font-family: "Kanit", sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: calc(28 * var(--u));
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.holo-brand-mark {
+  flex: none;
+  block-size: calc(32 * var(--u));
+  inline-size: calc(32 * var(--u));
 }
 
 .holo-design strong {
@@ -449,7 +471,7 @@
   overflow: visible;
 }
 
-/* Top row: our URL on the left, the scan's QR code on the right. */
+/* Top row: the score on the left, the scan's QR code on the right. */
 .holo-head {
   display: flex;
   justify-content: space-between;

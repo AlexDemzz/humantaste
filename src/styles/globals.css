@@ -49,64 +49,67 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Pinned to DESIGN.md › rounded: tooltip 8px, row cards and blocks 16px. */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 1.75rem;
 }
 
-/* Light, warmed to hue 70. */
+/* Light: the Alpaca case study (acedesign.io/work/alpaca), pure greys on white; surfaces are filled, not outlined. */
 :root {
   color-scheme: light dark;
-  --background: oklch(0.985 0.002 70);
-  --foreground: oklch(0.22 0.006 70);
-  --card: oklch(0.995 0.002 70);
-  --card-foreground: oklch(0.22 0.006 70);
-  --popover: oklch(0.995 0.002 70);
-  --popover-foreground: oklch(0.22 0.006 70);
-  --primary: oklch(0.22 0.006 70);
-  --primary-foreground: oklch(0.985 0.002 70);
-  --secondary: oklch(0.955 0.003 70);
-  --secondary-foreground: oklch(0.22 0.006 70);
-  --muted: oklch(0.955 0.003 70);
-  --muted-foreground: oklch(0.5 0.008 70);
-  --faint-foreground: oklch(0.54 0.006 70);
-  --accent: oklch(0.955 0.003 70);
-  --accent-foreground: oklch(0.22 0.006 70);
-  --destructive: oklch(0.52 0.17 30);
-  --border: oklch(0.91 0.004 70);
-  --input: oklch(0.64 0.006 70);
-  --ring: oklch(0.5 0.008 70);
-  --meter-off: oklch(0.89 0.004 70);
-  --radius: 0.5rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.26 0 0);
+  --card: oklch(0.97 0 0);
+  --card-foreground: oklch(0.26 0 0);
+  --popover: oklch(0.97 0 0);
+  --popover-foreground: oklch(0.26 0 0);
+  --primary: oklch(0.321 0 0);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.94 0 0);
+  --secondary-foreground: oklch(0.26 0 0);
+  --muted: oklch(0.94 0 0);
+  --muted-foreground: oklch(0.453 0 0);
+  --faint-foreground: oklch(0.528 0 0);
+  --accent: oklch(0.94 0 0);
+  --accent-foreground: oklch(0.26 0 0);
+  --destructive: oklch(0.552 0.197 14.8);
+  --border: oklch(0.94 0 0);
+  /* Darker than the reference's hairline: the URL field's edge holds 3:1 (DESIGN.md › Colour). */
+  --input: oklch(0.65 0 0);
+  --ring: oklch(0.654 0.191 251.2);
+  --meter-off: oklch(0.876 0 0);
+  --radius: 0.625rem;
 }
 
-/* Dark, same hue, chroma held low. */
+/* Dark: the Alpaca case study's dark ramp, rebased on a #101010 page. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.17 0.004 70);
-    --foreground: oklch(0.95 0.003 70);
-    --card: oklch(0.205 0.005 70);
-    --card-foreground: oklch(0.95 0.003 70);
-    --popover: oklch(0.205 0.005 70);
-    --popover-foreground: oklch(0.95 0.003 70);
-    --primary: oklch(0.95 0.003 70);
-    --primary-foreground: oklch(0.17 0.004 70);
-    --secondary: oklch(0.22 0.005 70);
-    --secondary-foreground: oklch(0.95 0.003 70);
-    --muted: oklch(0.22 0.005 70);
-    --muted-foreground: oklch(0.7 0.006 70);
-    --faint-foreground: oklch(0.6 0.006 70);
-    --accent: oklch(0.22 0.005 70);
-    --accent-foreground: oklch(0.95 0.003 70);
-    --destructive: oklch(0.72 0.14 30);
-    --border: oklch(0.28 0.005 70);
-    --input: oklch(0.52 0.006 70);
-    --ring: oklch(0.7 0.006 70);
-    --meter-off: oklch(0.32 0.005 70);
+    --background: oklch(0.173 0 0);
+    --foreground: oklch(0.901 0 0);
+    --card: oklch(0.235 0 0);
+    --card-foreground: oklch(0.901 0 0);
+    --popover: oklch(0.235 0 0);
+    --popover-foreground: oklch(0.901 0 0);
+    /* Inverted: the reference's dark button is a quiet fill beside its blue CTA (DESIGN.md › Colour). */
+    --primary: oklch(0.901 0 0);
+    --primary-foreground: oklch(0.173 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.901 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.754 0 0);
+    --faint-foreground: oklch(0.64 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.901 0 0);
+    --destructive: oklch(0.704 0.159 9.4);
+    --border: oklch(0.244 0 0);
+    --input: oklch(0.538 0 0);
+    --ring: oklch(0.654 0.191 251.2);
+    --meter-off: oklch(0.321 0 0);
   }
 }
 

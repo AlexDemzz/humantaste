@@ -6,6 +6,7 @@ import { Page } from "@/components/page";
 import { Details, Patterns, scoredAt } from "@/components/report";
 import { ScanForm } from "@/components/scan-form";
 import { ShareActions } from "@/components/share-actions";
+import { TasteSkills } from "@/components/taste-skills";
 import { peekScanFn, runScanFn } from "@/lib/scan.functions";
 import type { ScanOutcome } from "@/lib/scan.functions";
 import { cardFromResult, cardPath, SITE_HOST } from "@/lib/share";
@@ -125,7 +126,9 @@ const Scan = () => {
   if (outcome && !outcome.ok) {
     return (
       <section className="flex flex-col gap-4">
-        <h1 className="text-foreground font-medium">Unable to score {slug}</h1>
+        <h1 className="text-foreground font-semibold">
+          Unable to score {slug}
+        </h1>
         <p className="text-destructive text-sm" role="alert">
           {outcome.error}
         </p>
@@ -162,6 +165,7 @@ const Scan = () => {
         >
           <Patterns result={result} />
           <Details result={result} />
+          <TasteSkills />
         </div>
       )}
     </>
@@ -174,7 +178,7 @@ const ScanPage = () => {
     <Page>
       <Scan key={slug} />
       <section className="flex flex-col gap-4" aria-labelledby="again">
-        <h2 id="again" className="text-foreground font-medium">
+        <h2 id="again" className="text-foreground font-semibold">
           Score another site
         </h2>
         <ScanForm key={slug} examples={false} />

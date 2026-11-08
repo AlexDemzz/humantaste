@@ -3,7 +3,6 @@ import { encode } from "uqr";
 import kanitBlackItalic from "../../assets/fonts/display/Kanit-BlackItalic.ttf?arraybuffer";
 import interMedium from "../../assets/fonts/og/Inter-Medium.ttf?arraybuffer";
 import interSemiBold from "../../assets/fonts/og/Inter-SemiBold.ttf?arraybuffer";
-import { SITE_HOST } from "./share";
 import type { ShareCard } from "./share";
 
 export const OG_SIZE = { width: 1200, height: 630 };
@@ -30,26 +29,16 @@ const TICKS = 100;
 const TICK_WIDTH = 7;
 const QR_TARGET = 150;
 const NUMBER_SIZE = 250;
-/** Kanit's figures are proportional: each one's advance, in ems. */
-const FIGURE_ADVANCE: Record<string, number> = {
-  0: 0.68,
-  1: 0.401,
-  2: 0.535,
-  3: 0.55,
-  4: 0.559,
-  5: 0.535,
-  6: 0.604,
-  7: 0.504,
-  8: 0.628,
-  9: 0.604,
-};
 const NUMBER_TRACKING = -0.05;
 /** Room after the last figure, so the italic's lean keeps its ink. */
 const NUMBER_TAIL = 0.1;
 /** The card-coloured cut, then the chrome copy, pushed down and right behind the number. */
 const CUT_OFFSET = 7;
 const CHROME_OFFSET = 13;
-const SCORE_GAP = 32;
+const HEAD_GAP = 24;
+/** The same space above and below the meter. */
+const METER_GAP = 32;
+const BRAND_MARK = 32;
 
 /** The chrome copy's gradient at rest, where the card shows its dark band just above the middle. */
 const CHROME =
@@ -72,15 +61,6 @@ const inkAt = (t: number): string => {
   );
   return `rgb(${mix.join(" ")})`;
 };
-
-const numberWidth = (score: number) =>
-  Math.ceil(
-    [...String(score)].reduce(
-      (width, figure) =>
-        width + (FIGURE_ADVANCE[figure] ?? 0.6) + NUMBER_TRACKING,
-      NUMBER_TAIL
-    ) * NUMBER_SIZE
-  );
 
 /** The host is the card's second voice: 64px at most, smaller when it is long. */
 const hostSize = (host: string) => Math.min(64, Math.round(1100 / host.length));
@@ -159,6 +139,63 @@ const JevLogo = () => (
   </svg>
 );
 
+/** Our logo in the card's grey: the mark's h and ticks are cut out in the card colour, as on the card. */
+const Brand = () => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      marginLeft: "auto",
+      fontFamily: "Kanit",
+      fontStyle: "italic",
+      fontWeight: 900,
+      fontSize: 28,
+      letterSpacing: -0.025 * 28,
+      color: C.muted,
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        position: "relative",
+        width: BRAND_MARK,
+        height: BRAND_MARK,
+        marginRight: 10,
+        borderRadius: 8,
+        background: C.muted,
+      }}
+    >
+      <span
+        style={{
+          position: "absolute",
+          left: 7.5,
+          top: 1,
+          fontSize: 19,
+          lineHeight: 1,
+          color: C.card,
+        }}
+      >
+        h
+      </span>
+      {[0, 1, 2, 3, 4].map((index) => (
+        <div
+          key={index}
+          style={{
+            position: "absolute",
+            left: 7 + index * 4,
+            top: 24,
+            width: 2,
+            height: 3,
+            borderRadius: 0.5,
+            background: C.card,
+          }}
+        />
+      ))}
+    </div>
+    humantaste
+  </div>
+);
+
 /** The score in foil ink, over a card-coloured cut and a chrome copy, as on the card. */
 const Score = ({ score }: { score: number }) => {
   const figures = {
@@ -195,10 +232,6 @@ const Score = ({ score }: { score: number }) => {
 /** The holo card's front, frozen at rest: the same marks in the same order of weight as the card on the scan page. */
 export const ShareCardImage = ({ card }: { card: ShareCard }) => {
   const host = hostSize(card.host);
-  // The renderer cannot shrink a column under its text, so the side column gets the width the figures leave.
-  const sideWidth = Math.floor(
-    METER_WIDTH - numberWidth(card.score) - SCORE_GAP
-  );
   return (
     <div
       style={{
@@ -253,67 +286,61 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
+            gap: HEAD_GAP,
           }}
         >
-          <span style={{ fontSize: 24, color: C.muted }}>{SITE_HOST}</span>
+          <Score score={card.score} />
           <QrCode url={card.scanUrl} />
         </div>
 
         <div
           style={{
             display: "flex",
-            alignItems: "flex-end",
-            gap: SCORE_GAP,
+            flexDirection: "column",
+            width: METER_WIDTH,
+            gap: 10,
             marginTop: "auto",
-            marginBottom: 40,
+            marginBottom: METER_GAP,
           }}
         >
-          <Score score={card.score} />
-          <div
+          <span
             style={{
-              display: "flex",
-              flexDirection: "column",
-              width: sideWidth,
-              gap: 10,
-              paddingBottom: 4,
+              fontSize: host,
+              fontWeight: 600,
+              lineHeight: 1.05,
+              letterSpacing: -0.02 * host,
+              wordBreak: "break-all",
+              ...inkText(90, INK.slice(0, 2)),
             }}
           >
-            <span
-              style={{
-                fontSize: host,
-                fontWeight: 600,
-                lineHeight: 1.05,
-                letterSpacing: -0.02 * host,
-                wordBreak: "break-all",
-                ...inkText(90, INK.slice(0, 2)),
-              }}
-            >
-              {card.host}
-            </span>
-            <span style={{ fontSize: 30, color: C.muted, textWrap: "balance" }}>
-              {card.verdict}
-            </span>
-          </div>
+            {card.host}
+          </span>
+          <span style={{ fontSize: 30, color: C.muted, textWrap: "balance" }}>
+            {card.verdict}
+          </span>
         </div>
 
         <Meter value={card.score} />
 
-        {card.jev && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginTop: 28,
-              fontSize: 26,
-              color: C.muted,
-            }}
-          >
-            <JevLogo />
-            <span style={{ marginLeft: 6, color: C.fg }}>Jev</span>
-            <span style={{ marginLeft: 7 }}>says</span>
-            <span style={{ marginLeft: 7, color: C.fg }}>{card.jev}</span>
-          </div>
-        )}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginTop: METER_GAP,
+            fontSize: 26,
+            color: C.muted,
+          }}
+        >
+          {card.jev && (
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <JevLogo />
+              <span style={{ marginLeft: 6, color: C.fg }}>Jev</span>
+              <span style={{ marginLeft: 7 }}>says</span>
+              <span style={{ marginLeft: 7, color: C.fg }}>{card.jev}</span>
+            </div>
+          )}
+          <Brand />
+        </div>
       </div>
     </div>
   );

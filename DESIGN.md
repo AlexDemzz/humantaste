@@ -1,31 +1,34 @@
 ---
 source:
-  reference: the Column direction of the layout prototypes, chosen 2026-11-08
-  renders: none, the app is the reference
-  sampled: none, every colour is a token computed from its oklch value in src/styles/globals.css
-  estimated: none
+  reference: "case study: https://acedesign.io/work/alpaca"
+  renders: .scratch/design-ref/alpaca/
+  sampled: colours (magick point samples and reduced-colour crops of 10, 02, 09, 11, 13, 16, 20)
+  estimated: sizes, radii (measured on renders shown at about 2x)
   modes: light, dark
 colors:
-  paper: "#FBFAF9"
-  paper-dark: "#110F0E"
-  ink: "#1C1A18"
-  ink-dark: "#F0EEEC"
-  surface: "#FEFDFC"
-  surface-dark: "#191715"
-  wash: "#F1F0EE"
-  wash-dark: "#1C1A18"
-  prose: "#66625E"
-  prose-dark: "#A19E9A"
-  faint: "#716E6B"
-  faint-dark: "#83807C"
-  rule: "#E3E1DE"
-  rule-dark: "#2A2826"
-  field: "#8F8C88"
-  field-dark: "#6B6865"
-  meter-off: "#DCDAD8"
-  meter-off-dark: "#343230"
-  danger: "#B63325"
-  danger-dark: "#EF806F"
+  paper: "#FFFFFF"
+  paper-dark: "#101010"
+  surface: "#F5F5F5"
+  surface-dark: "#1E1E1E"
+  ink: "#242424"
+  ink-dark: "#DEDEDE"
+  button: "#333333"
+  button-dark: "#DEDEDE"
+  wash: "#EBEBEB"
+  wash-dark: "#262626"
+  prose: "#565656"
+  prose-dark: "#AFAFAF"
+  faint: "#6B6B6B"
+  faint-dark: "#8C8C8C"
+  hairline: "#EBEBEB"
+  hairline-dark: "#202020"
+  field: "#8F8F8F"
+  field-dark: "#6E6E6E"
+  signal-blue: "#0092FF"
+  alert-red: "#CB274C"
+  alert-red-dark: "#F0708A"
+  meter-off: "#D6D6D6"
+  meter-off-dark: "#333333"
   card-ink: "#191715"
   foil-gold: "#FFCF77"
   foil-pink: "#F4A5EC"
@@ -35,110 +38,119 @@ colors:
 typography:
   body: { family: system-ui, size: 16px, weight: 400, line-height: 1.625 }
   statement: { family: system-ui, size: 20px, weight: 400, line-height: 1.4 }
-  section-title: { family: system-ui, size: 16px, weight: 500, line-height: 1.625 }
+  section-title: { family: system-ui, size: 16px, weight: 600, line-height: 1.625 }
   row: { family: system-ui, size: 14px, weight: 500, line-height: 20px }
   control: { family: system-ui, size: 14px, weight: 500, line-height: 20px }
   dense: { family: system-ui, size: 14px, weight: 400, line-height: 1.625 }
   evidence: { family: ui-monospace, size: 12px, weight: 400, line-height: 1.625 }
   wordmark: { family: Kanit, size: 20px, weight: 900, line-height: 1, tracking: -0.025em }
   score: { family: Kanit, size: "250 card units", weight: 900, line-height: 1, tracking: -0.05em }
-rounded: { control: 9999px, mark: 8px, tooltip: 6px, block: 14px, card: "36 card units" }
-spacing: { column: 688px, gutter: 24px, page-top: 24px, page-bottom: 64px, section-gap: 64px, title-gap: 16px, control: 40px, row-y: 10px }
+rounded: { control: 9999px, tooltip: 8px, row-card: 16px, block: 16px, mark: 8px, card: "36 card units" }
+spacing: { column: 688px, gutter: 24px, page-top: 24px, page-bottom: 64px, section-gap: 64px, title-gap: 16px, card-gap: 8px, card-x: 16px, control: 40px, row-y: 12px }
 components:
-  button-primary: { fill: "{colors.ink}", text: "{colors.paper}", radius: "{rounded.control}", height: 40px }
-  button-icon: { fill: "{colors.paper}", border: "{colors.rule}", text: "{colors.ink}", radius: "{rounded.control}", size: 40px }
-  input: { border: "{colors.field}", text: "{colors.ink}", placeholder: "{colors.faint}", radius: "{rounded.control}", height: 40px }
+  button-primary: { fill: "{colors.button}", text: "{colors.paper}", radius: "{rounded.control}", height: 40px }
+  button-outline: { fill: "{colors.surface}", border: none, text: "{colors.ink}", hover: "{colors.wash}", radius: "{rounded.control}", shadow: xs }
+  input: { fill: "{colors.surface}", border: none, text: "{colors.ink}", placeholder: "{colors.faint}", radius: "{rounded.control}", height: 40px, shadow: xs }
   tooltip: { fill: "{colors.ink}", text: "{colors.paper}", radius: "{rounded.tooltip}" }
-  accordion-row: { text: "{colors.ink}", value: "{colors.prose}", rule: "{colors.rule}" }
+  row-card: { fill: "{colors.surface}", border: none, radius: "{rounded.row-card}", gap: 8px, hover: "{colors.wash}" }
+  accordion-item: { fill: "{colors.surface}", border: none, radius: "{rounded.row-card}", padding-x: 16px }
+  tabs: { fill: "{colors.surface}", indicator: "{colors.wash}", radius: "{rounded.control}", height: 40px, shadow: xs }
+  focus-ring: { colour: "{colors.signal-blue}", width: 3px, opacity: 50% }
   meter: { on: "{colors.ink}", off: "{colors.meter-off}", ticks: 20 }
-  logo-mark: { fill: "{colors.card-ink}", letter: "{colors.ink-dark}", radius: "{rounded.mark}", size: 28px }
+  logo-mark: { fill: "{colors.card-ink}", radius: "{rounded.mark}", size: 28px }
   score-card: { fill: "{colors.card-ink}", radius: "{rounded.card}" }
 shadcnMapping:
-  "--background": ["#FBFAF9", "#110F0E"]
-  "--foreground": ["#1C1A18", "#F0EEEC"]
-  "--card": ["#FEFDFC", "#191715"]
-  "--card-foreground": ["#1C1A18", "#F0EEEC"]
-  "--popover": ["#FEFDFC", "#191715"]
-  "--popover-foreground": ["#1C1A18", "#F0EEEC"]
-  "--primary": ["#1C1A18", "#F0EEEC"]
-  "--primary-foreground": ["#FBFAF9", "#110F0E"]
-  "--secondary": ["#F1F0EE", "#1C1A18"]
-  "--secondary-foreground": ["#1C1A18", "#F0EEEC"]
-  "--muted": ["#F1F0EE", "#1C1A18"]
-  "--muted-foreground": ["#66625E", "#A19E9A"]
-  "--faint-foreground": ["#716E6B", "#83807C"]
-  "--accent": ["#F1F0EE", "#1C1A18"]
-  "--accent-foreground": ["#1C1A18", "#F0EEEC"]
-  "--destructive": ["#B63325", "#EF806F"]
-  "--border": ["#E3E1DE", "#2A2826"]
-  "--input": ["#8F8C88", "#6B6865"]
-  "--ring": ["#66625E", "#A19E9A"]
-  "--meter-off": ["#DCDAD8", "#343230"]
-  "--radius": "0.5rem"
+  "--background": ["#FFFFFF", "#101010"]
+  "--foreground": ["#242424", "#DEDEDE"]
+  "--card": ["#F5F5F5", "#1E1E1E"]
+  "--card-foreground": ["#242424", "#DEDEDE"]
+  "--popover": ["#F5F5F5", "#1E1E1E"]
+  "--popover-foreground": ["#242424", "#DEDEDE"]
+  "--primary": ["#333333", "#DEDEDE"]
+  "--primary-foreground": ["#FFFFFF", "#101010"]
+  "--secondary": ["#EBEBEB", "#262626"]
+  "--secondary-foreground": ["#242424", "#DEDEDE"]
+  "--muted": ["#EBEBEB", "#262626"]
+  "--muted-foreground": ["#565656", "#AFAFAF"]
+  "--faint-foreground": ["#6B6B6B", "#8C8C8C"]
+  "--accent": ["#EBEBEB", "#262626"]
+  "--accent-foreground": ["#242424", "#DEDEDE"]
+  "--destructive": ["#CB274C", "#F0708A"]
+  "--border": ["#EBEBEB", "#202020"]
+  "--input": ["#8F8F8F", "#6E6E6E"]
+  "--ring": ["#0092FF", "#0092FF"]
+  "--meter-off": ["#D6D6D6", "#333333"]
+  "--radius": "0.625rem"
 ---
 
 # DESIGN — humantaste
 
-humantaste scores how much of a website a person chose. The site has to pass its own test: every choice below is deliberate, and nothing here is a generator default. `src/styles/globals.css` holds the values; this file says what each one is for.
+humantaste scores how much of a website a person chose. The interface wears the Alpaca system (Ace's case study): pure greys on white, pill controls, and lists made of stacked cards. Surfaces stand out by their fill, never by a border. The score card, the logo mark and the one-column layout are humantaste's own and sit outside the skin. `src/styles/globals.css` holds the values; this file says what each one is for. The capture ledger is `docs/design/alpaca-skin.md`.
 
 ## Overview
 
-One reading column on warm paper. The logo, a one-sentence statement, the URL field, then sections whose titles sit above ruled rows. On a report, the score card fills the column and is the only thing in colour: everything else is ink, prose grey and hairlines. The card is the product, the page is the paperwork behind it.
+One reading column on white. The logo and the GitHub button, a one-sentence statement, the URL field, then sections whose titles sit above stacks of row cards. On a report, the score card fills the column and is the only thing in colour; everything else is ink, grey prose, filled grey cards and one blue reserved for focus. Alpaca's sidebar and app chrome are not part of the skin.
 
 ## Colour
 
-- Neutrals carry hue 70 at chroma ≤ 0.008, too low to read as a colour, so the paper is warm without looking beige. `destructive` is the only saturated token, kept for errors.
-- The foil ink (`foil-*`) belongs to the score card and the logo mark alone. It never tints a page surface, a button or text.
-- Prose is `muted-foreground` by default. Titles, links and values switch to `foreground` to stand out.
-- `faint-foreground` is for the quietest text that is still read: the evidence inside a pattern, the How it works footer, the placeholder. It holds 4.5:1 on the page in both modes.
-- `border` draws hairlines (rows, accordion rules, outline buttons). `input` is the field's edge and holds 3:1 on the page, so the URL field reads as a field.
-- `meter-off` is the unlit tick of a meter.
-- Dark mode follows `prefers-color-scheme`, with no toggle. The score card stays dark in both modes.
+- Neutrals are pure greys with no tint, as in the reference: white paper, `#242424` ink, `#565656` prose. Surfaces (`card`: cards, outline buttons, the field) are one step off the page, `#F5F5F5`; `muted` is one step further, `#EBEBEB`, for hover fills and blocks inside a card.
+- The reference's dark button `#333333` is `--primary`. In dark mode the primary inverts to `#DEDEDE` on `#101010`: the reference's dark `#252525` button is a quiet fill beside its blue CTA, and humantaste has one primary per view that must read as one.
+- The reference's blue `#0092FF` is the focus ring only. White text on it measures 3.2:1, below 4.5:1 for 14px labels, so no button takes it as a fill.
+- `faint-foreground` (`#6B6B6B`, 4.9:1 on the `#F5F5F5` card, 5.3:1 on white) carries evidence, the How it works footer and the placeholder. The reference's placeholder grey `#A0A0A0` measures 2.6:1 and is not used for text.
+- Nothing has a border. The URL field is a filled pill at 1.09:1 against the page, below the 3:1 WCAG 1.4.11 asks of a field's edge; this is a deliberate choice, and the placeholder, the `Score it` button inside it and the focus ring identify it. `input` stays declared for the disabled and invalid states.
+- `destructive` is the reference's alert red `#CB274C`; its dark value has no reference sample and is the light red lifted to 6.7:1 on `#101010`.
+- The foil ink (`foil-*`) belongs to the score card and the logo mark alone.
+- Dark mode follows `prefers-color-scheme`, with no toggle. Its page is `#101010`, darker than the reference's `#1A1A1A`; surfaces step up from it in 7-point grey steps: card `#1E1E1E`, wash `#262626`. The score card stays dark in both modes.
 
 ## Typography
 
-- System UI stack for everything people read. No webfont for text, no Inter, no Geist.
-- Kanit Black Italic is the display face, kept to two jobs: the score on the card and the wordmark. It never sets a heading or a sentence.
-- 16px is the reading size. The home statement steps up to 20px. Controls, accordion rows, metadata and the footer step down to 14px; evidence is 12px monospace.
-- Weight carries hierarchy within a size: 500 for section titles and controls, 400 for prose. Counts, points, scores and elapsed seconds use `tabular-nums`.
-- Typographic punctuation in copy: curly apostrophes, ×, ÷, the ellipsis character.
+- System UI stack for everything people read. The reference sets Inter; humantaste keeps the system face because a page set in Inter alone is one of the patterns it scores down.
+- Kanit Black Italic is the display face, kept to two jobs: the score on the card and the wordmark.
+- 16px is the reading size; the home statement steps up to 20px. Controls, row cards, metadata and the footer are 14px; evidence is 12px monospace.
+- Weight carries hierarchy within a size: 600 for section titles and accordion titles, 500 for row titles and controls, 400 for prose. Counts, points, scores and seconds use `tabular-nums`.
 
 ## Shape and depth
 
-- Controls are pills: buttons, icon buttons and the URL field (`rounded-full`, set in the Button and Input primitives).
-- Surfaces sit flat on the page. The one exception is the score card, which has its own depth, light and tilt (`src/components/holo-card/`).
-- Code-like blocks (the prompt, the screenshot) are 14px-radius blocks on `muted`. The screenshot gets a 1px pure black or white outline at 10%.
+- Controls are pills, as in the reference: buttons, icon buttons and the URL field (`rounded-full`).
+- No borders on cards, buttons or the field: a surface stands out by its fill alone. Row cards are 16px-radius `card` fills with no shadow, stacked 8px apart. Accordion items and list rows are row cards. Borders stay transparent so the focus ring, the invalid state and forced-colors mode still draw an edge.
+- Outline buttons and the field are `card` fills with `shadow-xs`, the soft lift the reference gives its icon buttons and composer.
+- Tooltips are ink on paper, 8px radius.
+- Code-like blocks (the prompt) are `CodeBlock`s: 16px-radius blocks on `muted`, no header or file label, wrapped lines, folded to 256px under a fade with a `Show more` button below so the page scrolls and not the block, a copy button at the top-right corner that shows on hover or focus. The screenshot gets a 1px pure black or white outline at 10%.
 - Icons are Phosphor, regular weight, 16px inside controls.
 
 ## Layout
 
 - **Column**: `max-w-column` (688px, a 640px measure inside the 24px gutters), 24px from the top, 64px at the bottom. Sections sit 64px apart; a section's title sits 16px above its content.
-- **Header**: the logo at the leading edge, an outline GitHub button (GitHub mark, opens the repository in a new tab) at the trailing edge, both on one line.
-- **Home**: the statement and the form, then Recently scored.
-- **Report**: the score card (the column's full width), then directly under it the share row and the scan line, then What gave it away, then the details accordion, then Score another site.
+- **Header**: the logo at the leading edge, an outline GitHub button at the trailing edge.
+- **Home**: the statement and the form, then Recently scored as a stack of row cards.
+- **Report**: the score card (the column's full width), then the share row and the scan line, then the patterns as accordion cards, then Behind the score as tabs, then five skills worth installing as link row cards (external links, an arrow at the trailing edge), then Score another site.
 - **Footer**: How it works, the methodology in two short paragraphs.
+- No sidebar, no app chrome: the reference's shell is out of scope.
 
 ## Components
 
-- **Share row**: one primary button, `Copy prompt for your agent`, then two outline icon buttons, `Copy share link` and `Copy image`. Each icon button has a tooltip saying what it is for; after a copy its icon turns to a check and the tooltip says what was copied. The primary button keeps its width when its label changes.
-- **Pattern rows**: one accordion item per pattern found, heaviest first. Closed, a row shows the title and its points; open, the evidence (monospace, faint) and the why with its fix.
-- **Details accordion**: How we got to N (the score in plain steps), the prompt for your agent, N patterns not found, the screenshot we scored.
-- **Recently scored**: rows of host, a 20-tick meter and the score. The whole row is the link.
+- **Row card** (`Item variant="outline"`): host, a 20-tick meter and the score in one line; the whole card is the link and fills with `muted` on hover.
+- **Accordion card** (`AccordionItem`): closed, the title and its value (points) on one 48px line; open, the content inside the same card, 16px side padding.
+- **Tabs** (`Tabs`): a 40px `card` pill with `shadow-xs` holding 32px pill tabs; the active tab sits on a `muted` indicator that slides to it (200ms `ease-out`). The panel has no surface of its own: its content sits on the page, 16px under the pill. The score steps inside are row cards built like the pattern rows: the step in ink at 600, its value in prose grey on the trailing edge, the same 48px line. Behind the score uses them, so the report's details read as one section and not as more pattern cards.
+- **Share row**: one primary button, `Copy prompt for your agent`, then two outline icon buttons, `Copy share link` and `Copy image`, each with a tooltip; after a copy the icon turns to a check and the tooltip says what was copied.
+- **URL field** (`InputGroup`): one 40px filled pill; the input on the left and the dark `Score it` pill inside it on the right (`InputGroupAddon align="inline-end"`, `InputGroupButton variant="default" size="sm"`, 32px tall, 4px inset). An invalid URL rings the whole pill in `destructive`.
 - **Meter**: 20 ticks, 2px wide, `foreground` up to the score and `meter-off` after.
-- **Logo**: the mark (the card in miniature: a dark rounded square, an italic h, five foil ticks) beside the wordmark.
+- **Logo**: the mark (the score card in miniature) beside the wordmark. On the score card itself it sits at the bottom right in one grey ink (`muted-foreground`), the h and ticks cut out in the card colour.
+- **Score card front**: the score at the top left and the QR code at the top right; the free height between; at the foot, the site, the verdict, the meter, then Jev's read on the left and the logo on the right. The share image (`og.server.tsx`) draws the same layout.
 
 ## States
 
-- Focus: the primitives' ring (`ring`, 3px at 50%) on every control, links included.
-- Hover only where a pointer can hover (`can-hover:`): link underlines darken from `border` to `muted-foreground`, outline buttons fill with `muted`.
-- Copied: the icon cross-fades to a check (scale 0.25 → 1, 4px blur, 300ms `ease-swap`), the tooltip opens with the result, and an `<output>` announces it. Under reduced motion the icon swaps without moving.
+- Focus: a 3px blue ring at 50% (`ring`) on every control, links and cards included.
+- Hover only where a pointer can hover: row cards and outline buttons step from `card` to `muted`, link underlines darken. Accordion triggers don't underline.
+- Copied: the icon cross-fades to a check (scale 0.25 → 1, 4px blur, 300ms `ease-swap`), the tooltip opens with the result, and an `<output>` announces it.
 - Loading: the card shows its back and sways; a line under it counts the seconds.
 - Errors: one sentence in `destructive` that says what to do next.
 
 ## Do / Don't
 
-- Do let pages lay out primitives; the look lives in the theme and in the primitives. A className on a primitive carries layout only.
-- Do keep the foil for the card and the mark.
+- Do lay out primitives; the look lives in the theme and the primitives. A className on a primitive carries layout only.
+- Do turn a list into stacked filled row cards, never into ruled flat rows.
+- Don't put a border on a card, a button or the field; step the fill instead.
+- Do keep the foil for the score card and the mark, and blue for focus.
 - Don't add gradients, glows, blur, emoji, pills above headings or tracked uppercase labels. humantaste scores sites down for each of these.
-- Don't centre the column's content, and don't let anything break out of the column.
-- Don't add a second display face or use Kanit for anything but the score and the wordmark.
+- Don't bring in the reference's sidebar, its Inter face or its blue fills.

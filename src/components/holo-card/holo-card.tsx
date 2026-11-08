@@ -60,51 +60,83 @@ const QrCode = ({ url }: { url: string }) => {
   );
 };
 
-/** The score first, the scanned site second, then the verdict, the meter and Jev's read. */
+/** The logo in one ink: the mark's h and ticks are cut out in the card colour, so it reads as a stamp. */
+const BrandMark = () => (
+  <svg className="holo-brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+    <rect width="32" height="32" rx="8" fill="currentColor" />
+    <text
+      x="7.5"
+      y="21"
+      fill="var(--card-bg)"
+      fontFamily="Kanit, system-ui"
+      fontStyle="italic"
+      fontWeight="900"
+      fontSize="19"
+    >
+      h
+    </text>
+    {[0, 1, 2, 3, 4].map((index) => (
+      <rect
+        key={index}
+        x={7 + index * 4}
+        y="24"
+        width="2"
+        height="3"
+        rx="0.5"
+        fill="var(--card-bg)"
+      />
+    ))}
+  </svg>
+);
+
+/** The score and the QR code at the top; at the foot the scanned site, the verdict, the meter, Jev's read and our logo. */
 const Front = ({ card }: { card: ShareCard }) => (
   <div className="holo-face">
     <div className="holo-head">
-      <span className="holo-ours">{SITE_HOST}</span>
-      <QrCode url={card.scanUrl} />
-    </div>
-    <div className="holo-score">
       <span className="holo-figure">
         <span className="holo-number-chrome" aria-hidden="true">
           {card.score}
         </span>
         <span className="holo-number">{card.score}</span>
       </span>
-      <div className="holo-score-side">
-        <span
-          className="holo-host"
-          style={
-            {
-              "--host-size": Math.min(
-                HOST_MAX_SIZE,
-                Math.round(HOST_FIT / card.host.length)
-              ),
-            } as CSSProperties
-          }
-        >
-          {card.host}
-        </span>
-        <span className="holo-verdict">{card.verdict}</span>
-      </div>
+      <QrCode url={card.scanUrl} />
+    </div>
+    <div className="holo-score-side">
+      <span
+        className="holo-host"
+        style={
+          {
+            "--host-size": Math.min(
+              HOST_MAX_SIZE,
+              Math.round(HOST_FIT / card.host.length)
+            ),
+          } as CSSProperties
+        }
+      >
+        {card.host}
+      </span>
+      <span className="holo-verdict">{card.verdict}</span>
     </div>
     <div
       className="holo-ticks"
       style={{ "--value": card.score } as CSSProperties}
       aria-hidden="true"
     />
-    {card.jev && (
-      <p className="holo-design">
-        <span className="holo-jev">
-          <JevLogo />
-          Jev
-        </span>{" "}
-        says <strong>{card.jev}</strong>
-      </p>
-    )}
+    <div className="holo-foot">
+      {card.jev && (
+        <p className="holo-design">
+          <span className="holo-jev">
+            <JevLogo />
+            Jev
+          </span>{" "}
+          says <strong>{card.jev}</strong>
+        </p>
+      )}
+      <span className="holo-brand">
+        <BrandMark />
+        humantaste
+      </span>
+    </div>
   </div>
 );
 

@@ -1,0 +1,41 @@
+purple/indigo/violet	purple|indigo|violet|紫|morado|lavender
+blue-purple gradient	(purple|blue).{0,20}(gradient|fading)|gradient.{0,15}(purple|blue)|渐变|グラデーション|gradiente
+any/harsh gradients	gradient
+gradient text	gradient (on the )?(headline|text)|gradient text|bg-clip-text|渐变文字
+glow / orbs / blobs	glow|orb|blob|荧光|发光
+glassmorphism	glass|frosted|毛玻璃
+dot grid bg	dot grid|grid background|网格背景
+noise/dither/ascii	dither|noise|ascii
+dark mode default	dark mode
+pure white bg	white background
+cream+terracotta	cream|terracotta|beige
+inter	\binter\b
+geist/space grotesk/instrument serif	geist|space grotesk|instrument serif
+serif headline	serif
+monospace	monospace|mono
+all caps eyebrow	all-caps|uppercase|wide-tracked|caps
+3 feature cards	3 (feature )?cards|three (rounded )?cards|three boxes|3-box|3 cards|三列|feature cards
+bento	bento
+rounded corners	rounded|corner radius|radius|圆角
+drop shadows	shadow|阴影
+centered hero	hero
+fake testimonials	testimonial|sarah chen
+trusted-by/stats	trusted by|stats row|99\.9|10,000\+
+3 pricing tiers	pricing tier|most popular|\$9
+terminal window	terminal window
+numbered sections	01 / 02|numbered
+lucide	lucide
+sparkles	sparkle|✨
+emoji icons	emoji
+icon in tinted square	tinted rounded square|icon in a
+em dash	em dash|em-dash|——
+it's not X it's Y	not x, it.s y|it.s not x
+hype copy	transform your workflow|elevate|unlock your|seamless|welcome to our platform|revolutioniz|cutting-edge|fast\. simple|delve
+welcome back 👋	welcome back
+shadcn/tailwind default	shadcn|tailwind
+hover/scroll anim	hover|scroll animation|slide in|bounce|sliding in|animated arrows
+no loading/empty states	loading|empty state|skeleton
+default favicon	favicon
+lorem ipsum	lorem
+checkmark bullets	checkmark|✅
+neon/rainbow	neon|rainbow

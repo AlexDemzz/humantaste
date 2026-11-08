@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react";
 import type { CSSProperties } from "react";
 import { encode } from "uqr";
 
+import { Logo } from "@/components/logo";
 import { tierFor } from "@/lib/score";
 import { SITE_HOST } from "@/lib/share";
 import type { ShareCard } from "@/lib/share";
@@ -61,35 +62,6 @@ const QrCode = ({ url }: { url: string }) => {
   );
 };
 
-/** The logo in one ink: the mark's h and ticks are cut out in the card colour, so it reads as a stamp. */
-const BrandMark = () => (
-  <svg className="holo-brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-    <rect width="32" height="32" rx="8" fill="currentColor" />
-    <text
-      x="7.5"
-      y="21"
-      fill="var(--card-bg)"
-      fontFamily="Kanit, system-ui"
-      fontStyle="italic"
-      fontWeight="900"
-      fontSize="19"
-    >
-      h
-    </text>
-    {[0, 1, 2, 3, 4].map((index) => (
-      <rect
-        key={index}
-        x={7 + index * 4}
-        y="24"
-        width="2"
-        height="3"
-        rx="0.5"
-        fill="var(--card-bg)"
-      />
-    ))}
-  </svg>
-);
-
 /** The score and the QR code at the top; at the foot the scanned site, the verdict, the meter, Jev's read and our logo. */
 const Front = ({ card }: { card: ShareCard }) => (
   <div className="holo-face">
@@ -133,10 +105,7 @@ const Front = ({ card }: { card: ShareCard }) => (
           says <strong>{card.jev}</strong>
         </p>
       )}
-      <span className="holo-brand">
-        <BrandMark />
-        humantaste
-      </span>
+      <Logo className="holo-brand" />
     </div>
   </div>
 );
@@ -173,7 +142,7 @@ export const HoloCard = ({
         <div className="holo-flipper">
           <div className="holo-side holo-back" aria-hidden={done}>
             <div className="holo-back-art">
-              <span className="holo-wordmark">humantaste</span>
+              <Logo className="holo-wordmark" />
               <span className="holo-back-host">{SITE_HOST}</span>
             </div>
             <Light />

@@ -43,9 +43,9 @@ typography:
   control: { family: system-ui, size: 14px, weight: 500, line-height: 20px }
   dense: { family: system-ui, size: 14px, weight: 400, line-height: 1.625 }
   evidence: { family: ui-monospace, size: 12px, weight: 400, line-height: 1.625 }
-  wordmark: { family: Kanit, size: 20px, weight: 900, line-height: 1, tracking: -0.025em }
+  wordmark: { family: Poppins, size: 24px, weight: "550 (500 stroked 0.013em)", tracking: -0.05em, outlined: true }
   score: { family: Kanit, size: "250 card units", weight: 900, line-height: 1, tracking: -0.05em }
-rounded: { control: 9999px, tooltip: 8px, row-card: 16px, block: 16px, mark: 8px, card: "36 card units" }
+rounded: { control: 9999px, tooltip: 8px, row-card: 16px, block: 16px, card: "36 card units" }
 spacing: { column: 688px, gutter: 24px, page-top: 24px, page-bottom: 64px, section-gap: 64px, title-gap: 16px, card-gap: 8px, card-x: 16px, control: 40px, row-y: 12px }
 components:
   button-primary: { fill: "{colors.button}", text: "{colors.paper}", radius: "{rounded.control}", height: 40px }
@@ -57,7 +57,7 @@ components:
   tabs: { fill: "{colors.surface}", indicator: "{colors.wash}", radius: "{rounded.control}", height: 40px, shadow: xs }
   focus-ring: { colour: "{colors.signal-blue}", width: 3px, opacity: 50% }
   meter: { on: "{colors.ink}", off: "{colors.meter-off}", ticks: 20 }
-  logo-mark: { fill: "{colors.card-ink}", radius: "{rounded.mark}", size: 28px }
+  logo-mark: { fill: currentColor, size: 0.64em, gap: 0.14em, position: before the word, on the baseline }
   score-card: { fill: "{colors.card-ink}", radius: "{rounded.card}" }
 shadcnMapping:
   "--background": ["#FFFFFF", "#101010"]
@@ -85,7 +85,7 @@ shadcnMapping:
 
 # DESIGN — humantaste
 
-humantaste scores how much of a website a person chose. The interface wears the Alpaca system (Ace's case study): pure greys on white, pill controls, and lists made of stacked cards. Surfaces stand out by their fill, never by a border. The score card, the logo mark and the one-column layout are humantaste's own and sit outside the skin. `src/styles/globals.css` holds the values; this file says what each one is for. The capture ledger is `docs/design/alpaca-skin.md`.
+humantaste scores how much of a website a person chose. The interface wears the Alpaca system (Ace's case study): pure greys on white, pill controls, and lists made of stacked cards. Surfaces stand out by their fill, never by a border. The score card, the logo and the one-column layout are humantaste's own and sit outside the skin. `src/styles/globals.css` holds the values; this file says what each one is for. The capture ledger is `docs/design/alpaca-skin.md`.
 
 ## Overview
 
@@ -99,13 +99,14 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - `faint-foreground` (`#6B6B6B`, 4.9:1 on the `#F5F5F5` card, 5.3:1 on white) carries evidence, the How it works footer and the placeholder. The reference's placeholder grey `#A0A0A0` measures 2.6:1 and is not used for text.
 - Nothing has a border. The URL field is a filled pill at 1.09:1 against the page, below the 3:1 WCAG 1.4.11 asks of a field's edge; this is a deliberate choice, and the placeholder, the `Score it` button inside it and the focus ring identify it. `input` stays declared for the disabled and invalid states.
 - `destructive` is the reference's alert red `#CB274C`; its dark value has no reference sample and is the light red lifted to 6.7:1 on `#101010`.
-- The foil ink (`foil-*`) belongs to the score card and the logo mark alone.
+- The foil ink (`foil-*`) belongs to the score card alone. The logo is one ink: the text colour, or `muted-foreground` on the card.
 - Dark mode follows `prefers-color-scheme`, with no toggle. Its page is `#101010`, darker than the reference's `#1A1A1A`; surfaces step up from it in 7-point grey steps: card `#1E1E1E`, wash `#262626`. The score card stays dark in both modes.
 
 ## Typography
 
 - System UI stack for everything people read. The reference sets Inter; humantaste keeps the system face because a page set in Inter alone is one of the patterns it scores down.
-- Kanit Black Italic is the display face, kept to two jobs: the score on the card and the wordmark.
+- Kanit Black Italic is the display face, kept to one job: the score on the card.
+- The wordmark is Poppins Medium, outlined in `src/lib/logo.ts`, so the site loads no Poppins.
 - 16px is the reading size; the home statement steps up to 20px. Controls, row cards, metadata and the footer are 14px; evidence is 12px monospace.
 - Weight carries hierarchy within a size: 600 for section titles and accordion titles, 500 for row titles and controls, 400 for prose. Counts, points, scores and seconds use `tabular-nums`.
 
@@ -135,7 +136,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - **Share row**: one primary button, `Copy prompt for your agent`, then two outline icon buttons, `Copy share link` and `Copy image`, each with a tooltip; after a copy the icon turns to a check and the tooltip says what was copied.
 - **URL field** (`InputGroup`): one 40px filled pill; the input on the left and the dark `Score it` pill inside it on the right (`InputGroupAddon align="inline-end"`, `InputGroupButton variant="default" size="sm"`, 32px tall, 4px inset). An invalid URL rings the whole pill in `destructive`.
 - **Meter**: 20 ticks, 2px wide, `foreground` up to the score and `meter-off` after.
-- **Logo**: the mark (the score card in miniature) beside the wordmark. On the score card itself it sits at the bottom right in one grey ink (`muted-foreground`), the h and ticks cut out in the card colour.
+- **Logo** (`Logo`, geometry in `src/lib/logo.ts`): a minimal paint palette (a disc with a filleted thumb bite and a hole at its centre of mass) before the word, in one ink. It sizes off the font size: `text-2xl` in the header. On the score card it sits at the bottom right in `muted-foreground` and fills the card back; the favicon is the mark alone.
 - **Score card tiers**: the score picks the inks. Matte (0–44): flat ink, no foil. Chrome (45–74): silver ink over a brushed pattern, under the type and revealed by the light. Holo (75–99): foil ink. Prismatic (100): foil ink over a gold shadow, a thick gold frame, glitter under the type and a foil wash that flares in. The share image draws each tier at rest. The thresholds live in `tierFor` (`src/lib/score.ts`).
 - **Score card front**: the score at the top left and the QR code at the top right; the free height between; at the foot, the site, the verdict, the meter, then Jev's read on the left and the logo on the right. The share image (`og.server.tsx`) draws the same layout.
 
@@ -152,6 +153,6 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - Do lay out primitives; the look lives in the theme and the primitives. A className on a primitive carries layout only.
 - Do turn a list into stacked filled row cards, never into ruled flat rows.
 - Don't put a border on a card, a button or the field; step the fill instead.
-- Do keep the foil for the score card and the mark, and blue for focus.
+- Do keep the foil for the score card, and blue for focus.
 - Don't add gradients, glows, blur, emoji, pills above headings or tracked uppercase labels. humantaste scores sites down for each of these.
 - Don't bring in the reference's sidebar, its Inter face or its blue fills.

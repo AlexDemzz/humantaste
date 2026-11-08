@@ -1,40 +1,28 @@
-/** The foil ink of the score card, in the order the card shows it at rest. */
-const INK = ["#ffcf77", "#f4a5ec", "#a0baff", "#76e2e7", "#adeb9f"];
+import type { CSSProperties } from "react";
 
-/** The card in miniature: dark, an italic h in the score's face, and the meter's foil ticks. */
-export const LogoMark = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 32 32" aria-hidden="true">
-    <rect width="32" height="32" rx="8" fill="#191715" />
-    <text
-      x="7.5"
-      y="21"
-      fill="#f0eeec"
-      fontFamily="Kanit, system-ui"
-      fontStyle="italic"
-      fontWeight="900"
-      fontSize="19"
-    >
-      h
-    </text>
-    {INK.map((colour, index) => (
-      <rect
-        key={colour}
-        x={7 + index * 4}
-        y="24"
-        width="2"
-        height="3"
-        rx="0.5"
-        fill={colour}
-      />
-    ))}
+import { LOGO, LOGO_HEIGHT_EM } from "@/lib/logo";
+import { cn } from "@/lib/utils";
+
+/** The logo in one ink. It sizes off the font size, so a text class sets it like the word it is. */
+export const Logo = ({ className }: { className?: string }) => (
+  <svg
+    className={cn(
+      "block h-(--logo-height) w-auto shrink-0 overflow-visible",
+      className
+    )}
+    style={{ "--logo-height": `${LOGO_HEIGHT_EM}em` } as CSSProperties}
+    viewBox={LOGO.viewBox}
+    fill="currentColor"
+    // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- inline so it takes the text colour; an <img> can't
+    role="img"
+    aria-label="humantaste"
+  >
+    <path fillRule="evenodd" d={LOGO.mark} />
+    <path
+      d={LOGO.word}
+      stroke="currentColor"
+      strokeWidth={LOGO.stroke}
+      strokeLinejoin="round"
+    />
   </svg>
-);
-
-export const Logo = () => (
-  <span className="text-foreground inline-flex items-center gap-2">
-    <LogoMark className="size-7 shrink-0" />
-    <span className="font-display text-xl leading-none font-black tracking-tight italic">
-      humantaste
-    </span>
-  </span>
 );

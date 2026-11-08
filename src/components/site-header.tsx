@@ -10,7 +10,7 @@ const REPO_URL = "https://github.com/AlexDemzz/humantaste";
 export const SiteHeader = () => (
   <header className="flex items-center justify-between">
     <Link to="/" className="rounded-md" aria-label="humantaste home">
-      <Logo />
+      <Logo className="text-foreground text-2xl" />
     </Link>
     <a
       className={cn(buttonVariants({ variant: "outline" }))}

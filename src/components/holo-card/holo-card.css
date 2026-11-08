@@ -140,7 +140,7 @@
   transform: rotateX(180deg);
 }
 
-/* Back: dark foil and the wordmark. */
+/* Back: dark foil and the logo. */
 
 .holo-back {
   color: oklch(0.95 0.003 70);
@@ -162,10 +162,7 @@
 }
 
 .holo-wordmark {
-  font-weight: 600;
-  font-size: calc(132 * var(--u));
-  line-height: 1;
-  letter-spacing: -0.03em;
+  font-size: calc(110 * var(--u));
 }
 
 .holo-back-host {
@@ -432,22 +429,8 @@
 }
 
 .holo-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: calc(10 * var(--u));
   margin-inline-start: auto;
-  font-family: "Kanit", sans-serif;
-  font-style: italic;
-  font-weight: 900;
-  font-size: calc(28 * var(--u));
-  line-height: 1;
-  letter-spacing: -0.025em;
-}
-
-.holo-brand-mark {
-  flex: none;
-  block-size: calc(32 * var(--u));
-  inline-size: calc(32 * var(--u));
+  font-size: calc(30 * var(--u));
 }
 
 .holo-design strong {

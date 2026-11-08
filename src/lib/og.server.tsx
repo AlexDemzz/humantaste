@@ -4,6 +4,7 @@ import { encode } from "uqr";
 import kanitBlackItalic from "../../assets/fonts/display/Kanit-BlackItalic.ttf?arraybuffer";
 import interMedium from "../../assets/fonts/og/Inter-Medium.ttf?arraybuffer";
 import interSemiBold from "../../assets/fonts/og/Inter-SemiBold.ttf?arraybuffer";
+import { LOGO, LOGO_HEIGHT_EM } from "./logo";
 import { tierFor } from "./score";
 import type { CardTier } from "./score";
 import type { ShareCard } from "./share";
@@ -70,7 +71,8 @@ const CHROME_OFFSET = 13;
 const HEAD_GAP = 24;
 /** The same space above and below the meter. */
 const METER_GAP = 32;
-const BRAND_MARK = 32;
+/** The logo set at the foot like 30px type, as on the card. */
+const BRAND_SIZE = 30;
 const FRAME_INSET = 16;
 const FRAME_RADIUS = 22;
 
@@ -421,61 +423,23 @@ const JevLogo = () => (
   </svg>
 );
 
-/** Our logo in the card's grey: the mark's h and ticks are cut out in the card colour, as on the card. */
-const Brand = ({ cut }: { cut: string }) => (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      marginLeft: "auto",
-      fontFamily: "Kanit",
-      fontStyle: "italic",
-      fontWeight: 900,
-      fontSize: 28,
-      letterSpacing: -0.025 * 28,
-      color: C.muted,
-    }}
+/** Our logo in the card's grey, sized like the card's foot. */
+const Brand = () => (
+  <svg
+    width={(LOGO.width / LOGO.em) * BRAND_SIZE}
+    height={LOGO_HEIGHT_EM * BRAND_SIZE}
+    viewBox={LOGO.viewBox}
+    style={{ marginLeft: "auto" }}
   >
-    <div
-      style={{
-        display: "flex",
-        position: "relative",
-        width: BRAND_MARK,
-        height: BRAND_MARK,
-        marginRight: 10,
-        borderRadius: 8,
-        background: C.muted,
-      }}
-    >
-      <span
-        style={{
-          position: "absolute",
-          left: 7.5,
-          top: 1,
-          fontSize: 19,
-          lineHeight: 1,
-          color: cut,
-        }}
-      >
-        h
-      </span>
-      {[0, 1, 2, 3, 4].map((index) => (
-        <div
-          key={index}
-          style={{
-            position: "absolute",
-            left: 7 + index * 4,
-            top: 24,
-            width: 2,
-            height: 3,
-            borderRadius: 0.5,
-            background: cut,
-          }}
-        />
-      ))}
-    </div>
-    humantaste
-  </div>
+    <path fill={C.muted} fillRule="evenodd" d={LOGO.mark} />
+    <path
+      fill={C.muted}
+      stroke={C.muted}
+      strokeWidth={LOGO.stroke}
+      strokeLinejoin="round"
+      d={LOGO.word}
+    />
+  </svg>
 );
 
 /** The score in foil ink, over a card-coloured cut and a chrome copy, as on the card. */
@@ -598,7 +562,7 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
               <span style={{ marginLeft: 7, color: C.fg }}>{card.jev}</span>
             </div>
           )}
-          <Brand cut={look.card} />
+          <Brand />
         </div>
       </div>
     </div>

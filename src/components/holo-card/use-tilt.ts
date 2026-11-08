@@ -1,4 +1,10 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { RefObject } from "react";
 
 const MAX_TILT_DEG = 12;
@@ -9,6 +15,9 @@ const REST_EPSILON = 0.001;
 const GYRO_RANGE_DEG = 20;
 /** Seconds for the resting pose to catch up with a new grip. */
 const BASELINE_DRIFT_S = 4;
+/** Long enough for the page to show the card before the motion dialog covers it. */
+const MOTION_ASK_DELAY_MS = 450;
+const MOTION_SKIPPED_KEY = "humantaste:motion-skipped";
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -64,6 +73,22 @@ const orientationPermission = (): OrientationPermission | null => {
     : null;
 };
 
+const motionSkipped = () => {
+  try {
+    return sessionStorage.getItem(MOTION_SKIPPED_KEY) !== null;
+  } catch {
+    return false;
+  }
+};
+
+const rememberMotionSkipped = () => {
+  try {
+    sessionStorage.setItem(MOTION_SKIPPED_KEY, "true");
+  } catch {
+    // Storage is blocked: the next card asks again.
+  }
+};
+
 interface Axis {
   value: number;
   velocity: number;
@@ -89,8 +114,9 @@ const settled = (a: Axis) =>
  * phone itself is tilting.
  *
  * On touch-only screens the card stays flat: --rx/--ry hold at 0deg and the phone's gyroscope moves only the light,
- * measured from the pose the phone rests in and clamped at ±20°. iOS asks for gyroscope access on the first tap on the
- * card; without access the light keeps its pointer behaviour.
+ * measured from the pose the phone rests in and clamped at ±20°. On iOS, a reader who hasn't decided yet gets
+ * `askingMotion` as the card arrives: `allowMotion`, called from a tap, raises the browser's prompt, and `skipMotion`
+ * keeps the question away for the rest of the session. Without access the light keeps its pointer behaviour.
  */
 export const useTilt = (
   ref: RefObject<HTMLElement | null>,
@@ -98,6 +124,8 @@ export const useTilt = (
 ) => {
   const stillRef = useRef(still);
   const wakeRef = useRef<(() => void) | null>(null);
+  const listenToGyroRef = useRef<(() => void) | null>(null);
+  const [askingMotion, setAskingMotion] = useState(false);
   useLayoutEffect(() => {
     stillRef.current = still;
     wakeRef.current?.();
@@ -224,25 +252,28 @@ export const useTilt = (
     };
 
     let disposed = false;
+    let askTimer: ReturnType<typeof setTimeout> | undefined;
     const listenToGyro = () =>
       window.addEventListener("deviceorientation", onOrientation);
+    listenToGyroRef.current = listenToGyro;
     const requestPermission = flat ? orientationPermission() : null;
-    const onFirstTap = async () => {
-      el.removeEventListener("click", onFirstTap);
+    const resumeOrAsk = async (request: OrientationPermission) => {
       try {
-        if (
-          requestPermission &&
-          (await requestPermission()) === "granted" &&
-          !disposed
-        ) {
+        // Outside a tap, iOS answers only if the reader has already decided, and rejects if not.
+        if ((await request()) === "granted" && !disposed) {
           listenToGyro();
         }
       } catch {
-        // Denied or unavailable: the light keeps its pointer behaviour.
+        if (!disposed && !motionSkipped()) {
+          askTimer = setTimeout(
+            () => setAskingMotion(true),
+            MOTION_ASK_DELAY_MS
+          );
+        }
       }
     };
     if (requestPermission) {
-      el.addEventListener("click", onFirstTap);
+      void resumeOrAsk(requestPermission);
     } else if (flat) {
       listenToGyro();
     }
@@ -254,13 +285,32 @@ export const useTilt = (
     wake();
     return () => {
       disposed = true;
+      clearTimeout(askTimer);
       wakeRef.current = null;
+      listenToGyroRef.current = null;
       cancelAnimationFrame(frame);
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerleave", onLeave);
       el.removeEventListener("pointercancel", onLeave);
-      el.removeEventListener("click", onFirstTap);
       window.removeEventListener("deviceorientation", onOrientation);
     };
   }, [ref]);
+
+  const allowMotion = useCallback(async () => {
+    setAskingMotion(false);
+    try {
+      if ((await orientationPermission()?.()) === "granted") {
+        listenToGyroRef.current?.();
+      }
+    } catch {
+      // Unavailable: the light keeps its pointer behaviour.
+    }
+  }, []);
+
+  const skipMotion = useCallback(() => {
+    setAskingMotion(false);
+    rememberMotionSkipped();
+  }, []);
+
+  return { askingMotion, allowMotion, skipMotion };
 };

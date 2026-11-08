@@ -8,6 +8,7 @@ import { SITE_HOST } from "@/lib/share";
 import type { ShareCard } from "@/lib/share";
 
 import { HoloPeel } from "./holo-peel";
+import { MotionDialog } from "./motion-dialog";
 import { useTilt } from "./use-tilt";
 
 const HOST_MAX_SIZE = 64;
@@ -135,10 +136,17 @@ export const HoloCard = ({
 }) => {
   const ref = useRef<HTMLElement>(null);
   const [sealed, setSealed] = useState(startSealed);
-  useTilt(ref, { still: sealed });
+  const { askingMotion, allowMotion, skipMotion } = useTilt(ref, {
+    still: sealed,
+  });
 
   return (
     <div className="holo-stage">
+      <MotionDialog
+        open={askingMotion}
+        onAllow={allowMotion}
+        onSkip={skipMotion}
+      />
       <article
         ref={ref}
         className="holo"

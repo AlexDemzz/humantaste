@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react";
 import type { CSSProperties } from "react";
 import { encode } from "uqr";
 
+import { tierFor } from "@/lib/score";
 import { SITE_HOST } from "@/lib/share";
 import type { ShareCard } from "@/lib/share";
 
@@ -161,6 +162,7 @@ export const HoloCard = ({
         ref={ref}
         className="holo"
         data-state={done ? "done" : "loading"}
+        data-tier={card ? tierFor(card.score) : undefined}
         aria-busy={!done}
         aria-label={
           card
@@ -177,6 +179,7 @@ export const HoloCard = ({
             <Light />
           </div>
           <div className="holo-side holo-front" aria-hidden={!done}>
+            <div className="holo-etch" aria-hidden="true" />
             {card && <Front card={card} />}
             <Light />
           </div>

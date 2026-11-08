@@ -1,8 +1,11 @@
+import type { ReactElement } from "react";
 import { encode } from "uqr";
 
 import kanitBlackItalic from "../../assets/fonts/display/Kanit-BlackItalic.ttf?arraybuffer";
 import interMedium from "../../assets/fonts/og/Inter-Medium.ttf?arraybuffer";
 import interSemiBold from "../../assets/fonts/og/Inter-SemiBold.ttf?arraybuffer";
+import { tierFor } from "./score";
+import type { CardTier } from "./score";
 import type { ShareCard } from "./share";
 
 export const OG_SIZE = { width: 1200, height: 630 };
@@ -18,10 +21,39 @@ const C = {
   tickOff: "#343230",
 };
 
-/** The foil ink's stops, frozen in the order the tilted card shows them at rest. */
-const INK = ["#ffcf77", "#f4a5ec", "#a0baff", "#76e2e7", "#adeb9f"];
-const ink = (angle: number, stops: readonly string[] = INK) =>
-  `linear-gradient(${angle}deg, ${stops.join(", ")})`;
+/** The card's inks at rest, evenly spaced: the middle third of each gradient, as its 300% background shows it. */
+const FOIL = [
+  "#cde393",
+  "#e9d985",
+  "#ffcf77",
+  "#fcc2a6",
+  "#f7b5cb",
+  "#f4a5ec",
+  "#daadf7",
+  "#bfb4ff",
+  "#a0baff",
+  "#94c8ff",
+  "#86d5f4",
+];
+const SILVER = [
+  "#8c9197",
+  "#797e84",
+  "#666c71",
+  "#54595f",
+  "#83888c",
+  "#c8cbcd",
+  "#eaebed",
+  "#d1d3d6",
+  "#b8bcc0",
+  "#a0a5a9",
+  "#91969b",
+];
+/** The frame's slice of the same gradients: its background is 400%, so the middle quarter shows. */
+const FOIL_FRAME = ["#efd782", "#fbc1ab", "#f4a5ec", "#c2b3ff", "#97c4ff"];
+const SILVER_FRAME = ["#747a7f", "#52575d", "#c8cbcd", "#d4d6d9", "#a6aaaf"];
+const GOLD_FRAME = ["#dca236", "#b77d2b", "#925a25", "#be8b41", "#eabf5d"];
+const FOIL_ANGLE = 115;
+const METAL_ANGLE = 160;
 
 const FACE_INLINE = 72;
 const METER_WIDTH = OG_SIZE.width - 2 * FACE_INLINE;
@@ -39,10 +71,241 @@ const HEAD_GAP = 24;
 /** The same space above and below the meter. */
 const METER_GAP = 32;
 const BRAND_MARK = 32;
+const FRAME_INSET = 16;
+const FRAME_RADIUS = 22;
 
 /** The chrome copy's gradient at rest, where the card shows its dark band just above the middle. */
 const CHROME =
   "linear-gradient(180deg, #b5b9be 0%, #4b4f55 42%, #eceef0 58%, #a9adb2 100%)";
+
+interface TierLook {
+  card: string;
+  /** Every foil-inked mark: the number, the host, the QR code and the meter. */
+  ink: readonly string[];
+  angle: number;
+  /** The copy behind the number. */
+  shadow: string;
+  frame: {
+    stops: readonly string[];
+    angle: number;
+    width: number;
+    opacity: number;
+  } | null;
+}
+
+const LOOKS: Record<CardTier, TierLook> = {
+  matte: {
+    card: C.card,
+    ink: [C.fg, C.fg],
+    angle: FOIL_ANGLE,
+    shadow: "linear-gradient(#3f3d3a, #3f3d3a)",
+    frame: null,
+  },
+  chrome: {
+    card: C.card,
+    ink: SILVER,
+    angle: METAL_ANGLE,
+    shadow:
+      "linear-gradient(180deg, #82878c 0%, #2f3338 45%, #9b9fa3 55%, #393e42 100%)",
+    frame: { stops: SILVER_FRAME, angle: METAL_ANGLE, width: 5, opacity: 0.75 },
+  },
+  holo: {
+    card: C.card,
+    ink: FOIL,
+    angle: FOIL_ANGLE,
+    shadow: CHROME,
+    frame: { stops: FOIL_FRAME, angle: FOIL_ANGLE, width: 5, opacity: 0.75 },
+  },
+  prismatic: {
+    card: C.card,
+    ink: FOIL,
+    angle: FOIL_ANGLE,
+    shadow:
+      "linear-gradient(180deg, #fddb7c 0%, #925a25 42%, #fff6c8 58%, #c18434 100%)",
+    frame: { stops: GOLD_FRAME, angle: METAL_ANGLE, width: 9, opacity: 1 },
+  },
+};
+
+const { width: W, height: H } = OG_SIZE;
+
+/** Where a CSS gradient at `angle` starts and ends on a box, as SVG gradient coordinates. */
+const gradientLine = (
+  angle: number,
+  box: { x: number; y: number; width: number; height: number }
+) => {
+  const rad = (angle * Math.PI) / 180;
+  const dx = Math.sin(rad);
+  const dy = -Math.cos(rad);
+  const half = (Math.abs(box.width * dx) + Math.abs(box.height * dy)) / 2;
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  return {
+    x1: cx - dx * half,
+    y1: cy - dy * half,
+    x2: cx + dx * half,
+    y2: cy + dy * half,
+  };
+};
+
+/** The card's rainbow with the light at the centre: one 36% period of its 115deg gradient, in image pixels. */
+const RAINBOW = (
+  <linearGradient
+    id="rainbow"
+    gradientUnits="userSpaceOnUse"
+    x1="-87"
+    y1="-5"
+    x2="1679"
+    y2="818"
+  >
+    <stop offset={0} stopColor="#c13b9f" />
+    <stop offset={1 / 6} stopColor="#864ad2" />
+    <stop offset={2 / 6} stopColor="#3f69d3" />
+    <stop offset={3 / 6} stopColor="#00a0c5" />
+    <stop offset={4 / 6} stopColor="#00b29b" />
+    <stop offset={5 / 6} stopColor="#9065d0" />
+    <stop offset={1} stopColor="#c13b9f" />
+  </linearGradient>
+);
+
+const STARS = [
+  { width: 86, height: 74, cx: 20, cy: 23, r: 3, fill: "#ffffff" },
+  { width: 118, height: 97, cx: 84, cy: 62, r: 2.3, fill: "#ffffff" },
+  { width: 163, height: 141, cx: 68, cy: 116, r: 3.9, fill: "#ffffff" },
+  { width: 201, height: 173, cx: 177, cy: 21, r: 3.2, fill: "#ffeca0" },
+];
+
+/** A mask for the light on a card at rest: full at the centre, down to `edge` at `stop` of the way to the corners. */
+const restMask = (id: string, stop: number, edge: number) => (
+  <mask id={id}>
+    <radialGradient
+      id={`${id}-light`}
+      gradientUnits="userSpaceOnUse"
+      cx={W / 2}
+      cy={H / 2}
+      r={Math.hypot(W / 2, H / 2)}
+    >
+      <stop offset="0" stopColor="#ffffff" />
+      <stop offset={stop} stopColor="#ffffff" stopOpacity={edge} />
+    </radialGradient>
+    <rect width={W} height={H} fill={`url(#${id}-light)`} />
+  </mask>
+);
+
+/** Satori only serializes plain SVG elements inside an svg, so the stock's layers are values rather than components. */
+const STOCK_LAYERS: Partial<Record<CardTier, ReactElement>> = {
+  chrome: (
+    <g mask="url(#lit)" opacity="0.55">
+      <defs>
+        {restMask("lit", 0.75, 0.25)}
+        <pattern id="brush" width={W} height="6" patternUnits="userSpaceOnUse">
+          <rect width={W} height="1" fill="#bbbec1" fillOpacity="0.2" />
+        </pattern>
+        <linearGradient
+          id="sheen"
+          gradientUnits="userSpaceOnUse"
+          x1="-103"
+          y1="127"
+          x2="1303"
+          y2="503"
+        >
+          <stop offset="0" stopColor="#cbced1" stopOpacity="0" />
+          <stop offset="0.5" stopColor="#cbced1" stopOpacity="0.3" />
+          <stop offset="1" stopColor="#cbced1" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <rect width={W} height={H} fill="url(#brush)" />
+      <rect width={W} height={H} fill="url(#sheen)" />
+    </g>
+  ),
+  prismatic: (
+    <g>
+      <defs>
+        {RAINBOW}
+        {restMask("glitter", 0.65, 0.25)}
+        {restMask("wash", 0.7, 0.15)}
+        {STARS.map((star) => (
+          <pattern
+            key={star.width}
+            id={`stars-${star.width}`}
+            width={star.width}
+            height={star.height}
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx={star.cx} cy={star.cy} r={star.r} fill={star.fill} />
+          </pattern>
+        ))}
+      </defs>
+      <g mask="url(#glitter)" opacity="0.45">
+        {STARS.map((star) => (
+          <rect
+            key={star.width}
+            width={W}
+            height={H}
+            fill={`url(#stars-${star.width})`}
+          />
+        ))}
+      </g>
+      <rect
+        width={W}
+        height={H}
+        fill="url(#rainbow)"
+        mask="url(#wash)"
+        opacity="0.3"
+      />
+    </g>
+  ),
+};
+
+/** The tier's layers under the type and the foil frame over them, as on the card at rest. */
+const Stock = ({ tier }: { tier: CardTier }) => {
+  const { frame } = LOOKS[tier];
+  const inset = frame ? FRAME_INSET + frame.width / 2 : 0;
+  return (
+    <svg
+      width={W}
+      height={H}
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ position: "absolute", top: 0, left: 0 }}
+    >
+      {frame && (
+        <defs>
+          <linearGradient
+            id="frame"
+            gradientUnits="userSpaceOnUse"
+            {...gradientLine(frame.angle, {
+              x: FRAME_INSET,
+              y: FRAME_INSET,
+              width: W - 2 * FRAME_INSET,
+              height: H - 2 * FRAME_INSET,
+            })}
+          >
+            {frame.stops.map((stop, i) => (
+              <stop
+                key={i}
+                offset={i / (frame.stops.length - 1)}
+                stopColor={stop}
+              />
+            ))}
+          </linearGradient>
+        </defs>
+      )}
+      {STOCK_LAYERS[tier]}
+      {frame && (
+        <rect
+          x={inset}
+          y={inset}
+          width={W - 2 * inset}
+          height={H - 2 * inset}
+          rx={FRAME_RADIUS - frame.width / 2}
+          fill="none"
+          stroke="url(#frame)"
+          strokeWidth={frame.width}
+          strokeOpacity={frame.opacity}
+        />
+      )}
+    </svg>
+  );
+};
 
 const hexToRgb = (hex: string): [number, number, number] => {
   const n = Number.parseInt(hex.slice(1), 16);
@@ -51,11 +314,11 @@ const hexToRgb = (hex: string): [number, number, number] => {
 };
 
 /** The ink's colour a fraction `t` of the way along its stops. */
-const inkAt = (t: number): string => {
-  const span = (INK.length - 1) * Math.min(1, Math.max(0, t));
-  const index = Math.min(INK.length - 2, Math.floor(span));
-  const from = hexToRgb(INK[index] ?? "#ffffff");
-  const to = hexToRgb(INK[index + 1] ?? "#ffffff");
+const inkAt = (stops: readonly string[], t: number): string => {
+  const span = (stops.length - 1) * Math.min(1, Math.max(0, t));
+  const index = Math.min(stops.length - 2, Math.floor(span));
+  const from = hexToRgb(stops[index] ?? "#ffffff");
+  const to = hexToRgb(stops[index + 1] ?? "#ffffff");
   const mix = from.map((channel, i) =>
     Math.round(channel + ((to[i] ?? channel) - channel) * (span - index))
   );
@@ -66,14 +329,22 @@ const inkAt = (t: number): string => {
 const hostSize = (host: string) => Math.min(64, Math.round(1100 / host.length));
 
 /** Gradient text: the renderer paints the background through the glyphs. */
-const inkText = (angle: number, stops?: readonly string[]) =>
+const inkText = (angle: number, stops: readonly string[]) =>
   ({
-    backgroundImage: ink(angle, stops),
+    backgroundImage: `linear-gradient(${angle}deg, ${stops.join(", ")})`,
     backgroundClip: "text",
     color: "transparent",
   }) as const;
 
-const QrCode = ({ url }: { url: string }) => {
+const QrCode = ({
+  url,
+  stops,
+  angle,
+}: {
+  url: string;
+  stops: readonly string[];
+  angle: number;
+}) => {
   const { data, size } = encode(url, { ecc: "M", border: 0 });
   // Whole-pixel modules with no gap between them: scanners read the run lengths.
   const module = Math.max(1, Math.round(QR_TARGET / size));
@@ -88,9 +359,13 @@ const QrCode = ({ url }: { url: string }) => {
       shapeRendering="crispEdges"
     >
       <defs>
-        <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
-          {INK.map((stop, i) => (
-            <stop key={stop} offset={i / (INK.length - 1)} stopColor={stop} />
+        <linearGradient
+          id="ink"
+          gradientUnits="userSpaceOnUse"
+          {...gradientLine(angle, { x: 0, y: 0, width: size, height: size })}
+        >
+          {stops.map((stop, i) => (
+            <stop key={i} offset={i / (stops.length - 1)} stopColor={stop} />
           ))}
         </linearGradient>
       </defs>
@@ -99,7 +374,13 @@ const QrCode = ({ url }: { url: string }) => {
   );
 };
 
-const Meter = ({ value }: { value: number }) => {
+const Meter = ({
+  value,
+  stops,
+}: {
+  value: number;
+  stops: readonly string[];
+}) => {
   const lit = Math.max(1, Math.round(value));
   const pitch = METER_WIDTH / TICKS;
   return (
@@ -120,7 +401,8 @@ const Meter = ({ value }: { value: number }) => {
             left: Math.round(i * pitch),
             width: TICK_WIDTH,
             height: 22,
-            background: i < lit ? inkAt(i / (TICKS - 1)) : C.tickOff,
+            background:
+              i < lit ? inkAt(stops, i / Math.max(1, lit - 1)) : C.tickOff,
           }}
         />
       ))}
@@ -140,7 +422,7 @@ const JevLogo = () => (
 );
 
 /** Our logo in the card's grey: the mark's h and ticks are cut out in the card colour, as on the card. */
-const Brand = () => (
+const Brand = ({ cut }: { cut: string }) => (
   <div
     style={{
       display: "flex",
@@ -172,7 +454,7 @@ const Brand = () => (
           top: 1,
           fontSize: 19,
           lineHeight: 1,
-          color: C.card,
+          color: cut,
         }}
       >
         h
@@ -187,7 +469,7 @@ const Brand = () => (
             width: 2,
             height: 3,
             borderRadius: 0.5,
-            background: C.card,
+            background: cut,
           }}
         />
       ))}
@@ -197,7 +479,7 @@ const Brand = () => (
 );
 
 /** The score in foil ink, over a card-coloured cut and a chrome copy, as on the card. */
-const Score = ({ score }: { score: number }) => {
+const Score = ({ score, look }: { score: number; look: TierLook }) => {
   const figures = {
     fontFamily: "Kanit",
     fontStyle: "italic",
@@ -214,15 +496,15 @@ const Score = ({ score }: { score: number }) => {
       <span
         style={{
           ...behind(CHROME_OFFSET),
-          backgroundImage: CHROME,
+          backgroundImage: look.shadow,
           backgroundClip: "text",
           color: "transparent",
         }}
       >
         {score}
       </span>
-      <span style={{ ...behind(CUT_OFFSET), color: C.card }}>{score}</span>
-      <span style={{ ...figures, ...inkText(160, INK.slice(0, 3)) }}>
+      <span style={{ ...behind(CUT_OFFSET), color: look.card }}>{score}</span>
+      <span style={{ ...figures, ...inkText(look.angle, look.ink) }}>
         {score}
       </span>
     </div>
@@ -232,6 +514,8 @@ const Score = ({ score }: { score: number }) => {
 /** The holo card's front, frozen at rest: the same marks in the same order of weight as the card on the scan page. */
 export const ShareCardImage = ({ card }: { card: ShareCard }) => {
   const host = hostSize(card.host);
+  const tier = tierFor(card.score);
+  const look = LOOKS[tier];
   return (
     <div
       style={{
@@ -239,38 +523,13 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
         position: "relative",
         width: OG_SIZE.width,
         height: OG_SIZE.height,
-        background: C.card,
+        background: look.card,
         color: C.fg,
         fontFamily: "Inter",
         fontWeight: 500,
       }}
     >
-      {/* The foil frame: a ring of ink inset from the edge. */}
-      <div
-        style={{
-          display: "flex",
-          position: "absolute",
-          top: 16,
-          left: 16,
-          right: 16,
-          bottom: 16,
-          borderRadius: 22,
-          backgroundImage: ink(20),
-          opacity: 0.75,
-        }}
-      />
-      <div
-        style={{
-          display: "flex",
-          position: "absolute",
-          top: 21,
-          left: 21,
-          right: 21,
-          bottom: 21,
-          borderRadius: 17,
-          background: C.card,
-        }}
-      />
+      <Stock tier={tier} />
 
       <div
         style={{
@@ -289,8 +548,8 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
             gap: HEAD_GAP,
           }}
         >
-          <Score score={card.score} />
-          <QrCode url={card.scanUrl} />
+          <Score score={card.score} look={look} />
+          <QrCode url={card.scanUrl} stops={look.ink} angle={look.angle} />
         </div>
 
         <div
@@ -310,7 +569,7 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
               lineHeight: 1.05,
               letterSpacing: -0.02 * host,
               wordBreak: "break-all",
-              ...inkText(90, INK.slice(0, 2)),
+              ...inkText(look.angle, look.ink),
             }}
           >
             {card.host}
@@ -320,7 +579,7 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
           </span>
         </div>
 
-        <Meter value={card.score} />
+        <Meter value={card.score} stops={look.ink} />
 
         <div
           style={{
@@ -339,7 +598,7 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
               <span style={{ marginLeft: 7, color: C.fg }}>{card.jev}</span>
             </div>
           )}
-          <Brand />
+          <Brand cut={look.card} />
         </div>
       </div>
     </div>

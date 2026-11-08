@@ -269,6 +269,7 @@
 
 /* Light: foil and glare over each side, never taking the pointer. */
 
+.holo-etch,
 .holo-foil,
 .holo-glare,
 .holo-sweep {
@@ -501,4 +502,174 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* Tiers: the score picks the inks. The holo tier keeps the foil inks above; chrome and prismatic add to the stock. */
+
+.holo-etch {
+  mix-blend-mode: screen;
+  mask: radial-gradient(
+    farthest-corner circle at var(--px) var(--py),
+    oklch(0 0 none) 0%,
+    oklch(0 0 none / 0.25) 75%
+  );
+  opacity: calc(var(--lit) * (0.55 + var(--active) * 0.45));
+}
+
+.holo[data-tier="matte"] {
+  --holo-ink: linear-gradient(var(--foreground), var(--foreground));
+}
+
+.holo[data-tier="matte"] .holo-front .holo-number-chrome {
+  background-image: linear-gradient(oklch(0.36 0.005 70), oklch(0.36 0.005 70));
+}
+
+.holo[data-tier="matte"] .holo-front .holo-foil,
+.holo[data-tier="matte"] .holo-front .holo-sweep {
+  display: none;
+}
+
+.holo[data-tier="matte"] .holo-front .holo-glare {
+  opacity: calc(var(--lit) * var(--active) * 0.3);
+}
+
+.holo[data-tier="chrome"] {
+  --holo-ink: linear-gradient(
+    160deg,
+    oklch(0.62 0.01 250) 0%,
+    oklch(0.95 0.003 250) 16%,
+    oklch(0.72 0.01 250) 30%,
+    oklch(0.45 0.012 250) 44%,
+    oklch(0.97 0.002 250) 52%,
+    oklch(0.66 0.01 250) 66%,
+    oklch(0.88 0.005 250) 82%,
+    oklch(0.6 0.01 250) 100%
+  );
+}
+
+.holo[data-tier="chrome"] .holo-front .holo-number-chrome {
+  background-image: linear-gradient(
+    180deg,
+    oklch(0.62 0.01 250) 0%,
+    oklch(0.32 0.01 250) 45%,
+    oklch(0.7 0.008 250) 55%,
+    oklch(0.36 0.01 250) 100%
+  );
+}
+
+.holo[data-tier="chrome"] .holo-etch {
+  background:
+    linear-gradient(
+        105deg,
+        transparent 30%,
+        oklch(0.85 0.005 250 / 0.3) 50%,
+        transparent 70%
+      )
+      var(--px) 0 / 300% 100%,
+    repeating-linear-gradient(
+      0deg,
+      oklch(0.8 0.005 250 / 0.2) 0 1px,
+      transparent 1px calc(6 * var(--u))
+    );
+}
+
+.holo[data-tier="prismatic"] {
+  --metal-gold: linear-gradient(
+    160deg,
+    oklch(0.6 0.11 65) 0%,
+    oklch(0.9 0.12 90) 16%,
+    oklch(0.98 0.06 98) 24%,
+    oklch(0.74 0.14 78) 38%,
+    oklch(0.52 0.1 60) 50%,
+    oklch(0.86 0.13 88) 64%,
+    oklch(0.97 0.06 96) 72%,
+    oklch(0.66 0.12 70) 86%,
+    oklch(0.82 0.13 84) 100%
+  );
+}
+
+.holo[data-tier="prismatic"] .holo-front .holo-number-chrome {
+  background-image: var(--metal-gold);
+}
+
+.holo[data-tier="prismatic"] .holo-front .holo-foil {
+  border-width: calc(9 * var(--u));
+  background-image: var(--metal-gold);
+  opacity: var(--lit);
+}
+
+.holo[data-tier="prismatic"] .holo-front .holo-sweep {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    oklch(0.95 0.1 90 / 0.8) 50%,
+    transparent 65%
+  );
+}
+
+.holo[data-tier="prismatic"] .holo-etch {
+  background:
+    radial-gradient(
+        circle at 23% 31%,
+        oklch(1 0 none) 0 calc(2.4 * var(--u)),
+        transparent calc(3.6 * var(--u))
+      )
+      0 0 / calc(86 * var(--u)) calc(74 * var(--u)),
+    radial-gradient(
+        circle at 71% 64%,
+        oklch(1 0 none / 0.85) 0 calc(1.8 * var(--u)),
+        transparent calc(2.8 * var(--u))
+      )
+      0 0 / calc(118 * var(--u)) calc(97 * var(--u)),
+    radial-gradient(
+        circle at 42% 82%,
+        oklch(1 0 none) 0 calc(3.2 * var(--u)),
+        transparent calc(4.6 * var(--u))
+      )
+      0 0 / calc(163 * var(--u)) calc(141 * var(--u)),
+    radial-gradient(
+        circle at 88% 12%,
+        oklch(0.95 0.1 90) 0 calc(2.6 * var(--u)),
+        transparent calc(3.8 * var(--u))
+      )
+      0 0 / calc(201 * var(--u)) calc(173 * var(--u));
+  mask: radial-gradient(
+    farthest-corner circle at var(--px) var(--py),
+    oklch(0 0 none) 0%,
+    oklch(0 0 none / 0.25) 65%
+  );
+  opacity: calc(var(--lit) * (0.45 + var(--active) * 0.55));
+}
+
+.holo[data-tier="prismatic"] .holo-front::after {
+  content: "";
+  grid-area: 1 / 1;
+  border-radius: inherit;
+  background: var(--holo-rainbow) var(--px) var(--py) / 400% 400%;
+  mix-blend-mode: screen;
+  mask-image: radial-gradient(
+    farthest-corner circle at var(--px) var(--py),
+    oklch(0 0 none) 0%,
+    oklch(0 0 none / 0.15) 70%
+  );
+  opacity: calc(var(--lit) * (0.3 + var(--active) * 0.4));
+  pointer-events: none;
+}
+
+@keyframes holo-flare {
+  from {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .holo[data-tier="prismatic"][data-state="done"] .holo-front .holo-sweep {
+    animation-iteration-count: 2;
+  }
+
+  .holo[data-tier="prismatic"] .holo-front .holo-foil,
+  .holo[data-tier="prismatic"] .holo-etch,
+  .holo[data-tier="prismatic"] .holo-front::after {
+    animation: holo-flare 1400ms var(--ease-out) 250ms backwards;
+  }
 }

@@ -136,6 +136,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - **URL field** (`InputGroup`): one 40px filled pill; the input on the left and the dark `Score it` pill inside it on the right (`InputGroupAddon align="inline-end"`, `InputGroupButton variant="default" size="sm"`, 32px tall, 4px inset). An invalid URL rings the whole pill in `destructive`.
 - **Meter**: 20 ticks, 2px wide, `foreground` up to the score and `meter-off` after.
 - **Logo**: the mark (the score card in miniature) beside the wordmark. On the score card itself it sits at the bottom right in one grey ink (`muted-foreground`), the h and ticks cut out in the card colour.
+- **Score card tiers**: the score picks the inks. Matte (0–44): flat ink, no foil. Chrome (45–74): silver ink over a brushed pattern, under the type and revealed by the light. Holo (75–99): foil ink. Prismatic (100): foil ink over a gold shadow, a thick gold frame, glitter under the type and a foil wash that flares in. The share image draws each tier at rest. The thresholds live in `tierFor` (`src/lib/score.ts`).
 - **Score card front**: the score at the top left and the QR code at the top right; the free height between; at the foot, the site, the verdict, the meter, then Jev's read on the left and the logo on the right. The share image (`og.server.tsx`) draws the same layout.
 
 ## States

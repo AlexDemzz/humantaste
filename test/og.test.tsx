@@ -28,6 +28,7 @@ describe("renderShareCard", () => {
         jev: null,
       }),
     ],
+    ["a mid score", card({ score: 52, verdict: "Half template, half taste." })],
     [
       "a zero score",
       card({ score: 0, verdict: "Straight out of the generator." }),

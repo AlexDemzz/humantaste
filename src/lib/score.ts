@@ -22,3 +22,18 @@ export const verdictFor = (score: number): string => {
   }
   return "Straight out of the generator.";
 };
+
+export type CardTier = "prismatic" | "holo" | "chrome" | "matte";
+
+export const tierFor = (score: number): CardTier => {
+  if (score >= 100) {
+    return "prismatic";
+  }
+  if (score >= 75) {
+    return "holo";
+  }
+  if (score >= 45) {
+    return "chrome";
+  }
+  return "matte";
+};

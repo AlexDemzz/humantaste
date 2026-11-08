@@ -167,7 +167,8 @@ export interface AnalysisResult {
   url: string;
   finalUrl: string;
   score: number;
-  verdict: string;
+  /** The percentage of scored sites it beat when it was scanned; null when the card prints none. Absent on reports stored before this existed. */
+  beats?: number | null;
   signals: SignalResult[];
   credits: Credit[];
   visual: VisualRead | null;

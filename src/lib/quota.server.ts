@@ -21,7 +21,7 @@ export type DailyReservation =
   | { ok: true; release: () => Promise<void> }
   | { ok: false; refusedBy: QuotaRefusal };
 
-/** The address is hashed with the day, so stored rows can't be matched to a person or across days. */
+/** The address is hashed with the day, so stored rows don't hold it in the clear. Unsalted, so this is not anonymisation. */
 const clientScope = (day: string, client: string): string =>
   `client:${sha256Hex(`${day}:${client}`).slice(0, CLIENT_HASH_LENGTH)}`;
 

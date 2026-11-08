@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+
 import { HALF_AT } from "@/lib/score";
 
 export const HowItWorks = () => (
@@ -21,5 +23,13 @@ export const HowItWorks = () => (
       )²), so one habit costs little and five stacked patterns cost most of the
       score.
     </p>
+    <nav aria-label="Site information" className="flex gap-4 pt-2">
+      <Link className="text-link" to="/contact">
+        Contact
+      </Link>
+      <Link className="text-link" to="/privacy">
+        Privacy
+      </Link>
+    </nav>
   </footer>
 );

@@ -10,14 +10,13 @@ import { ShareActions } from "@/components/share-actions";
 import { TasteSkills } from "@/components/taste-skills";
 import { peekScanFn, runScanFn } from "@/lib/scan.functions";
 import type { ScanOutcome } from "@/lib/scan.functions";
-import { cardFromResult, cardPath, SITE_HOST } from "@/lib/share";
+import { reportHead, unscoredHead } from "@/lib/seo";
+import { cardFromResult } from "@/lib/share";
 import { parseTarget } from "@/lib/target";
 import type { AnalysisResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 import holoCardCss from "@/components/holo-card/holo-card.css?url";
-
-const SITE_URL = import.meta.env.VITE_SITE_URL ?? `https://${SITE_HOST}`;
 
 const failure = (error: unknown): ScanOutcome => ({
   ok: false,
@@ -83,6 +82,15 @@ const ScanMeta = ({ result }: { result: AnalysisResult }) => {
   );
 };
 
+const ScoreSite = ({ title }: { title: string }) => (
+  <section className="flex flex-col gap-4" aria-labelledby="again">
+    <h2 id="again" className="text-foreground font-semibold">
+      {title}
+    </h2>
+    <ScanForm examples={false} />
+  </section>
+);
+
 /**
  * A fresh scan waits in the loader and its card only exists once it is ready to peel.
  * A stored scan is known from the first render and shows its card at once.
@@ -126,19 +134,23 @@ const Scan = () => {
 
   if (outcome && !outcome.ok) {
     return (
-      <section className="flex flex-col gap-4">
-        <h1 className="text-foreground font-semibold">
-          Unable to score {slug}
-        </h1>
-        <p className="text-destructive text-sm" role="alert">
-          {outcome.error}
-        </p>
-      </section>
+      <>
+        <section className="flex flex-col gap-4">
+          <h1 className="text-foreground font-semibold">
+            Unable to score {slug}
+          </h1>
+          <p className="text-destructive text-sm" role="alert">
+            {outcome.error}
+          </p>
+        </section>
+        <ScoreSite title="Score another site" />
+      </>
     );
   }
 
   const scanned = outcome?.result ?? null;
   const result = revealed ? scanned : null;
+  const arrivedOnReport = initial?.ok === true;
   return (
     <>
       <section className="flex flex-col gap-4" aria-live="polite">
@@ -172,15 +184,14 @@ const Scan = () => {
             </div>
           )}
         </div>
-        {result ? (
+        {result && (
           <>
             <ShareActions result={result} />
             <ScanMeta result={result} />
           </>
-        ) : (
-          <div className="min-h-10" />
         )}
       </section>
+      {arrivedOnReport && <ScoreSite title="Score your site" />}
       {result && (
         <div
           className={cn(
@@ -194,6 +205,7 @@ const Scan = () => {
           <TasteSkills />
         </div>
       )}
+      {!arrivedOnReport && <ScoreSite title="Score another site" />}
     </>
   );
 };
@@ -203,12 +215,6 @@ const ScanPage = () => {
   return (
     <Page>
       <Scan key={slug} />
-      <section className="flex flex-col gap-4" aria-labelledby="again">
-        <h2 id="again" className="text-foreground font-semibold">
-          Score another site
-        </h2>
-        <ScanForm key={slug} examples={false} />
-      </section>
     </Page>
   );
 };
@@ -241,33 +247,8 @@ export const Route = createFileRoute("/scan/$")({
       return { links };
     }
     const { slug, stored } = loaderData;
-    const title = stored
-      ? `${slug} scores ${stored.score}/100 on humantaste`
-      : `${slug} on humantaste`;
-    const description =
-      stored?.verdict ??
-      "How much of this page did a person choose? 0 is a pure AI template, 100 is every choice made on purpose.";
-    const image = `${SITE_URL}${cardPath(slug)}`;
-    const imageMeta = stored
-      ? [
-          { property: "og:image", content: image },
-          { property: "og:image:width", content: "1200" },
-          { property: "og:image:height", content: "630" },
-          { name: "twitter:card", content: "summary_large_image" },
-          { name: "twitter:image", content: image },
-        ]
-      : [{ name: "twitter:card", content: "summary" }];
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { name: "twitter:title", content: title },
-        ...imageMeta,
-      ],
-      links,
-    };
+    const head = stored ? reportHead(stored) : unscoredHead(slug);
+    return { ...head, links: [...head.links, ...links] };
   },
   component: ScanPage,
 });

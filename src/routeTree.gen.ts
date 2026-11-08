@@ -10,6 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as OgDotpngRouteImport } from './routes/og[.]png'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as OgSplatRouteImport } from './routes/og.$'
 import { Route as ScanSplatRouteImport } from './routes/scan.$'
 import { Route as ShotSplatRouteImport } from './routes/shot.$'
@@ -18,6 +22,26 @@ import { Route as ApiReportSplatRouteImport } from './routes/api/report.$'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OgDotpngRoute = OgDotpngRouteImport.update({
+  id: '/og.png',
+  path: '/og.png',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OgSplatRoute = OgSplatRouteImport.update({
@@ -43,6 +67,10 @@ const ApiReportSplatRoute = ApiReportSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contact': typeof ContactRoute
+  '/og.png': typeof OgDotpngRoute
+  '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/og/$': typeof OgSplatRoute
   '/scan/$': typeof ScanSplatRoute
   '/shot/$': typeof ShotSplatRoute
@@ -50,6 +78,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contact': typeof ContactRoute
+  '/og.png': typeof OgDotpngRoute
+  '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/og/$': typeof OgSplatRoute
   '/scan/$': typeof ScanSplatRoute
   '/shot/$': typeof ShotSplatRoute
@@ -58,6 +90,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/contact': typeof ContactRoute
+  '/og.png': typeof OgDotpngRoute
+  '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/og/$': typeof OgSplatRoute
   '/scan/$': typeof ScanSplatRoute
   '/shot/$': typeof ShotSplatRoute
@@ -65,14 +101,46 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/og/$' | '/scan/$' | '/shot/$' | '/api/report/$'
+  fullPaths:
+    | '/'
+    | '/contact'
+    | '/og.png'
+    | '/privacy'
+    | '/sitemap.xml'
+    | '/og/$'
+    | '/scan/$'
+    | '/shot/$'
+    | '/api/report/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/og/$' | '/scan/$' | '/shot/$' | '/api/report/$'
-  id: '__root__' | '/' | '/og/$' | '/scan/$' | '/shot/$' | '/api/report/$'
+  to:
+    | '/'
+    | '/contact'
+    | '/og.png'
+    | '/privacy'
+    | '/sitemap.xml'
+    | '/og/$'
+    | '/scan/$'
+    | '/shot/$'
+    | '/api/report/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/contact'
+    | '/og.png'
+    | '/privacy'
+    | '/sitemap.xml'
+    | '/og/$'
+    | '/scan/$'
+    | '/shot/$'
+    | '/api/report/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ContactRoute: typeof ContactRoute
+  OgDotpngRoute: typeof OgDotpngRoute
+  PrivacyRoute: typeof PrivacyRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   OgSplatRoute: typeof OgSplatRoute
   ScanSplatRoute: typeof ScanSplatRoute
   ShotSplatRoute: typeof ShotSplatRoute
@@ -86,6 +154,34 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/og.png': {
+      id: '/og.png'
+      path: '/og.png'
+      fullPath: '/og.png'
+      preLoaderRoute: typeof OgDotpngRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/og/$': {
@@ -121,6 +217,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ContactRoute: ContactRoute,
+  OgDotpngRoute: OgDotpngRoute,
+  PrivacyRoute: PrivacyRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   OgSplatRoute: OgSplatRoute,
   ScanSplatRoute: ScanSplatRoute,
   ShotSplatRoute: ShotSplatRoute,

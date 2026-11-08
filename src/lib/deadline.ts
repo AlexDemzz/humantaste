@@ -14,3 +14,12 @@ export const withinDeadline = async <T>(
     clearTimeout(timer);
   }
 };
+
+export const sleep = (ms: number): Promise<void> =>
+  // oxlint-disable-next-line promise/avoid-new -- setTimeout has no promise form on Workers
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+/** Somewhere between `ms` and twice that, so scans that failed together don't come back together. */
+export const withJitter = (ms: number): number => ms * (1 + Math.random());

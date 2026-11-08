@@ -6,8 +6,8 @@ import type { ShareCard } from "@/lib/share";
 const card = (overrides: Partial<ShareCard>): ShareCard => ({
   host: "linear.app",
   score: 98,
-  verdict: "Hand-made. Someone made choices here.",
-  jev: "Clearly hand-designed",
+  standing: "Beats 97% of sites scored",
+  jev: "it looks hand-designed",
   scanUrl: "https://humantaste.xyz/scan/linear.app",
   ...overrides,
 });
@@ -28,11 +28,8 @@ describe("renderShareCard", () => {
         jev: null,
       }),
     ],
-    ["a mid score", card({ score: 52, verdict: "Half template, half taste." })],
-    [
-      "a zero score",
-      card({ score: 0, verdict: "Straight out of the generator." }),
-    ],
+    ["a mid score", card({ score: 52, standing: "Beats 48% of sites scored" })],
+    ["a zero score with no rank", card({ score: 0, standing: null })],
   ])("renders %s as an OG-sized PNG", async (_, input) => {
     const png = await renderShareCard(input);
     expect(pngSize(png)).toEqual(OG_SIZE);

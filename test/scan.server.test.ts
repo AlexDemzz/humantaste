@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchPage, SiteRefusedError } from "@/lib/fetch-page";
 import type { FetchedPage } from "@/lib/fetch-page";
@@ -6,7 +6,7 @@ import { visualRead } from "@/lib/judge.server";
 import { BrowserUnavailableError, renderPage } from "@/lib/render";
 import type { RenderOutput } from "@/lib/render";
 import { runScan } from "@/lib/scan.server";
-import { saveScan } from "@/lib/store.server";
+import { rankScan, saveScan } from "@/lib/store.server";
 import type { Target } from "@/lib/target";
 import type { RenderedFacts, VisualRead } from "@/lib/types";
 
@@ -17,9 +17,14 @@ vi.mock("@/lib/render", () => ({
   renderPage: vi.fn(),
 }));
 vi.mock("@/lib/judge.server", () => ({ visualRead: vi.fn() }));
+vi.mock("@/lib/deadline", async (original) => ({
+  ...(await original<object>()),
+  sleep: vi.fn(() => Promise.resolve()),
+}));
 vi.mock("@/lib/store.server", () => ({
   hashScreenshot: () => "screenshot-hash",
   loadVisual: vi.fn(() => Promise.resolve(null)),
+  rankScan: vi.fn(() => Promise.resolve(42)),
   saveScan: vi.fn(() => Promise.resolve()),
 }));
 vi.mock("@/lib/fetch-page", async (original) => ({
@@ -59,6 +64,10 @@ beforeEach(() => {
   vi.mocked(visualRead).mockReset().mockResolvedValue(READ);
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe("runScan", () => {
   it("stores a full scan with its screenshot and hash", async () => {
     const result = await runScan(TARGET);
@@ -72,6 +81,13 @@ describe("runScan", () => {
         hash: "screenshot-hash",
       },
     });
+  });
+
+  it("keeps a finished scan when its rank can't be counted", async () => {
+    vi.mocked(rankScan).mockRejectedValueOnce(new Error("D1 is down"));
+    const result = await runScan(TARGET);
+    expect(result.beats).toBeNull();
+    expect(saveScan).toHaveBeenCalledOnce();
   });
 
   it("stores a scan when Jev has no key and returns null", async () => {
@@ -101,6 +117,7 @@ describe("runScan", () => {
       expect(result.renderedFacts).toBeNull();
       expect(result.hasScreenshot).toBe(false);
       expect(result.notes.join(" ")).toMatch(note);
+      expect(renderPage).toHaveBeenCalledOnce();
       expect(visualRead).not.toHaveBeenCalled();
       expect(saveScan).not.toHaveBeenCalled();
     }
@@ -148,10 +165,41 @@ describe("runScan", () => {
     }
   );
 
+  it("stores a full scan when the second render works after a crash", async () => {
+    vi.mocked(renderPage)
+      .mockRejectedValueOnce(new Error("Navigation timeout"))
+      .mockResolvedValue(rendered(200));
+    const result = await runScan(TARGET);
+    expect(renderPage).toHaveBeenCalledTimes(2);
+    expect(result.degraded).toBe(false);
+    expect(saveScan).toHaveBeenCalledOnce();
+  });
+
+  it("stores a full scan when a browser frees up for the second try", async () => {
+    vi.mocked(renderPage)
+      .mockRejectedValueOnce(new BrowserUnavailableError("busy"))
+      .mockResolvedValue(rendered(200));
+    const result = await runScan(TARGET);
+    expect(result.degraded).toBe(false);
+    expect(saveScan).toHaveBeenCalledOnce();
+  });
+
+  it("gives up on the render when a second one would pass the scan deadline", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.mocked(renderPage).mockImplementation(() => {
+      vi.setSystemTime(Date.now() + 36_000);
+      return Promise.reject(new Error("the page took too long to read"));
+    });
+    const result = await runScan(TARGET);
+    expect(renderPage).toHaveBeenCalledOnce();
+    expect(result.degraded).toBe(true);
+  });
+
   it("fails when no browser can be had", async () => {
     const busy = new BrowserUnavailableError("busy");
     vi.mocked(renderPage).mockRejectedValue(busy);
     await expect(runScan(TARGET)).rejects.toBe(busy);
+    expect(renderPage).toHaveBeenCalledTimes(2);
     expect(saveScan).not.toHaveBeenCalled();
   });
 });

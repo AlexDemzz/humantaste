@@ -159,7 +159,7 @@ export const Details = ({ result }: { result: AnalysisResult }) => {
               ))}
               <Step value={`×${result.visual?.factor ?? 1}`}>
                 {result.visual
-                  ? `Jev called the screenshot ${lookWords(result.visual)}`
+                  ? `Jev says ${lookWords(result.visual)}`
                   : "Jev didn't look at the screenshot"}
               </Step>
               <Step value={`${result.points} pts`}>Points left</Step>

@@ -7,6 +7,7 @@ import interSemiBold from "../../assets/fonts/og/Inter-SemiBold.ttf?arraybuffer"
 import { LOGO, LOGO_HEIGHT_EM } from "./logo";
 import { tierFor } from "./score";
 import type { CardTier } from "./score";
+import { SITE_CARD } from "./seo";
 import type { ShareCard } from "./share";
 
 export const OG_SIZE = { width: 1200, height: 630 };
@@ -49,6 +50,7 @@ const SILVER = [
   "#a0a5a9",
   "#91969b",
 ];
+const BRIGHT_SILVER = ["#d3d6d9", "#f4f5f6", "#d3d6d9"];
 /** The frame's slice of the same gradients: its background is 400%, so the middle quarter shows. */
 const FOIL_FRAME = ["#efd782", "#fbc1ab", "#f4a5ec", "#c2b3ff", "#97c4ff"];
 const SILVER_FRAME = ["#747a7f", "#52575d", "#c8cbcd", "#d4d6d9", "#a6aaaf"];
@@ -82,8 +84,10 @@ const CHROME =
 
 interface TierLook {
   card: string;
-  /** Every foil-inked mark: the number, the host, the QR code and the meter. */
+  /** Every foil-inked mark: the number, the QR code and the meter, and the host unless `hostInk` is set. */
   ink: readonly string[];
+  /** For a tier whose ink has bands too dark to read a site's name in. */
+  hostInk?: readonly string[];
   angle: number;
   /** The copy behind the number. */
   shadow: string;
@@ -106,6 +110,7 @@ const LOOKS: Record<CardTier, TierLook> = {
   chrome: {
     card: C.card,
     ink: SILVER,
+    hostInk: BRIGHT_SILVER,
     angle: METAL_ANGLE,
     shadow:
       "linear-gradient(180deg, #82878c 0%, #2f3338 45%, #9b9fa3 55%, #393e42 100%)",
@@ -533,14 +538,16 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
               lineHeight: 1.05,
               letterSpacing: -0.02 * host,
               wordBreak: "break-all",
-              ...inkText(look.angle, look.ink),
+              ...inkText(look.angle, look.hostInk ?? look.ink),
             }}
           >
             {card.host}
           </span>
-          <span style={{ fontSize: 30, color: C.muted, textWrap: "balance" }}>
-            {card.verdict}
-          </span>
+          {card.standing && (
+            <span style={{ fontSize: 30, color: C.muted, textWrap: "balance" }}>
+              {card.standing}
+            </span>
+          )}
         </div>
 
         <Meter value={card.score} stops={look.ink} />
@@ -567,6 +574,61 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
       </div>
     </div>
   );
+};
+
+const PAPER = { background: "#ffffff", ink: "#242424", prose: "#565656" };
+const STATEMENT_SIZE = 58;
+const SITE_LOGO_SIZE = 44;
+
+/** The card for every page without a score of its own: the site's statement, signed with the logo. */
+const SiteCardImage = () => (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+      width: "100%",
+      height: "100%",
+      padding: 80,
+      background: PAPER.background,
+      fontFamily: "Inter",
+      fontSize: STATEMENT_SIZE,
+      fontWeight: 600,
+      lineHeight: 1.16,
+      letterSpacing: -0.02 * STATEMENT_SIZE,
+    }}
+  >
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <span style={{ color: PAPER.ink }}>{SITE_CARD.question}</span>
+      <span style={{ color: PAPER.prose }}>{SITE_CARD.answer}</span>
+    </div>
+    <svg
+      width={(LOGO.width / LOGO.em) * SITE_LOGO_SIZE}
+      height={LOGO_HEIGHT_EM * SITE_LOGO_SIZE}
+      viewBox={LOGO.viewBox}
+    >
+      <path fill={PAPER.ink} fillRule="evenodd" d={LOGO.mark} />
+      <path
+        fill={PAPER.ink}
+        stroke={PAPER.ink}
+        strokeWidth={LOGO.stroke}
+        strokeLinejoin="round"
+        d={LOGO.word}
+      />
+    </svg>
+  </div>
+);
+
+export const renderSiteCard = async (): Promise<ArrayBuffer> => {
+  const { ImageResponse } = await import("@cf-wasm/og");
+  const image = new ImageResponse(<SiteCardImage />, {
+    ...OG_SIZE,
+    fonts: [
+      { name: "Inter", data: interMedium, weight: 500 },
+      { name: "Inter", data: interSemiBold, weight: 600 },
+    ],
+  });
+  return image.arrayBuffer();
 };
 
 /** Renders the card to PNG bytes with the same renderer as our other OG images: Satori and resvg compiled to WASM. */

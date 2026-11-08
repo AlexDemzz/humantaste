@@ -4,6 +4,7 @@ import { Page } from "@/components/page";
 import { RecentScans } from "@/components/recent-scans";
 import { ScanForm } from "@/components/scan-form";
 import { recentScansFn } from "@/lib/scan.functions";
+import { homeHead } from "@/lib/seo";
 
 const Home = () => {
   const { scans } = Route.useLoaderData();
@@ -25,5 +26,6 @@ const Home = () => {
 
 export const Route = createFileRoute("/")({
   loader: async () => ({ scans: await recentScansFn() }),
+  head: homeHead,
   component: Home,
 });

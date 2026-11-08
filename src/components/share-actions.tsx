@@ -1,15 +1,20 @@
-import { CheckIcon, ImageIcon, LinkIcon } from "@phosphor-icons/react";
+import {
+  CheckIcon,
+  ImageIcon,
+  LinkIcon,
+  XLogoIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { agentPrompt } from "@/lib/prompt";
-import { cardPath, scanPath } from "@/lib/share";
+import { cardPath, reportUrl, shareOnXUrl } from "@/lib/share";
 import type { AnalysisResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -111,15 +116,51 @@ const CopyIconButton = ({
   );
 };
 
-/** What to do with the score: hand the fixes to an agent, or share the report and its card. */
+/** What to do with the score: share the report and its card, or hand the fixes to an agent. An incomplete report isn't stored, so a link to it would lead to another scan. */
 export const ShareActions = ({ result }: { result: AnalysisResult }) => {
   const [prompt, runPrompt] = useCopied();
   const version = Date.parse(result.analyzedAt);
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <h2 className="sr-only">Fix it, then share it</h2>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h2 className="sr-only">Next steps</h2>
+      {!result.degraded && (
+        <div className="flex items-center gap-2">
+          <a
+            className={cn(buttonVariants({ size: "lg" }))}
+            href={shareOnXUrl(result.slug, result.score)}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <XLogoIcon data-icon="inline-start" />
+            Share on X
+          </a>
+          <CopyIconButton
+            label="Copy share link"
+            hint="Copy a link to this report. It unfurls with the score card."
+            doneHint="Link copied"
+            icon={<LinkIcon />}
+            copy={() => navigator.clipboard.writeText(reportUrl(result.slug))}
+          />
+          <CopyIconButton
+            label="Copy image"
+            hint="Copy the score card as an image, to paste into a post or a chat."
+            doneHint="Image copied"
+            icon={<ImageIcon />}
+            copy={() =>
+              navigator.clipboard.write([
+                new ClipboardItem({
+                  "image/png": cardBlob(
+                    `${cardPath(result.slug)}?v=${version}`
+                  ),
+                }),
+              ])
+            }
+          />
+        </div>
+      )}
       <Button
         type="button"
+        variant="secondary"
         size="lg"
         onClick={async () => {
           await runPrompt(() =>
@@ -139,30 +180,6 @@ export const ShareActions = ({ result }: { result: AnalysisResult }) => {
       <output className="sr-only">
         {prompt === "done" ? "Prompt copied" : ""}
       </output>
-      <CopyIconButton
-        label="Copy share link"
-        hint="Copy a link to this report. It unfurls with the score card."
-        doneHint="Link copied"
-        icon={<LinkIcon />}
-        copy={() =>
-          navigator.clipboard.writeText(
-            `${window.location.origin}${scanPath(result.slug)}`
-          )
-        }
-      />
-      <CopyIconButton
-        label="Copy image"
-        hint="Copy the score card as an image, to paste into a post or a chat."
-        doneHint="Image copied"
-        icon={<ImageIcon />}
-        copy={() =>
-          navigator.clipboard.write([
-            new ClipboardItem({
-              "image/png": cardBlob(`${cardPath(result.slug)}?v=${version}`),
-            }),
-          ])
-        }
-      />
     </div>
   );
 };

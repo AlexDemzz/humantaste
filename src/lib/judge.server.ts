@@ -1,8 +1,14 @@
+import { sleep, withJitter } from "./deadline";
 import type { VisualRead } from "./types";
 
 const ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 const MODEL = "jev-preview";
 const TIMEOUT_MS = 20_000;
+const RETRY_PAUSE_MS = 1000;
+const MAX_RETRY_AFTER_MS = 5000;
+const MS_PER_SECOND = 1000;
+const TOO_MANY_REQUESTS = 429;
+const FIRST_SERVER_ERROR = 500;
 const SHOT = "screenshot";
 
 /** Jev only sees the screenshot, so its read stays independent of the code's measurements. */
@@ -37,6 +43,38 @@ interface JevScoreAnswer {
   confidence: number;
 }
 
+/** How long to wait before asking again, or null when this answer stands. */
+const retryPause = (res: Response): number | null => {
+  if (res.status !== TOO_MANY_REQUESTS && res.status < FIRST_SERVER_ERROR) {
+    return null;
+  }
+  const header = res.headers.get("retry-after");
+  const seconds = header ? Number(header) : Number.NaN;
+  if (Number.isNaN(seconds)) {
+    return withJitter(RETRY_PAUSE_MS);
+  }
+  const asked = seconds * MS_PER_SECOND;
+  return asked <= MAX_RETRY_AFTER_MS ? asked : null;
+};
+
+/** One more ask after a network error, a timeout, a 429 or a 5xx. Any other answer is final. */
+const withOneRetry = async (
+  send: () => Promise<Response>
+): Promise<Response> => {
+  let pause: number | null = null;
+  try {
+    const res = await send();
+    pause = retryPause(res);
+    if (pause === null) {
+      return res;
+    }
+  } catch {
+    pause = withJitter(RETRY_PAUSE_MS);
+  }
+  await sleep(pause);
+  return await send();
+};
+
 export const visualRead = async (
   screenshot: Buffer,
   url: string
@@ -45,40 +83,43 @@ export const visualRead = async (
   if (!key) {
     return null;
   }
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${key}`,
-      "content-type": "application/json",
-      "TypeSafe-Danger-Zone-Images": "true",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      state: { url, screenshot: SHOT },
-      questions: { default_look: QUESTION },
-      assets: {
-        [SHOT]: {
-          type: "image",
-          format: "jpeg",
-          data_base64: screenshot.toString("base64"),
-        },
+  const body = JSON.stringify({
+    model: MODEL,
+    state: { url, screenshot: SHOT },
+    questions: { default_look: QUESTION },
+    assets: {
+      [SHOT]: {
+        type: "image",
+        format: "jpeg",
+        data_base64: screenshot.toString("base64"),
       },
-    }),
-    signal: AbortSignal.timeout(TIMEOUT_MS),
+    },
   });
+  const res = await withOneRetry(() =>
+    fetch(ENDPOINT, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${key}`,
+        "content-type": "application/json",
+        "TypeSafe-Danger-Zone-Images": "true",
+      },
+      body,
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
+  );
   if (!res.ok) {
     throw new Error(`Jev answered ${res.status}`);
   }
-  const body = (await res.json()) as {
+  const answer = (await res.json()) as {
     model: string;
     answers: { default_look: JevScoreAnswer };
   };
-  const { score, confidence } = body.answers.default_look;
+  const { score, confidence } = answer.answers.default_look;
   return {
     look: Math.round(score * 100) / 100,
     outOf: MAX_LOOK,
     confidence: Math.round(confidence * 100) / 100,
     factor: factorFor(score),
-    model: body.model,
+    model: answer.model,
   };
 };

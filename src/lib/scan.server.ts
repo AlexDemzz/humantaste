@@ -1,3 +1,4 @@
+import { sleep, withJitter } from "./deadline";
 import { errorMessage } from "./errors";
 import { extractStatic } from "./extract";
 import { fetchPage, inlineStyles, SiteRefusedError } from "./fetch-page";
@@ -5,7 +6,7 @@ import type { FetchedPage } from "./fetch-page";
 import { visualRead } from "./judge.server";
 import { BrowserUnavailableError, renderPage } from "./render";
 import type { RenderOutput } from "./render";
-import { scoreFromPoints, verdictFor } from "./score";
+import { scoreFromPoints } from "./score";
 import {
   evaluateCredits,
   evaluateSignals,
@@ -13,7 +14,7 @@ import {
   rawPoints,
   tellPoints,
 } from "./signals";
-import { hashScreenshot, loadVisual, saveScan } from "./store.server";
+import { hashScreenshot, loadVisual, rankScan, saveScan } from "./store.server";
 import type { Screenshot } from "./store.server";
 import type { Target } from "./target";
 import type { AnalysisResult, VisualRead } from "./types";
@@ -39,15 +40,37 @@ interface PageSource {
 }
 
 const FIRST_REFUSED_STATUS = 400;
+const RENDER_RETRY_PAUSE_MS = 2000;
+/** The last moment a second render fits: its 55s budget and Jev's two asks still end inside the 150s scan deadline. */
+const LATEST_RENDER_RETRY_MS = 35_000;
 
 type RenderAttempt =
   | { render: RenderOutput; failure: null }
   | { render: null; failure: string };
 
-/** A challenge or error page is not the site: it counts as a failed render. Only a missing browser fails the scan. */
-const attemptRender = async (url: string): Promise<RenderAttempt> => {
+/** A crash or a timeout may pass, so it gets one more go while the scan has time. A status the page answered is final. */
+const renderWithRetry = async (
+  url: string,
+  startedAt: number
+): Promise<RenderOutput> => {
   try {
-    const render = await renderPage(url);
+    return await renderPage(url);
+  } catch (error) {
+    if (Date.now() - startedAt > LATEST_RENDER_RETRY_MS) {
+      throw error;
+    }
+    await sleep(withJitter(RENDER_RETRY_PAUSE_MS));
+    return await renderPage(url);
+  }
+};
+
+/** A challenge or error page is not the site: it counts as a failed render. Only a missing browser fails the scan. */
+const attemptRender = async (
+  url: string,
+  startedAt: number
+): Promise<RenderAttempt> => {
+  try {
+    const render = await renderWithRetry(url, startedAt);
     if (render.documentStatus === null) {
       return { render: null, failure: "no document came back" };
     }
@@ -121,13 +144,27 @@ const reuseOrRequestVisual = async (
   }
 };
 
+/** A missing rank costs the card one line; a failed count must not cost the finished scan. */
+const rankOrNull = async (
+  slug: string,
+  score: number
+): Promise<number | null> => {
+  try {
+    return await rankScan(slug, score);
+  } catch {
+    return null;
+  }
+};
+
 export const runScan = async (target: Target): Promise<AnalysisResult> => {
+  const startedAt = Date.now();
   const fetched = await fetchUnlessRefused(target.url);
   const page = fetched instanceof SiteRefusedError ? null : fetched;
   const notes = page ? [...page.notes] : [];
 
   const { render, failure: renderFailure } = await attemptRender(
-    page?.finalUrl ?? target.url
+    page?.finalUrl ?? target.url,
+    startedAt
   );
   if (renderFailure !== null) {
     notes.push(
@@ -169,7 +206,7 @@ export const runScan = async (target: Target): Promise<AnalysisResult> => {
     url: target.url,
     finalUrl: source.finalUrl,
     score,
-    verdict: verdictFor(score),
+    beats: await rankOrNull(target.slug, score),
     signals,
     credits,
     visual,

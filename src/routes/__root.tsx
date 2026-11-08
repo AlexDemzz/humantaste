@@ -8,11 +8,9 @@ import {
 import type { ReactNode } from "react";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SITE_DESCRIPTION } from "@/lib/seo";
 
 import css from "@/styles/globals.css?url";
-
-const DESCRIPTION =
-  "Score how much of a website a person chose, from 0 for a pure AI template to 100 when every choice was made on purpose, with the evidence and the fixes.";
 
 const Document = ({ children }: { children: ReactNode }) => (
   <html lang="en">
@@ -42,12 +40,14 @@ export const Route = createRootRoute({
         content: "#101010",
       },
       { title: "humantaste" },
-      { name: "description", content: DESCRIPTION },
+      { name: "description", content: SITE_DESCRIPTION },
       { property: "og:site_name", content: "humantaste" },
     ],
     links: [
       { rel: "stylesheet", href: css },
+      { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   component: () => (

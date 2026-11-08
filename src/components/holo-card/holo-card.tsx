@@ -75,7 +75,7 @@ const QrCode = ({ url }: { url: string }) => {
   );
 };
 
-/** The score and the QR code at the top; at the foot the scanned site, the verdict, the meter, Jev's read and our logo. */
+/** The score and the QR code at the top; at the foot the scanned site, its rank, the meter, Jev's read and our logo. */
 const Front = ({ card }: { card: ShareCard }) => (
   <div className="holo-face">
     <div className="holo-head">
@@ -101,7 +101,7 @@ const Front = ({ card }: { card: ShareCard }) => (
       >
         {card.host}
       </span>
-      <span className="holo-verdict">{card.verdict}</span>
+      {card.standing && <span className="holo-standing">{card.standing}</span>}
     </div>
     <div
       className="holo-ticks"

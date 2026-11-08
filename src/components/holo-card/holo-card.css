@@ -219,7 +219,7 @@
   overflow-wrap: anywhere;
 }
 
-.holo-verdict {
+.holo-standing {
   font-size: calc(30 * var(--u));
   line-height: var(--card-leading);
   color: var(--muted-foreground);
@@ -490,6 +490,16 @@
     oklch(0.66 0.01 250) 66%,
     oklch(0.88 0.005 250) 82%,
     oklch(0.6 0.01 250) 100%
+  );
+}
+
+/* The silver ink's dark bands would swallow the site's name: it keeps only the bright end of the metal. */
+.holo[data-tier="chrome"] .holo-front .holo-host {
+  background-image: linear-gradient(
+    160deg,
+    oklch(0.86 0.005 250) 0%,
+    oklch(0.97 0.002 250) 50%,
+    oklch(0.86 0.005 250) 100%
   );
 }
 

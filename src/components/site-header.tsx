@@ -3,9 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { GitHubIcon } from "@/components/github-icon";
 import { Logo } from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
+import { REPO_URL } from "@/lib/info-pages";
 import { cn } from "@/lib/utils";
-
-const REPO_URL = "https://github.com/AlexDemzz/humantaste";
 
 export const SiteHeader = () => (
   <header className="flex items-center justify-between">

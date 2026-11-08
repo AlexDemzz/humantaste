@@ -259,6 +259,8 @@ export const HoloPeel = ({
     let hovering = false;
     /** Where the hand left a peel it did not finish: the adhesive has let go, so the cover stays there. */
     let held: Point | null = null;
+    /** The flap was taken by its back: it swings wherever the hand holds it, without waiting for the opening a tab pull needs. */
+    let opened = false;
     let revealed = false;
     let frame = 0;
     let last = performance.now();
@@ -298,11 +300,13 @@ export const HoloPeel = ({
     const gripOut = () => (TAB_GRIP_UNITS * width) / CARD_UNITS / Math.SQRT2;
     const gripPoint = (fold: Fold) =>
       project(fold, { x: width + gripOut(), y: height + gripOut() });
+    const tipFor = (wanted: Point) =>
+      reachableTip(width, height, wanted, opened);
     const foldNow = () =>
       foldAt(
         width,
         height,
-        reachableTip(width, height, pull),
+        tipFor(pull),
         LIFT_SPAN * diagonal(),
         FOLD_OVERLAP_PX
       );
@@ -592,15 +596,16 @@ export const HoloPeel = ({
       grip.setPointerCapture(event.pointerId);
       const start = local(event);
       const fold = foldNow();
+      const onBack = onFlap && fold.turn === 1;
+      if (onBack) {
+        opened = true;
+      }
       pointerJustEnded = false;
       drag = {
         pointerId: event.pointerId,
         start,
-        from: reachableTip(width, height, pull),
-        grasp:
-          onFlap && fold.turn === 1
-            ? graspAt(fold, start, GRASP_ARM * diagonal())
-            : null,
+        from: tipFor(pull),
+        grasp: onBack ? graspAt(fold, start, GRASP_ARM * diagonal()) : null,
         at: performance.now(),
         travel: 0,
         samples: [{ t: event.timeStamp, ...start }],
@@ -666,7 +671,7 @@ export const HoloPeel = ({
             y: drag.from.y + at.y - drag.start.y,
           };
       if (moved) {
-        pull = reachableTip(width, height, moved);
+        pull = tipFor(moved);
       }
       drag.travel = Math.max(
         drag.travel,
@@ -709,6 +714,9 @@ export const HoloPeel = ({
         return;
       }
       held = foldedOver ? pull : null;
+      if (!foldedOver) {
+        opened = false;
+      }
       if (foldedOver) {
         velocity = { x: 0, y: 0 };
         voiced = false;

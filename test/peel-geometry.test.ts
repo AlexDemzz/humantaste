@@ -192,12 +192,57 @@ describe("peel fold", () => {
     expect(again?.y).toBeCloseTo(pull.y);
   });
 
-  it("refuses a hand position that would put the corner on the stuck side", () => {
+  it.each([
+    { name: "back toward the corner", move: { x: 100, y: 0 } },
+    { name: "down past the card", move: { x: 0, y: 180 } },
+    { name: "down and right", move: { x: 65, y: 45 } },
+  ])("keeps a flap held by its back under the finger, $name", ({ move }) => {
+    const phone = { width: 370, height: 194.25 };
+    const lift = 0.05 * Math.hypot(phone.width, phone.height);
+    const start = { x: 164, y: 112 };
+    const fold = foldAt(
+      phone.width,
+      phone.height,
+      reachableTip(phone.width, phone.height, { x: -250, y: 30 }),
+      lift
+    );
+    const grasp = graspAt(fold, start, 33);
+    const steps = 40;
+    for (let step = 1; step <= steps; step += 1) {
+      const hand = {
+        x: start.x + (move.x * step) / steps,
+        y: start.y + (move.y * step) / steps,
+      };
+      const pull = pullHolding(phone.width, phone.height, grasp, hand);
+      expect(pull).not.toBeNull();
+      const landed = project(
+        foldAt(
+          phone.width,
+          phone.height,
+          reachableTip(phone.width, phone.height, pull as Point, true),
+          lift
+        ),
+        grasp.point
+      );
+      expect(landed.x).toBeCloseTo(hand.x + grasp.offset.x);
+      expect(landed.y).toBeCloseTo(hand.y + grasp.offset.y);
+    }
+  });
+
+  it("lays the cover back down once the hand is past where the flap came from", () => {
     const grasp = {
       point: { x: 100, y: 100 },
       offset: { x: 0, y: 0 },
     };
-    expect(pullHolding(WIDTH, HEIGHT, grasp, { x: 1100, y: 500 })).toBeNull();
+    const pull = pullHolding(WIDTH, HEIGHT, grasp, { x: 1100, y: 500 });
+    expect(pull?.x).toBeCloseTo(0);
+    expect(pull?.y).toBeCloseTo(0);
+  });
+
+  it("still holds a tab pull to the opening rule until the flap is held by its back", () => {
+    const pull = { x: -100, y: 60 };
+    expect(reachableTip(WIDTH, HEIGHT, pull).y).toBe(0);
+    expect(reachableTip(WIDTH, HEIGHT, pull, true)).toEqual(pull);
   });
 
   it("caps the swing, so the fold never takes the whole cover at once", () => {

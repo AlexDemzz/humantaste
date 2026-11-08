@@ -33,22 +33,19 @@ const PIVOT_SLOPE = Math.tan(Math.PI / 3);
  * Where the tip of a cover pulled by `pull` (px, from the bottom-right corner) can really be. A fresh corner only moves
  * into the card: pulling it outward would fold the whole cover. Once a tenth of the cover has peeled along one edge, the
  * peel front has a foothold there and the tip may swing past the other edge: pulled down, the front pivots and runs up
- * the right edge; pulled right, it runs along the bottom one.
+ * the right edge; pulled right, it runs along the bottom one. With `opened`, the flap is folded over and held by its
+ * back: the front has its foothold however little is off, so only the cap on the swing applies.
  */
 export const reachableTip = (
   width: number,
   height: number,
-  pull: Point
+  pull: Point,
+  opened = false
 ): Point => {
-  const downward = Math.max(
-    0,
-    (-pull.x - 2 * PIVOT_OPENING * width) * PIVOT_SLOPE
-  );
+  const opening = opened ? 0 : PIVOT_OPENING;
+  const downward = Math.max(0, (-pull.x - 2 * opening * width) * PIVOT_SLOPE);
   const y = Math.min(pull.y, downward);
-  const rightward = Math.max(
-    0,
-    (-y - 2 * PIVOT_OPENING * height) * PIVOT_SLOPE
-  );
+  const rightward = Math.max(0, (-y - 2 * opening * height) * PIVOT_SLOPE);
   return { x: Math.min(pull.x, rightward), y };
 };
 
@@ -182,7 +179,8 @@ export const graspAt = (fold: Fold, hand: Point, minArm: number): Grasp => {
 
 /**
  * The pull that keeps a grasped point under the hand: the fold is the line halfway between the point and where it must
- * land. Null when no fold can do it with the corner still on the lifted side.
+ * land. Once that line would leave the corner on the stuck side, the flap is back on the card: no pull. Null only when
+ * the hand is exactly over the point, where any fold through it would do.
  */
 export const pullHolding = (
   width: number,
@@ -203,7 +201,7 @@ export const pullHolding = (
     (width - (point.x + target.x) / 2) * normal.x +
     (height - (point.y + target.y) / 2) * normal.y;
   if (toCorner <= 0) {
-    return null;
+    return { x: 0, y: 0 };
   }
   return { x: -2 * toCorner * normal.x, y: -2 * toCorner * normal.y };
 };

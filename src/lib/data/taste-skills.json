@@ -3,30 +3,30 @@
     "name": "Emil Kowalski",
     "what": "Motion and interaction: when to animate, which curve, how long.",
     "href": "https://github.com/emilkowalski/skills",
-    "stars": 55242
+    "stars": 55272
   },
   {
     "name": "Jakub Krehel",
     "what": "Type, colour, layout and accessibility, with exact values to use.",
     "href": "https://github.com/jakubkrehel/skills",
-    "stars": 11842
+    "stars": 11846
   },
   {
     "name": "Unslop, by Cursor",
     "what": "Cuts AI habits from your copy: stock words, em dashes, chatbot phrases.",
     "href": "https://github.com/cursor/plugins/tree/main/pstack/skills/unslop",
-    "stars": 15833
+    "stars": 15837
   },
   {
     "name": "Impeccable, by Paul Bakaus",
     "what": "A design skill with a detector that flags AI patterns before you ship.",
     "href": "https://github.com/pbakaus/impeccable",
-    "stars": 106617
+    "stars": 106655
   },
   {
     "name": "Taste Skill, by Leonxlnx",
     "what": "Art direction for your agent: reference images and a browser check.",
     "href": "https://github.com/Leonxlnx/taste-skill",
-    "stars": 112362
+    "stars": 112389
   }
 ]

@@ -1,5 +1,5 @@
 import { ArrowUpRightIcon, StarIcon } from "@phosphor-icons/react";
-import { Link, useSearch } from "@tanstack/react-router";
+import { Link, useLoaderData, useSearch } from "@tanstack/react-router";
 
 import {
   Item,
@@ -23,6 +23,7 @@ import {
   skillsPage,
   spokenStars,
   TASTE_SKILLS,
+  withLiveStars,
 } from "@/lib/taste-skills";
 
 /** Stays where the reader is: the list changes in place, and the report above it does not reload. */
@@ -41,7 +42,11 @@ const linkToPage = (page: number, disabled = false) => (
 /** Where to go once the patterns are fixed: skills written by people with taste. */
 export const TasteSkills = () => {
   const { page: requested = 1 } = useSearch({ from: "/scan/$" });
-  const { skills, page, pageCount } = skillsPage(TASTE_SKILLS, requested);
+  const { stars } = useLoaderData({ from: "/scan/$" });
+  const { skills, page, pageCount } = skillsPage(
+    withLiveStars(TASTE_SKILLS, stars),
+    requested
+  );
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="taste">

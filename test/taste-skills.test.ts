@@ -10,6 +10,7 @@ import {
   skillsPage,
   spokenStars,
   TASTE_SKILLS,
+  withLiveStars,
 } from "@/lib/taste-skills";
 import type { TasteSkill } from "@/lib/taste-skills";
 
@@ -71,6 +72,18 @@ describe("rankSkills", () => {
       "tied-a",
       "tied-b",
       "low",
+    ]);
+  });
+});
+
+describe("withLiveStars", () => {
+  it("re-ranks the list on the live counts", () => {
+    const ranked = withLiveStars([skill("old-leader", 9), skill("riser", 1)], {
+      "acme/riser": 20,
+    });
+    expect(ranked.map(({ name, stars }) => [name, stars])).toEqual([
+      ["riser", 20],
+      ["old-leader", 9],
     ]);
   });
 });

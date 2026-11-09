@@ -17,6 +17,9 @@
     },
   ],
   "r2_buckets": [{ "binding": "SHOTS", "bucket_name": "humantaste-shots" }],
+  "kv_namespaces": [
+    { "binding": "SKILL_STARS", "id": "08bcbe81a0b245ae891882e562a6bcba" },
+  ],
   "durable_objects": {
     "bindings": [{ "name": "SITE_SCAN", "class_name": "SiteScan" }],
   },

@@ -7,6 +7,9 @@ export interface TasteSkill {
   stars: number;
 }
 
+/** Live counts by `owner/name`. */
+export type StarCounts = Readonly<Record<string, number>>;
+
 export type PageSlot = number | "gap-start" | "gap-end";
 
 export const SKILLS_PER_PAGE = 5;
@@ -36,6 +39,18 @@ export const rankSkills = (skills: readonly TasteSkill[]): TasteSkill[] =>
 
 /** Sources and reasons for the first entries: docs/research/anti-slop-skills.md and docs/research/skills-sh-sweep.md. */
 export const TASTE_SKILLS: readonly TasteSkill[] = rankSkills(listedSkills);
+
+/** A skill without a live count keeps the one the build shipped with. */
+export const withLiveStars = (
+  skills: readonly TasteSkill[],
+  live: StarCounts
+): TasteSkill[] =>
+  rankSkills(
+    skills.map((skill) => ({
+      ...skill,
+      stars: live[repoOf(skill.href)] ?? skill.stars,
+    }))
+  );
 
 /** A page past the end shows the last one, so an old link still lands on a list. */
 export const skillsPage = (

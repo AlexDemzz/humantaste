@@ -12,6 +12,7 @@ import { peekScanFn, runScanFn } from "@/lib/scan.functions";
 import type { ScanOutcome } from "@/lib/scan.functions";
 import { reportHead, unscoredHead } from "@/lib/seo";
 import { cardFromResult } from "@/lib/share";
+import { skillStarsFn } from "@/lib/skill-stars.functions";
 import { parseTarget } from "@/lib/target";
 import { parseSkillsPage } from "@/lib/taste-skills";
 import type { AnalysisResult } from "@/lib/types";
@@ -237,13 +238,16 @@ export const Route = createFileRoute("/scan/$")({
             ? error.message
             : "Enter a web address, like linear.app.",
       };
-      return { slug: raw, stored: null, invalid };
+      return { slug: raw, stored: null, stars: {}, invalid };
     }
     if (slug !== raw) {
       throw redirect({ to: "/scan/$", params: { _splat: slug } });
     }
-    const stored = await peekScanFn({ data: slug });
-    return { slug, stored, invalid: null };
+    const [stored, stars] = await Promise.all([
+      peekScanFn({ data: slug }),
+      skillStarsFn(),
+    ]);
+    return { slug, stored, stars, invalid: null };
   },
   head: ({ loaderData }) => {
     const links = [{ rel: "stylesheet", href: holoCardCss }];

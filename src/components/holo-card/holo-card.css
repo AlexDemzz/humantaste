@@ -172,7 +172,6 @@
   /* The same space above and below the meter. */
   --meter-gap: calc(32 * var(--u));
   /* The share image's line height, so the space around the meter reads the same here: the page's 1.625 pads the text. */
-  --card-leading: 1.2;
 
   display: flex;
   flex-direction: column;
@@ -368,44 +367,15 @@
   }
 }
 
-/* Foot: Jev's read on the left, our logo on the right. */
 .holo-foot {
   display: flex;
   align-items: center;
-  gap: calc(24 * var(--u));
   margin-block-start: var(--meter-gap);
-  font-size: calc(26 * var(--u));
-  line-height: var(--card-leading);
   color: var(--foreground);
 }
 
-.holo-design {
-  margin: 0;
-}
-
 .holo-brand {
-  margin-inline-start: auto;
   font-size: calc(30 * var(--u));
-}
-
-.holo-design strong {
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.holo-jev {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.25em;
-  font-weight: 500;
-}
-
-.holo-jev-logo {
-  flex: none;
-  block-size: 1.05em;
-  inline-size: auto;
-  align-self: center;
-  overflow: visible;
 }
 
 /* Top row: the score on the left, the scan's QR code on the right. */

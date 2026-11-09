@@ -7,7 +7,6 @@ import {
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { SITE_DESCRIPTION } from "@/lib/seo";
 
 import css from "@/styles/globals.css?url";
@@ -18,7 +17,7 @@ const Document = ({ children }: { children: ReactNode }) => (
       <HeadContent />
     </head>
     <body>
-      <TooltipProvider>{children}</TooltipProvider>
+      {children}
       <Scripts />
     </body>
   </html>
@@ -37,7 +36,7 @@ export const Route = createRootRoute({
       {
         name: "theme-color",
         media: "(prefers-color-scheme: dark)",
-        content: "#101010",
+        content: "#0A0A0A",
       },
       { title: "humantaste" },
       { name: "description", content: SITE_DESCRIPTION },

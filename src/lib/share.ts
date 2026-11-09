@@ -24,8 +24,6 @@ export const lookWords = (visual: VisualRead): string =>
 export interface ShareCard {
   host: string;
   score: number;
-  /** What follows "Jev says", or null when the visual read didn't run. */
-  jev: string | null;
   /** The scan's public URL, encoded in the card's QR code. */
   scanUrl: string;
 }
@@ -48,6 +46,5 @@ export const shareOnXUrl = (slug: string, score: number) => {
 export const cardFromResult = (result: AnalysisResult): ShareCard => ({
   host: result.slug,
   score: result.score,
-  jev: result.visual ? lookWords(result.visual) : null,
   scanUrl: `https://${SITE_HOST}${scanPath(result.slug)}`,
 });

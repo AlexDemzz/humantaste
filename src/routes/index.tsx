@@ -9,9 +9,9 @@ import { homeHead } from "@/lib/seo";
 const Home = () => {
   const { scans } = Route.useLoaderData();
   return (
-    <Page>
-      <section className="flex flex-col gap-6">
-        <h1 className="text-muted-foreground text-xl">
+    <Page opensOnStatement>
+      <section className="flex flex-col gap-5">
+        <h1 className="text-muted-foreground text-xl leading-relaxed">
           <strong className="text-foreground font-medium">humantaste</strong>{" "}
           scores how human your website looks, from 0 for a pure AI template to
           100 for no sign of one. You get the patterns it found and what to

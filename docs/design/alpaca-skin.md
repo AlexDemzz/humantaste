@@ -112,3 +112,24 @@ Accepted trade-off: the field's fill measures 1.09:1 against the page (WCAG 1.4.
 The form is `InputGroup` > `InputGroupInput` + `InputGroupAddon align="inline-end"` > `InputGroupButton type="submit" variant="default" size="sm"`, the docs' button-in-input pattern. `input-group` was installed without overwriting the skinned `button` and `input`; `textarea` came with it as a dependency.
 
 Skin, `src/components/ui/input-group.tsx`: the group is `h-10 rounded-full border-transparent bg-card shadow-xs` (it was `h-8 rounded-lg border-input` with a dark input tint), and the `sm` button size is `px-3.5` so `Score it` keeps the pill's side padding. Lint: the stock `role="group"` divs and the addon's focus-on-click are exempted in `oxlint.config.ts`.
+
+## Revision: a darker dark ramp
+
+The dark page moves to `#0A0A0A` by request. Surfaces keep the separation they measured on `#101010`, so they are set by contrast and not by a fixed step. Replaces the dark column of the tables above.
+
+| Variable | Dark |
+| --- | --- |
+| `--background`, `--primary-foreground` | `#0A0A0A` `oklch(0.145 0 0)` |
+| `--card`, `--popover`, `--secondary` | `#1A1A1A` `oklch(0.219 0 0)`, 1.14:1 on the page |
+| `--muted`, `--accent` | `#232323` `oklch(0.256 0 0)`, 1.11:1 on the card |
+| `--muted-foreground` | `#A1A1A1` `oklch(0.71 0 0)` |
+| `--faint-foreground` | `#868686` `oklch(0.62 0 0)`, 4.77:1 on the card |
+| `--border` | `#1D1D1D` `oklch(0.229 0 0)` |
+| `--input` | `#636363` `oklch(0.5 0 0)` |
+| `--meter-off` | `#303030` `oklch(0.31 0 0)`, 1.32:1 on the card |
+
+`--underline` is new, `#C4C4C4` light and `#4D4D4D` dark. Link underlines borrowed `--border` and measured 1.13:1 on the dark page.
+
+`tooltip` is removed with its provider: its one consumer, the copy buttons, now answers with the icon.
+
+Filled buttons without a border are `secondary`, not `outline`: the GitHub button, the copy buttons, the current page and the dialog actions move over. `--secondary` takes the card's value (`#F5F5F5`, `#1A1A1A`) and `outline` goes back to a real outline, used nowhere for now. The field and these buttons drop `shadow-xs`, so they match the row cards exactly.

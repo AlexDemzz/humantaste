@@ -58,7 +58,7 @@ function PaginationLink({
       {
         "aria-current": isActive ? "page" : undefined,
         className: cn(
-          buttonVariants({ variant: isActive ? "outline" : "ghost", size }),
+          buttonVariants({ variant: isActive ? "secondary" : "ghost", size }),
           "aria-disabled:pointer-events-none aria-disabled:opacity-50",
           className
         ),

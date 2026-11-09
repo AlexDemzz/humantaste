@@ -193,17 +193,17 @@ const Scan = () => {
           </>
         )}
       </section>
-      {arrivedOnReport && <ScoreSite title="Score your site" />}
       {result && (
         <div
           className={cn(
-            "flex flex-col gap-16",
+            "flex flex-col gap-12",
             initial === null &&
               "motion-safe:animate-in motion-safe:fade-in motion-safe:fill-mode-both motion-safe:delay-600 motion-safe:duration-300"
           )}
         >
           <Patterns result={result} />
           <Details result={result} />
+          {arrivedOnReport && <ScoreSite title="Score your site" />}
           <TasteSkills />
         </div>
       )}

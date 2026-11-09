@@ -6,7 +6,6 @@ import type { ShareCard } from "@/lib/share";
 const card = (overrides: Partial<ShareCard>): ShareCard => ({
   host: "linear.app",
   score: 98,
-  jev: "it's hand-designed",
   scanUrl: "https://humantaste.xyz/scan/linear.app",
   ...overrides,
 });
@@ -20,11 +19,10 @@ describe("renderShareCard", () => {
   it.each([
     ["a short host", card({})],
     [
-      "a long host with a three-digit score and no Jev read",
+      "a long host with a three-digit score",
       card({
         host: "a-very-long-generated-subdomain.lovable.app",
         score: 100,
-        jev: null,
       }),
     ],
     ["a mid score", card({ score: 52 })],

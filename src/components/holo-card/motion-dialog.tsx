@@ -42,7 +42,7 @@ export const MotionDialog = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="grid grid-cols-2 sm:grid-cols-2">
-          <Button variant="outline" size="lg" onClick={onSkip}>
+          <Button variant="secondary" size="lg" onClick={onSkip}>
             Skip for now
           </Button>
           <Button size="lg" onClick={onAllow}>

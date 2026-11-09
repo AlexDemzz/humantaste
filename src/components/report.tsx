@@ -176,7 +176,7 @@ export const Details = ({ result }: { result: AnalysisResult }) => {
         </TabsContent>
         {clean.length > 0 && (
           <TabsContent value="clean">
-            <ul className="list-disc columns-2xs gap-8 pl-5">
+            <ul className="list-disc gap-8 pl-5 sm:columns-2">
               {clean.map((signal) => (
                 <li key={signal.id}>{signal.title}</li>
               ))}

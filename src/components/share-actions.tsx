@@ -2,17 +2,13 @@ import {
   CheckIcon,
   ImageIcon,
   LinkIcon,
+  WarningIcon,
   XLogoIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cardPath, reportUrl, shareOnXUrl } from "@/lib/share";
 import type { AnalysisResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -28,19 +24,22 @@ const useCopied = () => {
     try {
       await copy();
       setState("done");
+      window.setTimeout(
+        () => setState((current) => (current === "done" ? "idle" : current)),
+        COPIED_MS
+      );
     } catch {
       setState("failed");
     }
-    window.setTimeout(() => setState("idle"), COPIED_MS);
   };
   return [state, run] as const;
 };
 
-const tipFor = (state: CopyState, hint: string, doneHint: string) => {
+const announcementFor = (state: CopyState, doneMessage: string) => {
   if (state === "done") {
-    return doneHint;
+    return doneMessage;
   }
-  return state === "failed" ? BLOCKED : hint;
+  return state === "failed" ? BLOCKED : "";
 };
 
 const cardBlob = async (url: string) => {
@@ -51,66 +50,70 @@ const cardBlob = async (url: string) => {
   return response.blob();
 };
 
-/** Two icons in one cell: the idle one gives way to a check once the copy lands. */
-const SwapIcon = ({ done, icon }: { done: boolean; icon: ReactNode }) => (
+const SwapLayer = ({
+  shown,
+  children,
+}: {
+  shown: boolean;
+  children: ReactNode;
+}) => (
+  <span
+    className={cn(
+      "ease-swap grid motion-safe:transition motion-safe:duration-300",
+      !shown && "scale-25 opacity-0 blur-xs"
+    )}
+  >
+    {children}
+  </span>
+);
+
+/** Icons in one cell: the idle one gives way to a check once the copy lands, or a warning if it is blocked. */
+const SwapIcon = ({ state, icon }: { state: CopyState; icon: ReactNode }) => (
   <span className="grid *:col-start-1 *:row-start-1">
-    <span
-      className={cn(
-        "ease-swap grid motion-safe:transition motion-safe:duration-300",
-        done && "scale-25 opacity-0 blur-xs"
-      )}
-    >
-      {icon}
-    </span>
-    <span
-      className={cn(
-        "ease-swap grid motion-safe:transition motion-safe:duration-300",
-        !done && "scale-25 opacity-0 blur-xs"
-      )}
-    >
+    <SwapLayer shown={state === "idle"}>{icon}</SwapLayer>
+    <SwapLayer shown={state === "done"}>
       <CheckIcon />
-    </span>
+    </SwapLayer>
+    <SwapLayer shown={state === "failed"}>
+      <WarningIcon />
+    </SwapLayer>
   </span>
 );
 
 const CopyIconButton = ({
   label,
-  hint,
-  doneHint,
+  doneMessage,
   icon,
   copy,
 }: {
   label: string;
-  hint: string;
-  doneHint: string;
+  doneMessage: string;
   icon: ReactNode;
   copy: () => Promise<void>;
 }) => {
   const [state, run] = useCopied();
-  const [hovered, setHovered] = useState(false);
   return (
     <>
-      <Tooltip open={state !== "idle" || hovered} onOpenChange={setHovered}>
-        <TooltipTrigger
-          render={
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-lg"
-              aria-label={label}
-              onClick={async () => {
-                await run(copy);
-              }}
-            />
-          }
-        >
-          <SwapIcon done={state === "done"} icon={icon} />
-        </TooltipTrigger>
-        <TooltipContent className="max-w-60">
-          {tipFor(state, hint, doneHint)}
-        </TooltipContent>
-      </Tooltip>
-      <output className="sr-only">{state === "done" ? doneHint : ""}</output>
+      <Button
+        type="button"
+        variant="secondary"
+        size="icon-lg"
+        aria-label={label}
+        onClick={async () => {
+          await run(copy);
+        }}
+      >
+        <SwapIcon state={state} icon={icon} />
+      </Button>
+      <output
+        className={
+          state === "failed"
+            ? "text-destructive order-last basis-full text-sm"
+            : "sr-only"
+        }
+      >
+        {announcementFor(state, doneMessage)}
+      </output>
     </>
   );
 };
@@ -122,7 +125,7 @@ export const ShareActions = ({ result }: { result: AnalysisResult }) => {
   }
   const version = Date.parse(result.analyzedAt);
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <h2 className="sr-only">Share this report</h2>
       <a
         className={cn(buttonVariants({ size: "lg" }))}
@@ -135,15 +138,13 @@ export const ShareActions = ({ result }: { result: AnalysisResult }) => {
       </a>
       <CopyIconButton
         label="Copy share link"
-        hint="Copy a link to this report. It unfurls with the score card."
-        doneHint="Link copied"
+        doneMessage="Link copied"
         icon={<LinkIcon />}
         copy={() => navigator.clipboard.writeText(reportUrl(result.slug))}
       />
       <CopyIconButton
         label="Copy image"
-        hint="Copy the score card as an image, to paste into a post or a chat."
-        doneHint="Image copied"
+        doneMessage="Image copied"
         icon={<ImageIcon />}
         copy={() =>
           navigator.clipboard.write([

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export const SiteHeader = () => (
   <header className="flex items-center justify-between">
     <Link to="/" className="rounded-md" aria-label="humantaste home">
-      <Logo className="text-foreground text-2xl" />
+      <Logo className="text-foreground text-xl" />
     </Link>
     <a
       className={cn(buttonVariants({ variant: "outline" }))}

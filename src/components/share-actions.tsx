@@ -13,7 +13,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { agentPrompt } from "@/lib/prompt";
 import { cardPath, reportUrl, shareOnXUrl } from "@/lib/share";
 import type { AnalysisResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -116,70 +115,44 @@ const CopyIconButton = ({
   );
 };
 
-/** What to do with the score: share the report and its card, or hand the fixes to an agent. An incomplete report isn't stored, so a link to it would lead to another scan. */
+/** An incomplete report isn't stored, so a link to it would lead to another scan. */
 export const ShareActions = ({ result }: { result: AnalysisResult }) => {
-  const [prompt, runPrompt] = useCopied();
+  if (result.degraded) {
+    return null;
+  }
   const version = Date.parse(result.analyzedAt);
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <h2 className="sr-only">Next steps</h2>
-      {!result.degraded && (
-        <div className="flex items-center gap-2">
-          <a
-            className={cn(buttonVariants({ size: "lg" }))}
-            href={shareOnXUrl(result.slug, result.score)}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <XLogoIcon data-icon="inline-start" />
-            Share on X
-          </a>
-          <CopyIconButton
-            label="Copy share link"
-            hint="Copy a link to this report. It unfurls with the score card."
-            doneHint="Link copied"
-            icon={<LinkIcon />}
-            copy={() => navigator.clipboard.writeText(reportUrl(result.slug))}
-          />
-          <CopyIconButton
-            label="Copy image"
-            hint="Copy the score card as an image, to paste into a post or a chat."
-            doneHint="Image copied"
-            icon={<ImageIcon />}
-            copy={() =>
-              navigator.clipboard.write([
-                new ClipboardItem({
-                  "image/png": cardBlob(
-                    `${cardPath(result.slug)}?v=${version}`
-                  ),
-                }),
-              ])
-            }
-          />
-        </div>
-      )}
-      <Button
-        type="button"
-        variant="secondary"
-        size="lg"
-        onClick={async () => {
-          await runPrompt(() =>
-            navigator.clipboard.writeText(agentPrompt(result))
-          );
-        }}
+    <div className="flex items-center gap-2">
+      <h2 className="sr-only">Share this report</h2>
+      <a
+        className={cn(buttonVariants({ size: "lg" }))}
+        href={shareOnXUrl(result.slug, result.score)}
+        rel="noopener noreferrer"
+        target="_blank"
       >
-        <span className="grid *:col-start-1 *:row-start-1">
-          <span className={cn(prompt === "done" && "invisible")}>
-            Copy prompt for your agent
-          </span>
-          <span className={cn(prompt !== "done" && "invisible")}>
-            Prompt copied
-          </span>
-        </span>
-      </Button>
-      <output className="sr-only">
-        {prompt === "done" ? "Prompt copied" : ""}
-      </output>
+        <XLogoIcon data-icon="inline-start" />
+        Share on X
+      </a>
+      <CopyIconButton
+        label="Copy share link"
+        hint="Copy a link to this report. It unfurls with the score card."
+        doneHint="Link copied"
+        icon={<LinkIcon />}
+        copy={() => navigator.clipboard.writeText(reportUrl(result.slug))}
+      />
+      <CopyIconButton
+        label="Copy image"
+        hint="Copy the score card as an image, to paste into a post or a chat."
+        doneHint="Image copied"
+        icon={<ImageIcon />}
+        copy={() =>
+          navigator.clipboard.write([
+            new ClipboardItem({
+              "image/png": cardBlob(`${cardPath(result.slug)}?v=${version}`),
+            }),
+          ])
+        }
+      />
     </div>
   );
 };

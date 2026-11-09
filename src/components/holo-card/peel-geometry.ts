@@ -26,8 +26,11 @@ export interface Fold {
 const EPSILON = 1e-6;
 /** Share of the cover peeled straight along one edge before the tip may swing past the other edge. */
 const PIVOT_OPENING = 0.1;
-/** How far past the card's edge the tip may swing, as the slope of the steepest pull: 60° off the edge. */
-const PIVOT_SLOPE = Math.tan(Math.PI / 3);
+/** How far past the card's edge the tip may swing: 60° off the edge. */
+const PIVOT_ANGLE = Math.PI / 3;
+const PIVOT_SLOPE = Math.tan(PIVOT_ANGLE);
+const STEEPEST_DOWN = { x: -Math.cos(PIVOT_ANGLE), y: Math.sin(PIVOT_ANGLE) };
+const STEEPEST_RIGHT = { x: Math.sin(PIVOT_ANGLE), y: -Math.cos(PIVOT_ANGLE) };
 
 /**
  * Where the tip of a cover pulled by `pull` (px, from the bottom-right corner) can really be. A fresh corner only moves
@@ -177,10 +180,21 @@ export const graspAt = (fold: Fold, hand: Point, minArm: number): Grasp => {
   };
 };
 
+const cappedSwing = (pull: Point): Point | null => {
+  if (pull.x < 0 && pull.y > -pull.x * PIVOT_SLOPE) {
+    return STEEPEST_DOWN;
+  }
+  if (pull.y < 0 && pull.x > -pull.y * PIVOT_SLOPE) {
+    return STEEPEST_RIGHT;
+  }
+  return null;
+};
+
 /**
  * The pull that keeps a grasped point under the hand: the fold is the line halfway between the point and where it must
- * land. Once that line would leave the corner on the stuck side, the flap is back on the card: no pull. Null only when
- * the hand is exactly over the point, where any fold through it would do.
+ * land. Once that line would leave the corner on the stuck side, the flap is back on the card: no pull. A pull steeper
+ * than the swing's cap stays on the cap and travels as far as brings the point closest to the hand, so the hand keeps
+ * peeling. Null only when the hand is exactly over the point, where any fold through it would do.
  */
 export const pullHolding = (
   width: number,
@@ -197,13 +211,25 @@ export const pullHolding = (
     x: (point.x - target.x) / span,
     y: (point.y - target.y) / span,
   };
+  const midpoint = {
+    x: (point.x + target.x) / 2,
+    y: (point.y + target.y) / 2,
+  };
   const toCorner =
-    (width - (point.x + target.x) / 2) * normal.x +
-    (height - (point.y + target.y) / 2) * normal.y;
+    (width - midpoint.x) * normal.x + (height - midpoint.y) * normal.y;
   if (toCorner <= 0) {
     return { x: 0, y: 0 };
   }
-  return { x: -2 * toCorner * normal.x, y: -2 * toCorner * normal.y };
+  const pull = { x: -2 * toCorner * normal.x, y: -2 * toCorner * normal.y };
+  const swing = cappedSwing(pull);
+  if (!swing) {
+    return pull;
+  }
+  const travel = Math.max(
+    0,
+    2 * ((midpoint.x - width) * swing.x + (midpoint.y - height) * swing.y)
+  );
+  return { x: travel * swing.x, y: travel * swing.y };
 };
 
 /**

@@ -229,6 +229,32 @@ describe("peel fold", () => {
     }
   });
 
+  it("keeps peeling a flap held by its back when the hand goes on past the swing's cap", () => {
+    const card = { width: 578, height: 303 };
+    const diagonal = Math.hypot(card.width, card.height);
+    const lift = 0.05 * diagonal;
+    const press = { x: 101, y: 252 };
+    const grasp = graspAt(
+      foldAt(card.width, card.height, { x: -60, y: 90 }, lift),
+      press,
+      0.08 * diagonal
+    );
+    const peeledAt = (handDown: number) => {
+      const pull = pullHolding(card.width, card.height, grasp, {
+        x: press.x,
+        y: press.y + handDown,
+      });
+      const tip = reachableTip(card.width, card.height, pull as Point, true);
+      expect(tip.y).toBeLessThanOrEqual(-tip.x * Math.sqrt(3) + 1e-6);
+      return (
+        area(foldAt(card.width, card.height, tip, lift).cut) /
+        (card.width * card.height)
+      );
+    };
+    expect(peeledAt(360)).toBeGreaterThanOrEqual(0.9);
+    expect(peeledAt(200)).toBeGreaterThan(peeledAt(100) + 0.05);
+  });
+
   it("lays the cover back down once the hand is past where the flap came from", () => {
     const grasp = {
       point: { x: 100, y: 100 },

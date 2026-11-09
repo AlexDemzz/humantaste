@@ -48,7 +48,7 @@ typography:
   wordmark: { family: Poppins, size: 20px, weight: "550 (500 stroked 0.013em)", tracking: -0.05em, outlined: true }
   score: { family: Kanit, size: "250 card units", weight: 900, line-height: 1, tracking: -0.05em }
 rounded: { control: 9999px, row-card: 16px, block: 16px, card: "36 card units" }
-spacing: { column: 624px, gutter: 24px, page-top: 48px, page-bottom: 64px, header: 40px, header-to-statement: 24px, statement-to-action: 20px, section-gap: 48px, page-break: 64px, title-gap: 16px, card-gap: 8px, card-x: 16px, control: 40px, row-y: 12px }
+spacing: { column: 624px, gutter: 24px, page-top: 48px, header: 40px, header-to-statement: 24px, statement-to-action: 20px, section-gap: 48px, page-break: 64px, title-gap: 16px, card-gap: 8px, card-x: 16px, control: 40px, row-y: 12px }
 components:
   button-primary: { fill: "{colors.button}", text: "{colors.paper}", radius: "{rounded.control}", height: 40px }
   button-secondary: { fill: "{colors.surface}", border: none, text: "{colors.ink}", hover: "{colors.wash}", radius: "{rounded.control}" }
@@ -123,11 +123,11 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 
 ## Layout
 
-- **Column**: `max-w-column` (624px, a 576px measure inside the 24px gutters), 48px from the top, 64px at the bottom. Sections sit 48px apart, and 64px from How it works; a section's title sits 16px above its content.
+- **Column**: `max-w-column` (624px, a 576px measure inside the 24px gutters), 48px from the top; the page ends on the footer's panorama. Sections sit 48px apart, and 64px from How it works; a section's title sits 16px above its content.
 - **Header**: a 40px row, the logo at the leading edge, a secondary GitHub button at the trailing edge. The content starts 48px under it, except the home statement, 24px under it.
 - **Home**: the statement and, 20px under it, the form, then Recently scored as a stack of row cards.
 - **Report**: the score card (the column's full width), then the share row and the scan line, then the patterns as accordion cards, then Behind the score as tabs, then the skills worth installing as link row cards, most GitHub stars first, five to a page (external links, the star count and an arrow at the trailing edge, the list in `src/lib/data/taste-skills.json`), then Score another site. A visitor who arrives on a stored report, usually from a shared link, gets the form as Score your site right under Behind the score instead.
-- **Footer**: How it works, the methodology in two short paragraphs, then links to Contact and Privacy.
+- **Footer**: How it works, the methodology in two short paragraphs, then links to Contact and Privacy. The page closes on the panorama, a pen-and-ink etching of a painter at a lake, on every page, bleeding off both sides and the bottom. It is black ink on transparent (`assets/images/footer-panorama.webp`), masked over `foreground`, so it is one ink in both modes and reads as a negative in dark. From 1024px the footer text rests in its empty sky; below that the text ends 32px above it and the etching crops to the painter, 224px tall at least.
 - **Contact and Privacy**: a section-title `h1` and sections 48px apart, prose only. The words live in `src/lib/info-pages.ts`, which also feeds their Markdown.
 - No sidebar, no app chrome: the reference's shell is out of scope.
 

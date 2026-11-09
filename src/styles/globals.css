@@ -172,6 +172,22 @@
   }
 }
 
+/* Ink on transparent, painted in the text colour so the etching follows light and dark. */
+@utility footer-panorama {
+  @apply bg-foreground;
+  mask: url("../../assets/images/footer-panorama.webp") 62% 100% / cover
+    no-repeat;
+}
+
+/* The etching is 1/3 of the page wide and 14rem at least. From lg the footer text rests in its empty sky, the top 1/8 of the width. */
+@utility footer-panorama-clearance {
+  padding-block-end: calc(max(14rem, 100vw / 3) + 2rem);
+
+  @variant lg {
+    padding-block-end: calc(100vw * 5 / 24);
+  }
+}
+
 /* A link in running text: foreground, a quiet underline that strengthens on hover. */
 @utility text-link {
   @apply text-foreground decoration-underline can-hover:hover:decoration-muted-foreground cursor-pointer underline underline-offset-3 transition-colors duration-200 ease-out;

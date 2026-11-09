@@ -26,3 +26,17 @@ export const Logo = ({ className }: { className?: string }) => (
     />
   </svg>
 );
+
+/** The palette alone, 1em square. */
+export const LogoMark = ({ className }: { className?: string }) => (
+  <svg
+    className={cn("block size-[1em] shrink-0", className)}
+    viewBox={LOGO.markViewBox}
+    fill="currentColor"
+    // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- inline so it takes the text colour; an <img> can't
+    role="img"
+    aria-label="humantaste"
+  >
+    <path fillRule="evenodd" d={LOGO.mark} />
+  </svg>
+);

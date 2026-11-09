@@ -2,9 +2,8 @@ import { useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { encode } from "uqr";
 
-import { Logo } from "@/components/logo";
+import { Logo, LogoMark } from "@/components/logo";
 import { tierFor } from "@/lib/score";
-import { SITE_HOST } from "@/lib/share";
 import type { ShareCard } from "@/lib/share";
 
 import { HoloPeel } from "./holo-peel";
@@ -24,12 +23,11 @@ const Light = () => (
   </>
 );
 
-/** The back's print: the logo over dark foil. The peel-off cover wears it too. */
+/** The back's print: the logo's mark over dark foil. The peel-off cover wears it too. */
 const BackArt = () => (
   <>
     <div className="holo-back-art">
-      <Logo className="holo-wordmark" />
-      <span className="holo-back-host">{SITE_HOST}</span>
+      <LogoMark className="holo-mark" />
     </div>
     <Light />
   </>

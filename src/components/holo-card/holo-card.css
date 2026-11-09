@@ -139,31 +139,34 @@
 /* The cover's print: dark foil and the logo. */
 
 .holo-back {
+  --back-stock: oklch(0.19 0.006 70);
+  /* The first ring sits as far from the mark's 120 radius as the rings sit from each other: 14 of clear stock. */
+  --rings-start: calc(134 * var(--u));
+
   color: oklch(0.95 0.003 70);
   background:
+    radial-gradient(
+      circle at 50% 50%,
+      var(--back-stock) var(--rings-start),
+      transparent 0
+    ),
     repeating-radial-gradient(
       circle at 50% 50%,
-      oklch(1 0 none / 0.07) 0 calc(2 * var(--u)),
-      transparent calc(2 * var(--u)) calc(16 * var(--u))
+      transparent 0 calc(6 * var(--u)),
+      oklch(1 0 none / 0.07) calc(6 * var(--u)) calc(8 * var(--u)),
+      transparent calc(8 * var(--u)) calc(16 * var(--u))
     ),
-    oklch(0.19 0.006 70);
+    var(--back-stock);
 }
 
 .holo-back-art {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: calc(20 * var(--u));
 }
 
-.holo-wordmark {
-  font-size: calc(110 * var(--u));
-}
-
-.holo-back-host {
-  font-size: calc(26 * var(--u));
-  color: oklch(0.75 0.006 70);
+.holo-mark {
+  font-size: calc(240 * var(--u));
 }
 
 /* Front: the score and the QR code at the top, everything else at the foot; the free height sits between them. */

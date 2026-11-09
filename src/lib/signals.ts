@@ -21,7 +21,7 @@ import type {
 } from "./types";
 
 /** Bump when a check, threshold or weight changes: stored scans from another methodology are redone. */
-export const METHODOLOGY = "2026-11-07.10";
+export const METHODOLOGY = "2026-11-09.1";
 
 interface SignalDef {
   id: string;

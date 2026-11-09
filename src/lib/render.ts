@@ -3,6 +3,10 @@ import type { Browser, Page, Response } from "@cloudflare/playwright";
 import { env } from "cloudflare:workers";
 
 import { COLLECT } from "./collect";
+import {
+  isConsentManagerHost,
+  REMOVE_CONSENT_BANNERS,
+} from "./consent-banners";
 import { withinDeadline } from "./deadline";
 import { errorMessage } from "./errors";
 import { CSS_LIMIT, MAX_STYLESHEETS } from "./fetch-page";
@@ -154,6 +158,13 @@ const readPage = async (
       await route.abort("blockedbyclient");
       return;
     }
+    if (
+      isConsentManagerHost(target.hostname) &&
+      !route.request().isNavigationRequest()
+    ) {
+      await route.abort("blockedbyclient");
+      return;
+    }
     let ok = hostCache.get(target.hostname);
     if (!ok) {
       ok = resolvesPublic(target.hostname);
@@ -180,6 +191,7 @@ const readPage = async (
   await settle(page, "networkidle", 4000);
   await page.waitForTimeout(SETTLE_MS);
   await freezeScripts(page);
+  await page.evaluate(REMOVE_CONSENT_BANNERS);
   await page.evaluate("document.fonts.ready");
 
   const collected = (await page.evaluate(COLLECT)) as Omit<

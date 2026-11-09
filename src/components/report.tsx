@@ -62,7 +62,7 @@ export const Patterns = ({ result }: { result: AnalysisResult }) => {
                 </span>
               </AccordionTrigger>
               <AccordionContent>
-                <p className="text-faint-foreground font-mono text-xs break-all">
+                <p className="font-mono text-xs break-all">
                   {signal.hit?.evidence} ({signal.hit?.source})
                 </p>
                 <p>

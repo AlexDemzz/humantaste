@@ -133,3 +133,7 @@ The dark page moves to `#0A0A0A` by request. Surfaces keep the separation they m
 `tooltip` is removed with its provider: its one consumer, the copy buttons, now answers with the icon.
 
 Filled buttons without a border are `secondary`, not `outline`: the GitHub button, the copy buttons, the current page and the dialog actions move over. `--secondary` takes the card's value (`#F5F5F5`, `#1A1A1A`) and `outline` goes back to a real outline, used nowhere for now. The field and these buttons drop `shadow-xs`, so they match the row cards exactly.
+
+## Revision: two text levels
+
+`--faint-foreground` is removed: text is `foreground` or `muted-foreground`, as in shadcn. Evidence, the How it works footer and the placeholder move to `muted-foreground`. The input's value is set to `foreground`, because shadcn leaves it to inherit and the body here is `muted-foreground`.

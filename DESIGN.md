@@ -18,8 +18,6 @@ colors:
   wash-dark: "#232323"
   prose: "#565656"
   prose-dark: "#A1A1A1"
-  faint: "#6B6B6B"
-  faint-dark: "#868686"
   hairline: "#EBEBEB"
   hairline-dark: "#1D1D1D"
   underline: "#C4C4C4"
@@ -52,7 +50,7 @@ spacing: { column: 624px, gutter: 24px, page-top: 48px, header: 40px, header-to-
 components:
   button-primary: { fill: "{colors.button}", text: "{colors.paper}", radius: "{rounded.control}", height: 40px }
   button-secondary: { fill: "{colors.surface}", border: none, text: "{colors.ink}", hover: "{colors.wash}", radius: "{rounded.control}" }
-  input: { fill: "{colors.surface}", border: none, text: "{colors.ink}", placeholder: "{colors.faint}", radius: "{rounded.control}", height: 40px, shadow: xs }
+  input: { fill: "{colors.surface}", border: none, text: "{colors.ink}", placeholder: "{colors.prose}", radius: "{rounded.control}", height: 40px, shadow: xs }
   row-card: { fill: "{colors.surface}", border: none, radius: "{rounded.row-card}", gap: 8px, hover: "{colors.wash}" }
   accordion-item: { fill: "{colors.surface}", border: none, radius: "{rounded.row-card}", padding-x: 16px }
   tabs: { fill: "{colors.surface}", indicator: "{colors.wash}", radius: "{rounded.control}", height: 40px, shadow: xs }
@@ -73,7 +71,6 @@ shadcnMapping:
   "--secondary-foreground": ["#242424", "#DEDEDE"]
   "--muted": ["#EBEBEB", "#232323"]
   "--muted-foreground": ["#565656", "#A1A1A1"]
-  "--faint-foreground": ["#6B6B6B", "#868686"]
   "--accent": ["#EBEBEB", "#232323"]
   "--accent-foreground": ["#242424", "#DEDEDE"]
   "--destructive": ["#CB274C", "#F0708A"]
@@ -98,7 +95,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - Neutrals are pure greys with no tint, as in the reference: white paper, `#242424` ink, `#565656` prose. Surfaces (`card`: cards, the field; `secondary`: secondary buttons) are one step off the page, `#F5F5F5`; `muted` is one step further, `#EBEBEB`, for hover fills and blocks inside a card.
 - The reference's dark button `#333333` is `--primary`. In dark mode the primary inverts to `#DEDEDE` on `#0A0A0A`: the reference's dark `#252525` button is a quiet fill beside its blue CTA, and humantaste has one primary per view that must read as one.
 - The reference's blue `#0092FF` is the focus ring only. White text on it measures 3.2:1, below 4.5:1 for 14px labels, so no button takes it as a fill.
-- `faint-foreground` (`#6B6B6B`, 4.9:1 on the `#F5F5F5` card, 5.3:1 on white) carries evidence, the How it works footer and the placeholder. The reference's placeholder grey `#A0A0A0` measures 2.6:1 and is not used for text.
+- Text has two levels, `foreground` and `muted-foreground`, and no third. Evidence, the How it works footer and the placeholder are `muted-foreground`; the reference's placeholder grey `#A0A0A0` measures 2.6:1 and is not used for text.
 - Nothing has a border. The URL field is a filled pill at 1.09:1 against the page, below the 3:1 WCAG 1.4.11 asks of a field's edge; this is a deliberate choice, and the placeholder, the `Score it` button inside it and the focus ring identify it. `input` stays declared for the disabled and invalid states.
 - `underline` is the resting link underline (`#4D4D4D` at 2.3:1 on the dark page, `#C4C4C4` at 1.7:1 on white), `muted-foreground` its hover colour. It is its own token: `border` is a surface hairline, too close to the page to read as a line under text.
 - `destructive` is the reference's alert red `#CB274C`; its dark value has no reference sample and is the light red lifted to 7:1 on `#0A0A0A`.
@@ -110,7 +107,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - System UI stack for everything people read. The reference sets Inter; humantaste keeps the system face because a page set in Inter alone is one of the patterns it scores down.
 - Kanit Black Italic is the display face, kept to one job: the score on the card.
 - The wordmark is Poppins Medium, outlined in `src/lib/logo.ts`, so the site loads no Poppins.
-- 16px is the reading size; the home statement steps up to 20px. Controls, row cards, metadata and the footer are 14px; evidence is 12px monospace.
+- 16px is the reading size; the home statement steps up to 20px. Controls, row cards, metadata and the footer's paragraphs are 14px; evidence is 12px monospace.
 - Weight carries hierarchy within a size: 600 for section titles and accordion titles, 500 for row titles and controls, 400 for prose. Counts, points, scores and seconds use `tabular-nums`.
 
 ## Shape and depth

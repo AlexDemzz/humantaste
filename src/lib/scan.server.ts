@@ -14,7 +14,7 @@ import {
   rawPoints,
   tellPoints,
 } from "./signals";
-import { hashScreenshot, loadVisual, rankScan, saveScan } from "./store.server";
+import { hashScreenshot, loadVisual, saveScan } from "./store.server";
 import type { Screenshot } from "./store.server";
 import type { Target } from "./target";
 import type { AnalysisResult, VisualRead } from "./types";
@@ -144,18 +144,6 @@ const reuseOrRequestVisual = async (
   }
 };
 
-/** A missing rank costs the card one line; a failed count must not cost the finished scan. */
-const rankOrNull = async (
-  slug: string,
-  score: number
-): Promise<number | null> => {
-  try {
-    return await rankScan(slug, score);
-  } catch {
-    return null;
-  }
-};
-
 export const runScan = async (target: Target): Promise<AnalysisResult> => {
   const startedAt = Date.now();
   const fetched = await fetchUnlessRefused(target.url);
@@ -206,7 +194,6 @@ export const runScan = async (target: Target): Promise<AnalysisResult> => {
     url: target.url,
     finalUrl: source.finalUrl,
     score,
-    beats: await rankOrNull(target.slug, score),
     signals,
     credits,
     visual,

@@ -205,7 +205,6 @@
 .holo-score-side {
   display: flex;
   flex-direction: column;
-  gap: calc(10 * var(--u));
   margin-block: auto var(--meter-gap);
   padding-block-start: calc(40 * var(--u));
 }
@@ -217,13 +216,6 @@
   letter-spacing: -0.02em;
   color: var(--foreground);
   overflow-wrap: anywhere;
-}
-
-.holo-standing {
-  font-size: calc(30 * var(--u));
-  line-height: var(--card-leading);
-  color: var(--muted-foreground);
-  text-wrap: balance;
 }
 
 .holo-ticks {
@@ -376,7 +368,7 @@
   }
 }
 
-/* Foot: Jev's read on the left, our logo on the right in the same grey. */
+/* Foot: Jev's read on the left, our logo on the right. */
 .holo-foot {
   display: flex;
   align-items: center;
@@ -384,7 +376,7 @@
   margin-block-start: var(--meter-gap);
   font-size: calc(26 * var(--u));
   line-height: var(--card-leading);
-  color: var(--muted-foreground);
+  color: var(--foreground);
 }
 
 .holo-design {
@@ -399,7 +391,6 @@
 .holo-design strong {
   font-weight: 500;
   white-space: nowrap;
-  color: var(--foreground);
 }
 
 .holo-jev {
@@ -407,7 +398,6 @@
   align-items: baseline;
   gap: 0.25em;
   font-weight: 500;
-  color: var(--foreground);
 }
 
 .holo-jev-logo {
@@ -563,53 +553,19 @@
   );
 }
 
+/* A WebGL canvas gets its own layer: below zero keeps it under the type, inside the side's isolation. */
 .holo[data-tier="prismatic"] .holo-etch {
-  background:
-    radial-gradient(
-        circle at 23% 31%,
-        oklch(1 0 none) 0 calc(2.4 * var(--u)),
-        transparent calc(3.6 * var(--u))
-      )
-      0 0 / calc(86 * var(--u)) calc(74 * var(--u)),
-    radial-gradient(
-        circle at 71% 64%,
-        oklch(1 0 none / 0.85) 0 calc(1.8 * var(--u)),
-        transparent calc(2.8 * var(--u))
-      )
-      0 0 / calc(118 * var(--u)) calc(97 * var(--u)),
-    radial-gradient(
-        circle at 42% 82%,
-        oklch(1 0 none) 0 calc(3.2 * var(--u)),
-        transparent calc(4.6 * var(--u))
-      )
-      0 0 / calc(163 * var(--u)) calc(141 * var(--u)),
-    radial-gradient(
-        circle at 88% 12%,
-        oklch(0.95 0.1 90) 0 calc(2.6 * var(--u)),
-        transparent calc(3.8 * var(--u))
-      )
-      0 0 / calc(201 * var(--u)) calc(173 * var(--u));
-  mask: radial-gradient(
-    farthest-corner circle at var(--px) var(--py),
-    oklch(0 0 none) 0%,
-    oklch(0 0 none / 0.25) 65%
-  );
-  opacity: calc(var(--lit) * (0.45 + var(--active) * 0.55));
+  position: relative;
+  z-index: -1;
+  mask: none;
+  mix-blend-mode: normal;
+  opacity: var(--lit);
 }
 
-.holo[data-tier="prismatic"] .holo-front::after {
-  content: "";
-  grid-area: 1 / 1;
-  border-radius: inherit;
-  background: var(--holo-rainbow) var(--px) var(--py) / 400% 400%;
-  mix-blend-mode: screen;
-  mask-image: radial-gradient(
-    farthest-corner circle at var(--px) var(--py),
-    oklch(0 0 none) 0%,
-    oklch(0 0 none / 0.15) 70%
-  );
-  opacity: calc(var(--lit) * (0.3 + var(--active) * 0.4));
-  pointer-events: none;
+.holo-prism {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
 }
 
 @keyframes holo-flare {
@@ -623,9 +579,7 @@
     animation-iteration-count: 2;
   }
 
-  .holo[data-tier="prismatic"]:not([data-sealed]) .holo-front .holo-foil,
-  .holo[data-tier="prismatic"]:not([data-sealed]) .holo-etch,
-  .holo[data-tier="prismatic"]:not([data-sealed]) .holo-front::after {
+  .holo[data-tier="prismatic"]:not([data-sealed]) .holo-front .holo-foil {
     animation: holo-flare 1400ms var(--ease-out) 250ms backwards;
   }
 }

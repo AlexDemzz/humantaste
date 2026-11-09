@@ -19,7 +19,6 @@ export const OG_CACHE = "public, max-age=3600, s-maxage=86400";
 const C = {
   card: "#191715",
   fg: "#f0eeec",
-  muted: "#a19e9a",
   tickOff: "#343230",
 };
 
@@ -154,32 +153,89 @@ const gradientLine = (
   };
 };
 
-/** The card's rainbow with the light at the centre: one 36% period of its 115deg gradient, in image pixels. */
-const RAINBOW = (
-  <linearGradient
-    id="rainbow"
-    gradientUnits="userSpaceOnUse"
-    x1="-87"
-    y1="-5"
-    x2="1679"
-    y2="818"
-  >
-    <stop offset={0} stopColor="#c13b9f" />
-    <stop offset={1 / 6} stopColor="#864ad2" />
-    <stop offset={2 / 6} stopColor="#3f69d3" />
-    <stop offset={3 / 6} stopColor="#00a0c5" />
-    <stop offset={4 / 6} stopColor="#00b29b" />
-    <stop offset={5 / 6} stopColor="#9065d0" />
-    <stop offset={1} stopColor="#c13b9f" />
-  </linearGradient>
-);
+const FACET_SIZE = 26;
+const SHEAR = 0.57735;
+const STRETCH = 1.1547;
+const STOCK_RGB = [0.106, 0.099, 0.094] as const;
+const TINT = [0.96, 0.98, 1.05] as const;
 
-const STARS = [
-  { width: 86, height: 74, cx: 20, cy: 23, r: 3, fill: "#ffffff" },
-  { width: 118, height: 97, cx: 84, cy: 62, r: 2.3, fill: "#ffffff" },
-  { width: 163, height: 141, cx: 68, cy: 116, r: 3.9, fill: "#ffffff" },
-  { width: 201, height: 173, cx: 177, cy: 21, r: 3.2, fill: "#ffeca0" },
-];
+/** One facet of the prismatic foil at rest: the colour of the shader in prism-foil.tsx, taken at the facet's centre. */
+const facetFill = (x: number, y: number, facet: number, up: number) => {
+  const hx = 0.24 - (x / W - 0.5) * 0.62;
+  const hy = -0.16 - (y / H - 0.5) * 0.33;
+  const angle = 0.8 + (facet - 1) * 0.5 + up * 0.25;
+  const gx = Math.cos(angle);
+  const gy = Math.sin(angle);
+  const shift = (facet - 1) * 0.05;
+  const t = (Math.abs(gx * (hx + shift) + gy * (hy + shift)) * 1500) / 900;
+  const mirror = 0.4 * Math.exp(-((gx * hx + gy * hy - 0.2) ** 2) * 40);
+  const raw = [0, 0.33, 0.67].map(
+    (phase) => (0.5 + 0.5 * Math.cos(2 * Math.PI * (t + phase)) + mirror) * 0.72
+  );
+  const luma =
+    (raw[0] ?? 0) * 0.3 + (raw[1] ?? 0) * 0.59 + (raw[2] ?? 0) * 0.11;
+  const amount = (0.2 + 0.34 * Math.exp(-(hx * hx + hy * hy) * 1.6)) * 0.85;
+  const channels = STOCK_RGB.map((stock, i) => {
+    const pastel = (raw[i] ?? 0) * 0.62 + luma * (TINT[i] ?? 1) * 0.38;
+    const value = Math.min(1, stock + pastel * amount);
+    return Math.round(value * 255)
+      .toString(16)
+      .padStart(2, "0");
+  });
+  return `#${channels.join("")}`;
+};
+
+const PRISM_FACETS = (() => {
+  const facets: ReactElement[] = [];
+  const rows = Math.ceil((H * STRETCH) / FACET_SIZE);
+  const columns = Math.ceil(W / FACET_SIZE);
+  const toCard = (qx: number, qy: number) => {
+    const y = (qy * FACET_SIZE) / STRETCH;
+    return [qx * FACET_SIZE + y * SHEAR, y] as const;
+  };
+  for (let row = 0; row <= rows; row += 1) {
+    for (let column = -rows; column <= columns; column += 1) {
+      for (const up of [0, 1]) {
+        const corners =
+          up === 1
+            ? [
+                toCard(column, row),
+                toCard(column + 1, row),
+                toCard(column, row + 1),
+              ]
+            : [
+                toCard(column + 1, row),
+                toCard(column + 1, row + 1),
+                toCard(column, row + 1),
+              ];
+        const [cx, cy] = toCard(
+          column + (up === 1 ? 1 / 3 : 2 / 3),
+          row + (up === 1 ? 1 / 3 : 2 / 3)
+        );
+        if (
+          cx > -FACET_SIZE &&
+          cx < W + FACET_SIZE &&
+          cy > -FACET_SIZE &&
+          cy < H + FACET_SIZE
+        ) {
+          const facet = (((column + row * 2 + up) % 3) + 3) % 3;
+          const fill = facetFill(cx, cy, facet, up);
+          facets.push(
+            <polygon
+              key={`${column}:${row}:${up}`}
+              points={corners.map((corner) => corner.join(",")).join(" ")}
+              fill={fill}
+              stroke="#000000"
+              strokeOpacity="0.14"
+              strokeWidth="1"
+            />
+          );
+        }
+      }
+    }
+  }
+  return facets;
+})();
 
 /** A mask for the light on a card at rest: full at the centre, down to `edge` at `stop` of the way to the corners. */
 const restMask = (id: string, stop: number, edge: number) => (
@@ -224,43 +280,7 @@ const STOCK_LAYERS: Partial<Record<CardTier, ReactElement>> = {
       <rect width={W} height={H} fill="url(#sheen)" />
     </g>
   ),
-  prismatic: (
-    <g>
-      <defs>
-        {RAINBOW}
-        {restMask("glitter", 0.65, 0.25)}
-        {restMask("wash", 0.7, 0.15)}
-        {STARS.map((star) => (
-          <pattern
-            key={star.width}
-            id={`stars-${star.width}`}
-            width={star.width}
-            height={star.height}
-            patternUnits="userSpaceOnUse"
-          >
-            <circle cx={star.cx} cy={star.cy} r={star.r} fill={star.fill} />
-          </pattern>
-        ))}
-      </defs>
-      <g mask="url(#glitter)" opacity="0.45">
-        {STARS.map((star) => (
-          <rect
-            key={star.width}
-            width={W}
-            height={H}
-            fill={`url(#stars-${star.width})`}
-          />
-        ))}
-      </g>
-      <rect
-        width={W}
-        height={H}
-        fill="url(#rainbow)"
-        mask="url(#wash)"
-        opacity="0.3"
-      />
-    </g>
-  ),
+  prismatic: <g>{PRISM_FACETS}</g>,
 };
 
 /** The tier's layers under the type and the foil frame over them, as on the card at rest. */
@@ -428,7 +448,7 @@ const JevLogo = () => (
   </svg>
 );
 
-/** Our logo in the card's grey, sized like the card's foot. */
+/** Our logo, sized like the card's foot. */
 const Brand = () => (
   <svg
     width={(LOGO.width / LOGO.em) * BRAND_SIZE}
@@ -436,10 +456,10 @@ const Brand = () => (
     viewBox={LOGO.viewBox}
     style={{ marginLeft: "auto" }}
   >
-    <path fill={C.muted} fillRule="evenodd" d={LOGO.mark} />
+    <path fill={C.fg} fillRule="evenodd" d={LOGO.mark} />
     <path
-      fill={C.muted}
-      stroke={C.muted}
+      fill={C.fg}
+      stroke={C.fg}
       strokeWidth={LOGO.stroke}
       strokeLinejoin="round"
       d={LOGO.word}
@@ -526,7 +546,6 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
             display: "flex",
             flexDirection: "column",
             width: METER_WIDTH,
-            gap: 10,
             marginTop: "auto",
             marginBottom: METER_GAP,
           }}
@@ -543,11 +562,6 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
           >
             {card.host}
           </span>
-          {card.standing && (
-            <span style={{ fontSize: 30, color: C.muted, textWrap: "balance" }}>
-              {card.standing}
-            </span>
-          )}
         </div>
 
         <Meter value={card.score} stops={look.ink} />
@@ -558,15 +572,14 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
             alignItems: "center",
             marginTop: METER_GAP,
             fontSize: 26,
-            color: C.muted,
           }}
         >
           {card.jev && (
             <div style={{ display: "flex", alignItems: "center" }}>
               <JevLogo />
-              <span style={{ marginLeft: 6, color: C.fg }}>Jev</span>
+              <span style={{ marginLeft: 6 }}>Jev</span>
               <span style={{ marginLeft: 7 }}>says</span>
-              <span style={{ marginLeft: 7, color: C.fg }}>{card.jev}</span>
+              <span style={{ marginLeft: 7 }}>{card.jev}</span>
             </div>
           )}
           <Brand />

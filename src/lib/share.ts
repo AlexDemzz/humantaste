@@ -5,17 +5,17 @@ export const SITE_HOST = "humantaste.xyz";
 export const SITE_URL: string =
   import.meta.env.VITE_SITE_URL ?? `https://${SITE_HOST}`;
 
-const MIDDLE_LOOK = "it looks like a reworked template";
+const MIDDLE_LOOK = "it's AI with some taste";
 
 const LOOK_WORDS = [
-  "it looks hand-designed",
-  "it looks mostly hand-designed",
+  "it's pure human taste",
+  "it's got real taste",
   MIDDLE_LOOK,
-  "it looks like a lightly edited template",
-  "it looks like a template",
+  "it's almost AI slop",
+  "it's AI slop",
 ];
 
-/** Jev only saw a screenshot, so its read is worded as an impression, to follow "Jev says". */
+/** What follows "Jev says". */
 export const lookWords = (visual: VisualRead): string =>
   LOOK_WORDS[
     Math.min(LOOK_WORDS.length - 1, Math.max(0, Math.round(visual.look)))
@@ -24,8 +24,6 @@ export const lookWords = (visual: VisualRead): string =>
 export interface ShareCard {
   host: string;
   score: number;
-  /** Where the site stands among those scored, or null when the card prints no rank. */
-  standing: string | null;
   /** What follows "Jev says", or null when the visual read didn't run. */
   jev: string | null;
   /** The scan's public URL, encoded in the card's QR code. */
@@ -50,7 +48,6 @@ export const shareOnXUrl = (slug: string, score: number) => {
 export const cardFromResult = (result: AnalysisResult): ShareCard => ({
   host: result.slug,
   score: result.score,
-  standing: result.beats ? `Beats ${result.beats}% of sites scored` : null,
   jev: result.visual ? lookWords(result.visual) : null,
   scanUrl: `https://${SITE_HOST}${scanPath(result.slug)}`,
 });

@@ -6,7 +6,7 @@ import { visualRead } from "@/lib/judge.server";
 import { BrowserUnavailableError, renderPage } from "@/lib/render";
 import type { RenderOutput } from "@/lib/render";
 import { runScan } from "@/lib/scan.server";
-import { rankScan, saveScan } from "@/lib/store.server";
+import { saveScan } from "@/lib/store.server";
 import type { Target } from "@/lib/target";
 import type { RenderedFacts, VisualRead } from "@/lib/types";
 
@@ -24,7 +24,6 @@ vi.mock("@/lib/deadline", async (original) => ({
 vi.mock("@/lib/store.server", () => ({
   hashScreenshot: () => "screenshot-hash",
   loadVisual: vi.fn(() => Promise.resolve(null)),
-  rankScan: vi.fn(() => Promise.resolve(42)),
   saveScan: vi.fn(() => Promise.resolve()),
 }));
 vi.mock("@/lib/fetch-page", async (original) => ({
@@ -81,13 +80,6 @@ describe("runScan", () => {
         hash: "screenshot-hash",
       },
     });
-  });
-
-  it("keeps a finished scan when its rank can't be counted", async () => {
-    vi.mocked(rankScan).mockRejectedValueOnce(new Error("D1 is down"));
-    const result = await runScan(TARGET);
-    expect(result.beats).toBeNull();
-    expect(saveScan).toHaveBeenCalledOnce();
   });
 
   it("stores a scan when Jev has no key and returns null", async () => {

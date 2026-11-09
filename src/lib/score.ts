@@ -21,22 +21,3 @@ export const tierFor = (score: number): CardTier => {
   }
   return "matte";
 };
-
-const MIN_OTHER_SCANS = 200;
-const MIN_PERCENT_PRINTED = 10;
-const MAX_PERCENT_PRINTED = 99;
-
-/**
- * The share of other scored sites a site beats, for the card. Null while there are too few scans for it to mean
- * anything, and for a figure so low that printing it would read as mockery.
- */
-export const percentBeaten = (below: number, others: number): number | null => {
-  if (others < MIN_OTHER_SCANS) {
-    return null;
-  }
-  const percent = Math.min(
-    MAX_PERCENT_PRINTED,
-    Math.floor((100 * below) / others)
-  );
-  return percent < MIN_PERCENT_PRINTED ? null : percent;
-};

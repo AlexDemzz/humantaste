@@ -9,6 +9,7 @@ import type { ShareCard } from "@/lib/share";
 
 import { HoloPeel } from "./holo-peel";
 import { MotionDialog } from "./motion-dialog";
+import { PrismFoil } from "./prism-foil";
 import { useTilt } from "./use-tilt";
 
 const HOST_MAX_SIZE = 64;
@@ -75,7 +76,7 @@ const QrCode = ({ url }: { url: string }) => {
   );
 };
 
-/** The score and the QR code at the top; at the foot the scanned site, its rank, the meter, Jev's read and our logo. */
+/** The score and the QR code at the top; at the foot the scanned site, the meter, Jev's read and our logo. */
 const Front = ({ card }: { card: ShareCard }) => (
   <div className="holo-face">
     <div className="holo-head">
@@ -101,7 +102,6 @@ const Front = ({ card }: { card: ShareCard }) => (
       >
         {card.host}
       </span>
-      {card.standing && <span className="holo-standing">{card.standing}</span>}
     </div>
     <div
       className="holo-ticks"
@@ -135,6 +135,7 @@ export const HoloCard = ({
   sealed?: boolean;
 }) => {
   const ref = useRef<HTMLElement>(null);
+  const tier = tierFor(card.score);
   const [sealed, setSealed] = useState(startSealed);
   const { askingMotion, allowMotion, skipMotion } = useTilt(ref, {
     still: sealed,
@@ -151,11 +152,13 @@ export const HoloCard = ({
         ref={ref}
         className="holo"
         data-sealed={sealed || undefined}
-        data-tier={tierFor(card.score)}
+        data-tier={tier}
         aria-label={`${card.host} scores ${card.score} out of 100`}
       >
         <div className="holo-side holo-front">
-          <div className="holo-etch" aria-hidden="true" />
+          <div className="holo-etch" aria-hidden="true">
+            {tier === "prismatic" && <PrismFoil />}
+          </div>
           <Front card={card} />
           <Light />
         </div>

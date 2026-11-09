@@ -1,6 +1,5 @@
 import { env } from "cloudflare:workers";
 
-import { percentBeaten } from "./score";
 import { sha256Hex } from "./sha256";
 import { METHODOLOGY } from "./signals";
 import type { AnalysisResult, VisualRead } from "./types";
@@ -22,19 +21,6 @@ export interface RecentScan {
 
 const shotKey = (slug: string) => `shots/${encodeURIComponent(slug)}.jpg`;
 
-/** The percentage of other current scans this score beats, or null when the card should print none. */
-export const rankScan = async (
-  slug: string,
-  score: number
-): Promise<number | null> => {
-  const row = await env.DB.prepare(
-    "SELECT COUNT(*) AS others, COALESCE(SUM(score < ?), 0) AS below FROM scans WHERE methodology = ? AND slug != ?"
-  )
-    .bind(score, METHODOLOGY, slug)
-    .first<{ others: number; below: number }>();
-  return row ? percentBeaten(row.below, row.others) : null;
-};
-
 /** A site's latest scan. One scored under an older methodology counts as missing, so the page offers a new scan. */
 export const loadScan = async (
   slug: string
@@ -47,10 +33,7 @@ export const loadScan = async (
   if (!row) {
     return null;
   }
-  const result = JSON.parse(row.result) as AnalysisResult;
-  return result.beats === undefined
-    ? { ...result, beats: await rankScan(slug, result.score) }
-    : result;
+  return JSON.parse(row.result) as AnalysisResult;
 };
 
 export const hashScreenshot = (screenshot: Uint8Array): string =>

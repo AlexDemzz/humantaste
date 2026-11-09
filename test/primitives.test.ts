@@ -4,12 +4,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { itemVariants } from "@/components/ui/item";
 
 describe("Alpaca skin (DESIGN.md › Shape and depth)", () => {
-  it("fills outline buttons with the card surface, no hairline", () => {
-    const outline = buttonVariants({ variant: "outline" });
-    expect(outline).toContain("bg-card");
-    expect(outline).toContain("shadow-xs");
-    expect(outline).not.toContain("border-border");
-    expect(outline).not.toContain("dark:bg-input");
+  it("fills secondary buttons flat, no hairline and no shadow", () => {
+    const secondary = buttonVariants({ variant: "secondary" });
+    expect(secondary).toContain("bg-secondary");
+    expect(secondary).not.toContain("shadow-xs");
+    expect(secondary).not.toContain("border-border");
   });
 
   it("keeps every button a pill", () => {

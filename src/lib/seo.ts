@@ -21,11 +21,11 @@ const CREATOR = {
   url: "https://alexandrejoly.me/",
 };
 
-const SITE_TITLE = "AI template score for any website | humantaste";
+const SITE_TITLE = "How human does your website look? | humantaste";
 export const SITE_DESCRIPTION =
-  "Score how much of a website a person chose, from 0 for a pure AI template to 100 when every choice was made on purpose, with the evidence and the fixes.";
+  "Paste a URL to see how human your website looks. Get a score out of 100, the AI patterns behind it and what to change.";
 export const SITE_CARD = {
-  question: "How much of your website did a person choose?",
+  question: "How human does your website look?",
   answer: "Get a score out of 100, the AI patterns found and what to change.",
 };
 const SITE_CARD_PATH = "/og.png";
@@ -230,7 +230,7 @@ export const infoPageHead = (slug: InfoPageSlug): PageHead =>
 export const unscoredHead = (slug: string): PageHead =>
   pageHead({
     description:
-      "How much of this page did a person choose? 0 is a pure AI template, 100 is every choice made on purpose.",
+      "How human does this page look? 0 is a pure AI template, 100 shows no sign of one.",
     noindex: true,
     path: scanPath(slug),
     title: `${slug} on humantaste`,

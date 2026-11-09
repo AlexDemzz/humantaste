@@ -13,6 +13,7 @@ import type { ScanOutcome } from "@/lib/scan.functions";
 import { reportHead, unscoredHead } from "@/lib/seo";
 import { cardFromResult } from "@/lib/share";
 import { parseTarget } from "@/lib/target";
+import { parseSkillsPage } from "@/lib/taste-skills";
 import type { AnalysisResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -220,6 +221,9 @@ const ScanPage = () => {
 };
 
 export const Route = createFileRoute("/scan/$")({
+  validateSearch: (search: Record<string, unknown>): { page?: number } => ({
+    page: parseSkillsPage(search.page),
+  }),
   loader: async ({ params }) => {
     const raw = params._splat ?? "";
     let slug: string;

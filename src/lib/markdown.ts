@@ -32,7 +32,7 @@ export const reportMarkdown = (result: AnalysisResult) => {
       : `AI patterns found (${found.length})`;
   return `# ${scoreLine(result.slug, result.score)}
 
-- Score: ${result.score} out of 100, where 0 is a pure AI template and 100 is every choice made on purpose.
+- Score: ${result.score} out of 100, where 0 is a pure AI template and 100 shows no sign of one.
 - Scored: ${result.analyzedAt}
 - Report: ${reportUrl(result.slug)}
 

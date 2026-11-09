@@ -85,7 +85,7 @@ shadcnMapping:
 
 # DESIGN — humantaste
 
-humantaste scores how much of a website a person chose. The interface wears the Alpaca system (Ace's case study): pure greys on white, pill controls, and lists made of stacked cards. Surfaces stand out by their fill, never by a border. The score card, the logo and the one-column layout are humantaste's own and sit outside the skin. `src/styles/globals.css` holds the values; this file says what each one is for. The capture ledger is `docs/design/alpaca-skin.md`.
+humantaste scores how human a website looks. The interface wears the Alpaca system (Ace's case study): pure greys on white, pill controls, and lists made of stacked cards. Surfaces stand out by their fill, never by a border. The score card, the logo and the one-column layout are humantaste's own and sit outside the skin. `src/styles/globals.css` holds the values; this file says what each one is for. The capture ledger is `docs/design/alpaca-skin.md`.
 
 ## Overview
 
@@ -124,7 +124,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - **Column**: `max-w-column` (688px, a 640px measure inside the 24px gutters), 24px from the top, 64px at the bottom. Sections sit 64px apart; a section's title sits 16px above its content.
 - **Header**: the logo at the leading edge, an outline GitHub button at the trailing edge.
 - **Home**: the statement and the form, then Recently scored as a stack of row cards.
-- **Report**: the score card (the column's full width), then the share row and the scan line, then the patterns as accordion cards, then Behind the score as tabs, then five skills worth installing as link row cards (external links, an arrow at the trailing edge), then Score another site. A visitor who arrives on a stored report, usually from a shared link, gets the form as Score your site right under the scan line instead.
+- **Report**: the score card (the column's full width), then the share row and the scan line, then the patterns as accordion cards, then Behind the score as tabs, then the skills worth installing as link row cards, most GitHub stars first, five to a page (external links, the star count and an arrow at the trailing edge, the list in `src/lib/data/taste-skills.json`), then Score another site. A visitor who arrives on a stored report, usually from a shared link, gets the form as Score your site right under the scan line instead.
 - **Footer**: How it works, the methodology in two short paragraphs, then links to Contact and Privacy.
 - **Contact and Privacy**: a section-title `h1` and sections 64px apart, prose only. The words live in `src/lib/info-pages.ts`, which also feeds their Markdown.
 - No sidebar, no app chrome: the reference's shell is out of scope.
@@ -135,6 +135,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - **Row card** (`Item variant="outline"`): host, a 20-tick meter and the score in one line; the whole card is the link and fills with `muted` on hover.
 - **Accordion card** (`AccordionItem`): closed, the title and its value (points) on one 48px line; open, the content inside the same card, 16px side padding.
 - **Tabs** (`Tabs`): a 40px `card` pill with `shadow-xs` holding 32px pill tabs; the active tab sits on a `muted` indicator that slides to it (200ms `ease-out`). The panel has no surface of its own: its content sits on the page, 16px under the pill. The score steps inside are row cards built like the pattern rows: the step in ink at 600, its value in prose grey on the trailing edge, the same 48px line. Behind the score uses them, so the report's details read as one section and not as more pattern cards.
+- **Pagination** (`Pagination`): centred 16px under the list it pages, only when there is more than one page. 40px pills: the current page is an outline button, the others ghost. `Previous` and `Next` lose their words on a phone and fade to 50% at the ends. Five number slots at most, the rest folded into an ellipsis. The page lives in the URL (`?page=2`, bare for page 1), and turning it keeps the scroll position.
 - **Share row**: `Share on X` as the view's one primary button (a link to X's composer, the report's URL closing the text so the post unfurls with the score card), then two outline icon buttons, `Copy share link` and `Copy image`, each with a tooltip; after a copy the icon turns to a check and the tooltip says what was copied. An incomplete report is not stored, so it has no share row. The agent prompt is copied from the `Prompt` tab in Behind the score.
 - **URL field** (`InputGroup`): one 40px filled pill; the input on the left and the dark `Score it` pill inside it on the right (`InputGroupAddon align="inline-end"`, `InputGroupButton variant="default" size="sm"`, 32px tall, 4px inset). An invalid URL rings the whole pill in `destructive`.
 - **Meter**: 20 ticks, 2px wide, `foreground` up to the score and `meter-off` after.

@@ -13,9 +13,9 @@ const Home = () => {
       <section className="flex flex-col gap-6">
         <h1 className="text-muted-foreground text-xl">
           <strong className="text-foreground font-medium">humantaste</strong>{" "}
-          scores how much of a website a person chose, from 0 for a pure AI
-          template to 100 when every choice was made on purpose. You get the
-          patterns it found and what to change.
+          scores how human your website looks, from 0 for a pure AI template to
+          100 for no sign of one. You get the patterns it found and what to
+          change.
         </h1>
         <ScanForm />
       </section>

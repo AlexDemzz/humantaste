@@ -1,4 +1,5 @@
-import { ArrowUpRightIcon } from "@phosphor-icons/react";
+import { ArrowUpRightIcon, StarIcon } from "@phosphor-icons/react";
+import { Link, useSearch } from "@tanstack/react-router";
 
 import {
   Item,
@@ -7,69 +8,107 @@ import {
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  compactStars,
+  pageSlots,
+  skillsPage,
+  spokenStars,
+  TASTE_SKILLS,
+} from "@/lib/taste-skills";
 
-/** Sources and reasons: docs/research/anti-slop-skills.md and docs/research/skills-sh-sweep.md. */
-const SKILLS = [
-  {
-    name: "Emil Kowalski",
-    what: "Motion and interaction: when to animate, which curve, how long.",
-    href: "https://github.com/emilkowalski/skills",
-  },
-  {
-    name: "Jakub Krehel",
-    what: "Type, colour, layout and accessibility, with exact values to use.",
-    href: "https://github.com/jakubkrehel/skills",
-  },
-  {
-    name: "Unslop, by Cursor",
-    what: "Cuts AI habits from your copy: stock words, em dashes, chatbot phrases.",
-    href: "https://github.com/cursor/plugins/tree/main/pstack/skills/unslop",
-  },
-  {
-    name: "Impeccable, by Paul Bakaus",
-    what: "A design skill with a detector that flags AI patterns before you ship.",
-    href: "https://github.com/pbakaus/impeccable",
-  },
-  {
-    name: "Taste Skill, by Leonxlnx",
-    what: "Art direction for your agent: reference images and a browser check.",
-    href: "https://github.com/Leonxlnx/taste-skill",
-  },
-] as const;
+/** Stays where the reader is: the list changes in place, and the report above it does not reload. */
+const linkToPage = (page: number, disabled = false) => (
+  <Link
+    from="/scan/$"
+    to="."
+    search={{ page: page > 1 ? page : undefined }}
+    activeOptions={{ exact: true }}
+    resetScroll={false}
+    preload={false}
+    disabled={disabled}
+  />
+);
 
 /** Where to go once the patterns are fixed: skills written by people with taste. */
-export const TasteSkills = () => (
-  <section className="flex flex-col gap-4" aria-labelledby="taste">
-    <h2 id="taste" className="text-foreground font-semibold">
-      Skills that give your agent taste
-    </h2>
-    <ul className="flex flex-col gap-2">
-      {SKILLS.map((skill) => (
-        <li key={skill.href}>
-          <Item
-            variant="outline"
-            render={
-              <a
-                href={skill.href}
-                target="_blank"
-                rel="noopener"
-                aria-label={`${skill.name} on GitHub, opens in a new tab`}
+export const TasteSkills = () => {
+  const { page: requested = 1 } = useSearch({ from: "/scan/$" });
+  const { skills, page, pageCount } = skillsPage(TASTE_SKILLS, requested);
+
+  return (
+    <section className="flex flex-col gap-4" aria-labelledby="taste">
+      <h2 id="taste" className="text-foreground font-semibold">
+        Skills that give your agent taste
+      </h2>
+      <ul className="flex flex-col gap-2">
+        {skills.map((skill) => (
+          <li key={skill.href}>
+            <Item
+              variant="outline"
+              render={
+                <a
+                  href={skill.href}
+                  target="_blank"
+                  rel="noopener"
+                  aria-label={`${skill.name} on GitHub, ${spokenStars(skill.stars)}, opens in a new tab`}
+                />
+              }
+            >
+              <ItemContent>
+                <ItemTitle>{skill.name}</ItemTitle>
+                <ItemDescription>{skill.what}</ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <span className="text-muted-foreground flex items-center gap-1 tabular-nums">
+                  <StarIcon aria-hidden="true" />
+                  {compactStars(skill.stars)}
+                </span>
+                <ArrowUpRightIcon
+                  className="text-muted-foreground"
+                  aria-hidden="true"
+                />
+              </ItemActions>
+            </Item>
+          </li>
+        ))}
+      </ul>
+      {pageCount > 1 && (
+        <Pagination aria-label="Skills pages">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious render={linkToPage(page - 1, page === 1)} />
+            </PaginationItem>
+            {pageSlots(page, pageCount).map((slot) => (
+              <PaginationItem key={slot}>
+                {typeof slot === "number" ? (
+                  <PaginationLink
+                    aria-label={`Go to page ${slot}`}
+                    isActive={slot === page}
+                    render={linkToPage(slot)}
+                  >
+                    {slot}
+                  </PaginationLink>
+                ) : (
+                  <PaginationEllipsis />
+                )}
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                render={linkToPage(page + 1, page === pageCount)}
               />
-            }
-          >
-            <ItemContent>
-              <ItemTitle>{skill.name}</ItemTitle>
-              <ItemDescription>{skill.what}</ItemDescription>
-            </ItemContent>
-            <ItemActions>
-              <ArrowUpRightIcon
-                className="text-muted-foreground"
-                aria-hidden="true"
-              />
-            </ItemActions>
-          </Item>
-        </li>
-      ))}
-    </ul>
-  </section>
-);
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </section>
+  );
+};

@@ -4,11 +4,15 @@ export interface TasteSkill {
   name: string;
   what: string;
   href: string;
-  stars: number;
 }
 
-/** Live counts by `owner/name`. */
+/** GitHub's counts by `owner/name`. */
 export type StarCounts = Readonly<Record<string, number>>;
+
+export interface RankedSkill extends TasteSkill {
+  /** Undefined until GitHub has answered for the repository. */
+  stars: number | undefined;
+}
 
 export type PageSlot = number | "gap-start" | "gap-end";
 
@@ -32,31 +36,29 @@ export const repoOf = (href: string): string => {
   return repo;
 };
 
-export const rankSkills = (skills: readonly TasteSkill[]): TasteSkill[] =>
-  skills.toSorted(
-    (a, b) => b.stars - a.stars || a.name.localeCompare(b.name, "en")
-  );
-
 /** Sources and reasons for the first entries: docs/research/anti-slop-skills.md and docs/research/skills-sh-sweep.md. */
-export const TASTE_SKILLS: readonly TasteSkill[] = rankSkills(listedSkills);
+export const TASTE_SKILLS: readonly TasteSkill[] = listedSkills;
 
-/** A skill without a live count keeps the one the build shipped with. */
-export const withLiveStars = (
+const UNCOUNTED = -1;
+
+/** Most starred first, ties in name order, and a skill GitHub has not counted yet goes last. */
+export const rankSkills = (
   skills: readonly TasteSkill[],
-  live: StarCounts
-): TasteSkill[] =>
-  rankSkills(
-    skills.map((skill) => ({
-      ...skill,
-      stars: live[repoOf(skill.href)] ?? skill.stars,
-    }))
-  );
+  counts: StarCounts
+): RankedSkill[] =>
+  skills
+    .map((skill) => ({ ...skill, stars: counts[repoOf(skill.href)] }))
+    .toSorted(
+      (a, b) =>
+        (b.stars ?? UNCOUNTED) - (a.stars ?? UNCOUNTED) ||
+        a.name.localeCompare(b.name, "en")
+    );
 
 /** A page past the end shows the last one, so an old link still lands on a list. */
-export const skillsPage = (
-  skills: readonly TasteSkill[],
+export const skillsPage = <Skill>(
+  skills: readonly Skill[],
   requested: number
-): { skills: TasteSkill[]; page: number; pageCount: number } => {
+): { skills: Skill[]; page: number; pageCount: number } => {
   const pageCount = Math.max(1, Math.ceil(skills.length / SKILLS_PER_PAGE));
   const page = Math.min(requested, pageCount);
   const start = (page - 1) * SKILLS_PER_PAGE;
@@ -92,3 +94,8 @@ export const compactStars = (stars: number): string =>
 
 export const spokenStars = (stars: number): string =>
   `${fullNumber.format(stars)} ${stars === 1 ? "star" : "stars"}`;
+
+export const skillLinkLabel = ({ name, stars }: RankedSkill): string => {
+  const counted = stars === undefined ? "" : `, ${spokenStars(stars)}`;
+  return `${name} on GitHub${counted}, opens in a new tab`;
+};

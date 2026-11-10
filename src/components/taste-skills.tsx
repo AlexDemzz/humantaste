@@ -20,10 +20,10 @@ import {
 import {
   compactStars,
   pageSlots,
+  rankSkills,
+  skillLinkLabel,
   skillsPage,
-  spokenStars,
   TASTE_SKILLS,
-  withLiveStars,
 } from "@/lib/taste-skills";
 
 /** Stays where the reader is: the list changes in place, and the report above it does not reload. */
@@ -44,7 +44,7 @@ export const TasteSkills = () => {
   const { page: requested = 1 } = useSearch({ from: "/scan/$" });
   const { stars } = useLoaderData({ from: "/scan/$" });
   const { skills, page, pageCount } = skillsPage(
-    withLiveStars(TASTE_SKILLS, stars),
+    rankSkills(TASTE_SKILLS, stars),
     requested
   );
 
@@ -63,7 +63,7 @@ export const TasteSkills = () => {
                   href={skill.href}
                   target="_blank"
                   rel="noopener"
-                  aria-label={`${skill.name} on GitHub, ${spokenStars(skill.stars)}, opens in a new tab`}
+                  aria-label={skillLinkLabel(skill)}
                 />
               }
             >
@@ -72,10 +72,12 @@ export const TasteSkills = () => {
                 <ItemDescription>{skill.what}</ItemDescription>
               </ItemContent>
               <ItemActions>
-                <span className="text-muted-foreground flex items-center gap-1 tabular-nums">
-                  <StarIcon aria-hidden="true" />
-                  {compactStars(skill.stars)}
-                </span>
+                {skill.stars !== undefined && (
+                  <span className="text-muted-foreground flex items-center gap-1 tabular-nums">
+                    <StarIcon aria-hidden="true" />
+                    {compactStars(skill.stars)}
+                  </span>
+                )}
                 <ArrowUpRightIcon
                   className="text-muted-foreground"
                   aria-hidden="true"

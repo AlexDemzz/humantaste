@@ -17,7 +17,9 @@ const NOW = Date.UTC(2026, 10, 9, 12);
 const HOUR = 60 * 60 * 1000;
 const REPOS = [...new Set(TASTE_SKILLS.map(({ href }) => repoOf(href)))];
 const [FIRST_REPO = "", SECOND_REPO = ""] = REPOS;
-const KNOWN = { [FIRST_REPO]: 10, [SECOND_REPO]: 20 };
+const KNOWN = Object.fromEntries(REPOS.map((repo) => [repo, 10]));
+const { [FIRST_REPO]: _uncounted, ...ALL_BUT_FIRST } = KNOWN;
+const MINUTE = 60 * 1000;
 
 const github = vi.fn<typeof fetch>();
 
@@ -26,11 +28,8 @@ const answerWithStars = (stars: number) =>
     Promise.resolve(Response.json({ stargazers_count: stars }))
   );
 
-const storedCopy = (ageInHours: number) =>
-  kv.get.mockResolvedValue({
-    stars: KNOWN,
-    fetchedAt: NOW - ageInHours * HOUR,
-  });
+const storedCopy = (age: number, stars = KNOWN) =>
+  kv.get.mockResolvedValue({ stars, fetchedAt: NOW - age });
 
 const backgroundWork = () => Promise.all(background);
 
@@ -46,7 +45,7 @@ beforeEach(() => {
 });
 
 it("serves a fresh copy without asking GitHub", async () => {
-  storedCopy(1);
+  storedCopy(HOUR);
 
   await expect(loadSkillStars()).resolves.toEqual(KNOWN);
 
@@ -55,7 +54,7 @@ it("serves a fresh copy without asking GitHub", async () => {
 });
 
 it("serves a stale copy without waiting for GitHub to answer", async () => {
-  storedCopy(7);
+  storedCopy(7 * HOUR);
   github.mockReturnValue(Promise.withResolvers<Response>().promise);
 
   await expect(loadSkillStars()).resolves.toEqual(KNOWN);
@@ -64,7 +63,7 @@ it("serves a stale copy without waiting for GitHub to answer", async () => {
 });
 
 it("stores what GitHub answers once the copy goes stale", async () => {
-  storedCopy(7);
+  storedCopy(7 * HOUR);
   answerWithStars(99);
 
   await loadSkillStars();
@@ -77,7 +76,7 @@ it("stores what GitHub answers once the copy goes stale", async () => {
 });
 
 it("keeps the stored count of a repository GitHub could not answer for", async () => {
-  storedCopy(7);
+  storedCopy(7 * HOUR);
   github.mockImplementation((url) =>
     Promise.resolve(
       String(url).endsWith(FIRST_REPO)
@@ -94,13 +93,31 @@ it("keeps the stored count of a repository GitHub could not answer for", async (
 });
 
 it("leaves the store alone when GitHub is down", async () => {
-  storedCopy(7);
+  storedCopy(7 * HOUR);
   github.mockRejectedValue(new Error("network down"));
 
   await expect(loadSkillStars()).resolves.toEqual(KNOWN);
   await backgroundWork();
 
   expect(kv.put).not.toHaveBeenCalled();
+});
+
+it("asks GitHub within minutes for a listed skill the copy has no count for", async () => {
+  storedCopy(11 * MINUTE, ALL_BUT_FIRST);
+  answerWithStars(42);
+
+  await expect(loadSkillStars()).resolves.toEqual(ALL_BUT_FIRST);
+  await backgroundWork();
+
+  expect(written().stars[FIRST_REPO]).toBe(42);
+});
+
+it("does not ask GitHub on every page while a skill stays without a count", async () => {
+  storedCopy(9 * MINUTE, ALL_BUT_FIRST);
+
+  await loadSkillStars();
+
+  expect(github).not.toHaveBeenCalled();
 });
 
 it("fills an empty store in the background and answers with no counts", async () => {

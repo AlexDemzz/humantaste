@@ -28,22 +28,20 @@ The "Skills that give your agent taste" section on every report is a list anyone
 Skills are listed when they help an agent make better design, motion or writing choices. The repository has to be public on GitHub.
 
 1. Fork the repository and run `pnpm install` (Node 22.18 or newer).
-2. Add your skill anywhere in the file. Leave `stars` at `0`:
+2. Add your skill anywhere in the file:
 
    ```json
    {
      "name": "Your skill, by you",
      "what": "One sentence on what it changes in your agent's work.",
-     "href": "https://github.com/you/your-skill",
-     "stars": 0
+     "href": "https://github.com/you/your-skill"
    }
    ```
 
-3. Run `pnpm skills:stars` to fetch the real counts from GitHub. If GitHub rate-limits you, set `GITHUB_TOKEN` and run it again.
-4. Run `pnpm test`, which checks that each entry has a name and a sentence, links to GitHub and appears once.
-5. Open the pull request.
+3. Run `pnpm test`, which checks that each entry has a name and a sentence, links to GitHub and appears once.
+4. Open the pull request.
 
-The section shows five skills per page, most GitHub stars first, with ties in name order. The order in the file doesn't matter. Star counts are refreshed from GitHub on every deploy, so a count typed by hand won't last. `href` can point to a folder inside a larger repository, but the stars shown are those of the whole repository.
+The section shows five skills per page, most GitHub stars first, with ties in name order. The order in the file doesn't matter. The file holds no star counts: the site reads them from GitHub and refreshes them every few hours, so there is nothing to run and nothing to keep up to date. A skill that was just added sits at the end of the list, without a count, until GitHub has answered, which takes a page view or two. `href` can point to a folder inside a larger repository, but the stars shown are those of the whole repository.
 
 ## Run it locally
 
@@ -61,9 +59,8 @@ In dev, D1 and R2 are local and the browser is remote, so you need a Cloudflare 
 | `pnpm typecheck` | Checks types |
 | `pnpm check` | Ultracite: oxlint (core, react, tanstack, shadcn) and oxfmt |
 | `pnpm fix` | Applies the fixes Ultracite can make |
-| `pnpm skills:stars` | Refreshes the skills' GitHub stars |
 | `pnpm cf-typegen` | Regenerates the bindings' types after a `wrangler.jsonc` edit |
-| `pnpm deploy` | Refreshes the stars, builds, then runs `wrangler deploy` |
+| `pnpm deploy` | Builds, then runs `wrangler deploy` |
 
 In production, set the key with `wrangler secret put TYPESAFE_API_KEY`. Share pages emit absolute image URLs on `https://humantaste.xyz`; set `VITE_SITE_URL` to point them elsewhere.
 

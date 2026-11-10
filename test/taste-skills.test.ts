@@ -6,23 +6,24 @@ import {
   parseSkillsPage,
   rankSkills,
   repoOf,
+  skillLinkLabel,
   SKILLS_PER_PAGE,
   skillsPage,
   spokenStars,
   TASTE_SKILLS,
-  withLiveStars,
 } from "@/lib/taste-skills";
 import type { TasteSkill } from "@/lib/taste-skills";
 
-const skill = (name: string, stars: number): TasteSkill => ({
+const skill = (name: string): TasteSkill => ({
   name,
-  stars,
   what: "Does a thing.",
   href: `https://github.com/acme/${name}`,
 });
 
+const names = (skills: readonly TasteSkill[]) => skills.map(({ name }) => name);
+
 const skillsNamed = (count: number) =>
-  Array.from({ length: count }, (_, index) => skill(`s${index + 1}`, 0));
+  Array.from({ length: count }, (_, index) => skill(`s${index + 1}`));
 
 describe("the skills list contributors edit", () => {
   it("links every skill to a GitHub repository", () => {
@@ -36,11 +37,10 @@ describe("the skills list contributors edit", () => {
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 
-  it("gives every skill a name, a sentence and a star count", () => {
-    for (const { name, what, stars } of TASTE_SKILLS) {
+  it("gives every skill a name and a sentence", () => {
+    for (const { name, what } of TASTE_SKILLS) {
       expect(name.trim()).not.toBe("");
       expect(what.trim()).not.toBe("");
-      expect(Number.isInteger(stars) && stars >= 0).toBe(true);
     }
   });
 });
@@ -61,30 +61,32 @@ describe("repoOf", () => {
 
 describe("rankSkills", () => {
   it("puts the most starred first and breaks ties by name", () => {
-    const ranked = rankSkills([
-      skill("low", 1),
-      skill("tied-b", 5),
-      skill("tied-a", 5),
-      skill("high", 9),
-    ]);
-    expect(ranked.map(({ name }) => name)).toEqual([
-      "high",
-      "tied-a",
-      "tied-b",
-      "low",
-    ]);
+    const ranked = rankSkills(
+      [skill("low"), skill("tied-b"), skill("tied-a"), skill("high")],
+      { "acme/high": 9, "acme/low": 1, "acme/tied-a": 5, "acme/tied-b": 5 }
+    );
+    expect(names(ranked)).toEqual(["high", "tied-a", "tied-b", "low"]);
   });
-});
 
-describe("withLiveStars", () => {
-  it("re-ranks the list on the live counts", () => {
-    const ranked = withLiveStars([skill("old-leader", 9), skill("riser", 1)], {
-      "acme/riser": 20,
-    });
-    expect(ranked.map(({ name, stars }) => [name, stars])).toEqual([
-      ["riser", 20],
-      ["old-leader", 9],
-    ]);
+  it("puts a skill GitHub has not counted yet after the counted ones", () => {
+    const ranked = rankSkills(
+      [skill("new-b"), skill("new-a"), skill("unstarred"), skill("starred")],
+      { "acme/starred": 3, "acme/unstarred": 0 }
+    );
+    expect(names(ranked)).toEqual(["starred", "unstarred", "new-a", "new-b"]);
+  });
+
+  it("counts a skill in a folder with its whole repository", () => {
+    const [nested] = rankSkills(
+      [
+        {
+          ...skill("nested"),
+          href: "https://github.com/acme/mono/tree/main/x",
+        },
+      ],
+      { "acme/mono": 12 }
+    );
+    expect(nested?.stars).toBe(12);
   });
 });
 
@@ -160,5 +162,16 @@ describe("star counts", () => {
   it("spells the count out for screen readers", () => {
     expect(spokenStars(112_208)).toBe("112,208 stars");
     expect(spokenStars(1)).toBe("1 star");
+  });
+
+  it("names a skill's link without a count until GitHub has answered", () => {
+    const counted = { ...skill("motion"), stars: 2 };
+    const uncounted = { ...skill("motion"), stars: undefined };
+    expect(skillLinkLabel(counted)).toBe(
+      "motion on GitHub, 2 stars, opens in a new tab"
+    );
+    expect(skillLinkLabel(uncounted)).toBe(
+      "motion on GitHub, opens in a new tab"
+    );
   });
 });

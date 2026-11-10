@@ -51,3 +51,6 @@ export const tierFor = (score: number): CardTier => {
   }
   return "matte";
 };
+
+/** Matte is the one level with no sheen, so nothing on its card moves. */
+export const hasSheen = (score: number) => tierFor(score) !== "matte";

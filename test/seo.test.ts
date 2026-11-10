@@ -56,6 +56,25 @@ describe("page heads", () => {
     expect(metaContent(head, "robots")).toBeUndefined();
   });
 
+  it("adds the card's video to a report whose card has a sheen, and keeps the image", () => {
+    const head = reportHead(report({ score: 78 }));
+    expect(metaContent(head, "og:video")).toBe(
+      "https://humantaste.xyz/og/linear.app.mp4"
+    );
+    expect(metaContent(head, "og:video:type")).toBe("video/mp4");
+    expect(metaContent(head, "og:type")).toBe("video.other");
+    expect(metaContent(head, "og:image")).toBe(
+      "https://humantaste.xyz/og/linear.app.png"
+    );
+    expect(metaContent(head, "twitter:card")).toBe("summary_large_image");
+  });
+
+  it("gives a matte card no video: nothing on it moves", () => {
+    const head = reportHead(report({ score: 30 }));
+    expect(metaContent(head, "og:video")).toBeUndefined();
+    expect(metaContent(head, "og:type")).toBe("article");
+  });
+
   it("keeps a site with no score out of search, with the site card", () => {
     const head = unscoredHead("never-scored.example");
     expect(metaContent(head, "robots")).toBe("noindex");

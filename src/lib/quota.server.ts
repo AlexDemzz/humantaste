@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 
 import { sha256Hex } from "./sha256";
 
-const SCANS_PER_SITE_PER_DAY = 500;
+const SCANS_PER_SITE_PER_DAY = 3000;
 const SCANS_PER_CLIENT_PER_DAY = 30;
 const SITE_SCOPE = "site";
 const ISO_DAY_LENGTH = 10;

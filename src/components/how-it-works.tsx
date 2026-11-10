@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import { HALF_AT } from "@/lib/score";
+import { JEV_MAX_POINTS, OWN_FACE_POINTS } from "@/lib/score";
 
 export const HowItWorks = () => (
   <footer id="how" className="flex scroll-mt-8 flex-col gap-4">
@@ -14,12 +14,12 @@ export const HowItWorks = () => (
       </p>
       <p>
         Code finds the patterns: it reads the HTML and CSS, renders the page in
-        headless Chrome at 1440×900 and measures what painted. Each pattern has
-        a weight in points and the evidence for it. A typeface of the site’s own
-        and Jev’s look at the screenshot can weigh those points down or up,
-        never add a pattern. Then score = 100 ÷ (1 + (points ÷ {HALF_AT}
-        )²), so one habit costs little and five stacked patterns cost most of
-        the score.
+        headless Chrome at 1440×900 and measures what painted. Every page starts
+        at 100, and each pattern found takes points off, up to its weight, with
+        the evidence for it. Signs of a human hand give some back: Jev’s look at
+        the screenshot up to {JEV_MAX_POINTS}, a typeface of the site’s own{" "}
+        {OWN_FACE_POINTS}. Nothing else moves the score, so you can redo the sum
+        from any report.
       </p>
       <nav aria-label="Site information" className="flex gap-4 pt-2">
         <Link className="text-link" to="/contact">

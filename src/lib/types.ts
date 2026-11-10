@@ -139,23 +139,23 @@ export interface SignalResult {
   checked: boolean;
 }
 
-/** Evidence that someone made a deliberate choice; it scales tell points down. */
+/** Evidence that someone made a deliberate choice; it gives points back. */
 export interface Credit {
   id: string;
   title: string;
   evidence: string;
-  /** Multiplier on tell points, below 1. */
-  factor: number;
+  /** Whole points given back to the score. */
+  points: number;
 }
 
-/** Jev's read of the screenshot, used only to weight the tell points the code found. */
+/** Jev's read of the screenshot. It can give points back, never take any off. */
 export interface VisualRead {
   /** 0 = clearly hand-designed, outOf = straight out of a generator. */
   look: number;
   outOf: number;
   confidence: number;
-  /** Multiplier on tell points, 0.5 to 1.5. */
-  factor: number;
+  /** Whole points given back to the score, 0 to JEV_MAX_POINTS. */
+  points: number;
   model: string;
 }
 
@@ -166,14 +166,11 @@ export interface AnalysisResult {
   methodology: string;
   url: string;
   finalUrl: string;
+  /** 100, minus each found pattern's points, plus the credits' and the visual read's, kept between 0 and 100. */
   score: number;
   signals: SignalResult[];
   credits: Credit[];
   visual: VisualRead | null;
-  /** Tell points before credits and the visual read. */
-  rawPoints: number;
-  /** Tell points after credits and the visual read; the score is 100 / (1 + (points / HALF_AT)²). */
-  points: number;
   rendered: boolean;
   /** Raw measurements from the rendered page, for anyone who wants to check the maths. */
   renderedFacts: RenderedFacts | null;

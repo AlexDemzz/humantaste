@@ -1,6 +1,11 @@
 import { INFO_PAGES } from "./info-pages";
 import type { InfoPageSlug, InfoParagraph, InfoPart } from "./info-pages";
-import { HALF_AT } from "./score";
+import {
+  JEV_MAX_POINTS,
+  OWN_FACE_POINTS,
+  pointsBack,
+  pointsOff,
+} from "./score";
 import {
   absolute,
   HOME_MARKDOWN_PATH,
@@ -24,7 +29,7 @@ export const reportMarkdown = (result: AnalysisResult) => {
     .toSorted((a, b) => b.points - a.points);
   const patterns = found.map(
     (signal) =>
-      `### ${signal.title} (${signal.points} pts)\n\nEvidence: ${quoted(signal.hit?.evidence ?? "")}\n\n${signal.why}\n\nFix: ${signal.fix}`
+      `### ${signal.title} (${signal.points} off)\n\nEvidence: ${quoted(signal.hit?.evidence ?? "")}\n\n${signal.why}\n\nFix: ${signal.fix}`
   );
   const heading =
     found.length === 0
@@ -33,6 +38,7 @@ export const reportMarkdown = (result: AnalysisResult) => {
   return `# ${scoreLine(result.slug, result.score)}
 
 - Score: ${result.score} out of 100, where 0 is a pure AI template and 100 shows no sign of one.
+- Sum: 100, minus ${pointsOff(found)} for the patterns found, plus ${pointsBack(result.credits, result.visual)} given back, kept between 0 and 100.
 - Scored: ${result.analyzedAt}
 - Report: ${reportUrl(result.slug)}
 
@@ -70,7 +76,7 @@ export const infoPageMarkdown = (slug: InfoPageSlug) => {
   return `# ${title}\n\n${paragraphsMarkdown(intro)}\n\n${body}\n`;
 };
 
-const HOW_IT_WORKS = `humantaste looks for the patterns AI generators reach for when nobody chose otherwise. Code reads the HTML and CSS, renders the page in headless Chrome and measures what painted. Each pattern has a weight in points and the evidence for it. A typeface of the site's own and a model's look at the screenshot can weigh those points down or up, never add a pattern. Then score = 100 / (1 + (points / ${HALF_AT})^2).`;
+const HOW_IT_WORKS = `humantaste looks for the patterns AI generators reach for when nobody chose otherwise. Code reads the HTML and CSS, renders the page in headless Chrome and measures what painted. Every page starts at 100, and each pattern found takes points off, up to its weight, with the evidence for it. Signs of a human hand give some back: a model's look at the screenshot up to ${JEV_MAX_POINTS}, a typeface of the site's own ${OWN_FACE_POINTS}. Nothing else moves the score, which stays between 0 and 100.`;
 
 export const homeMarkdown = (reports: { slug: string; score: number }[]) => {
   const list = reports

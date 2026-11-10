@@ -1,11 +1,41 @@
-/**
- * Tell points at which a page lands on 50: about three strong tells, or five middling ones.
- * The curve is flat near 100 so one habit costs little, and steep once tells stack up.
- */
-export const HALF_AT = 30;
+import type { Credit, SignalResult, VisualRead } from "./types";
 
-export const scoreFromPoints = (points: number): number =>
-  Math.round(100 / (1 + (points / HALF_AT) ** 2));
+const FULL_SCORE = 100;
+/** The most Jev's look at the screenshot gives back. */
+export const JEV_MAX_POINTS = 10;
+/** What a typeface of the site's own gives back. */
+export const OWN_FACE_POINTS = 5;
+
+/** Whole points a pattern takes off: its weight, scaled by how strongly it shows. A pattern found always costs at least 1. */
+export const patternPoints = (weight: number, strength: number): number =>
+  Math.max(1, Math.round(weight * strength));
+
+/** What the patterns found take off, and what Jev and the credits give back. */
+export const pointsOff = (signals: Pick<SignalResult, "points">[]): number =>
+  signals.reduce((sum, signal) => sum + signal.points, 0);
+
+export const pointsBack = (
+  credits: Pick<Credit, "points">[],
+  visual: Pick<VisualRead, "points"> | null
+): number =>
+  credits.reduce((sum, credit) => sum + credit.points, visual?.points ?? 0);
+
+/**
+ * A sum a reader can redo by hand from the report: 100, minus each pattern's points, plus the points given back.
+ * Points given back never lift a score past 100, so a page with no patterns stays there.
+ */
+export const scoreOf = (
+  signals: Pick<SignalResult, "points">[],
+  credits: Pick<Credit, "points">[] = [],
+  visual: Pick<VisualRead, "points"> | null = null
+): number =>
+  Math.max(
+    0,
+    Math.min(
+      FULL_SCORE,
+      FULL_SCORE - pointsOff(signals) + pointsBack(credits, visual)
+    )
+  );
 
 export type CardTier = "prismatic" | "holo" | "chrome" | "matte";
 

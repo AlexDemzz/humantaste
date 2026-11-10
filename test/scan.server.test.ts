@@ -37,7 +37,7 @@ const TARGET: Target = {
   url: "https://example.com/",
 };
 const HTML = "<html><body><h1>Hello</h1></body></html>";
-const READ = { factor: 1.2 } as VisualRead;
+const READ = { points: 0 } as VisualRead;
 const REFUSAL = new SiteRefusedError("The site answered 403.");
 
 const fetched: FetchedPage = {

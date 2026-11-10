@@ -19,7 +19,7 @@ import {
 import { Item, ItemActions, ItemContent } from "@/components/ui/item";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { agentPrompt } from "@/lib/prompt";
-import { HALF_AT } from "@/lib/score";
+import { JEV_MAX_POINTS, OWN_FACE_POINTS } from "@/lib/score";
 import { lookWords, shotPath } from "@/lib/share";
 import type { AnalysisResult } from "@/lib/types";
 
@@ -57,7 +57,7 @@ export const Patterns = ({ result }: { result: AnalysisResult }) => {
                 <span className="flex flex-1 gap-4 pr-4">
                   <span className="flex-1">{signal.title}</span>
                   <span className="text-muted-foreground tabular-nums">
-                    {signal.points} pts
+                    −{signal.points}
                   </span>
                 </span>
               </AccordionTrigger>
@@ -122,9 +122,9 @@ const PromptBlock = ({ prompt }: { prompt: string }) => {
   );
 };
 
-/** The score in plain steps, the prompt, the checks that came back clean and what the renderer saw, one at a time. */
+/** The score as a sum to redo by hand, the prompt, the checks that came back clean and what the renderer saw, one at a time. */
 export const Details = ({ result }: { result: AnalysisResult }) => {
-  const count = found(result).length;
+  const patterns = found(result);
   const clean = result.signals.filter(
     (signal) => !signal.hit && signal.checked
   );
@@ -149,25 +149,29 @@ export const Details = ({ result }: { result: AnalysisResult }) => {
         <TabsContent value="maths">
           <div className="flex flex-col gap-4">
             <ol className="flex flex-col gap-2">
-              <Step value={`${result.rawPoints} pts`}>
-                {count === 1 ? "1 pattern found" : `${count} patterns found`}
-              </Step>
-              {result.credits.map((credit) => (
-                <Step key={credit.id} value={`×${credit.factor}`}>
-                  {credit.title}: {credit.evidence}
+              <Step value="100">Every page starts at</Step>
+              {patterns.map((signal) => (
+                <Step key={signal.id} value={`−${signal.points}`}>
+                  {signal.title}
                 </Step>
               ))}
-              <Step value={`×${result.visual?.factor ?? 1}`}>
+              <Step value={`+${result.visual?.points ?? 0}`}>
                 {result.visual
                   ? `Jev says ${lookWords(result.visual)}`
                   : "Jev didn't look at the screenshot"}
               </Step>
-              <Step value={`${result.points} pts`}>Points left</Step>
+              {result.credits.map((credit) => (
+                <Step key={credit.id} value={`+${credit.points}`}>
+                  {credit.title}: {credit.evidence}
+                </Step>
+              ))}
               <Step value={`${result.score}`}>Score out of 100</Step>
             </ol>
             <p className="text-muted-foreground text-sm">
-              Fewer points, higher score: 0 pts scores 100 and {HALF_AT} pts
-              scores 50.
+              Each pattern found takes its points off 100. Jev’s look at the
+              screenshot gives back up to {JEV_MAX_POINTS}, and a typeface of
+              the site’s own gives back {OWN_FACE_POINTS}. The score never goes
+              above 100 or below 0.
             </p>
           </div>
         </TabsContent>

@@ -6,14 +6,8 @@ import type { FetchedPage } from "./fetch-page";
 import { visualRead } from "./judge.server";
 import { BrowserUnavailableError, renderPage } from "./render";
 import type { RenderOutput } from "./render";
-import { scoreFromPoints } from "./score";
-import {
-  evaluateCredits,
-  evaluateSignals,
-  METHODOLOGY,
-  rawPoints,
-  tellPoints,
-} from "./signals";
+import { scoreOf } from "./score";
+import { evaluateCredits, evaluateSignals, METHODOLOGY } from "./signals";
 import { hashScreenshot, loadVisual, saveScan } from "./store.server";
 import type { Screenshot } from "./store.server";
 import type { Target } from "./target";
@@ -174,7 +168,7 @@ export const runScan = async (target: Target): Promise<AnalysisResult> => {
     : NO_VISUAL;
   if (visualFailure !== null) {
     notes.push(
-      `The visual read failed (${visualFailure}), so tell points are unweighted.`
+      `The visual read failed (${visualFailure}), so Jev gave no points back.`
     );
   }
   const degraded = renderFailure !== null || visualFailure !== null;
@@ -186,19 +180,15 @@ export const runScan = async (target: Target): Promise<AnalysisResult> => {
   };
   const signals = evaluateSignals(facts);
   const credits = evaluateCredits(facts);
-  const points = tellPoints(signals, credits, visual?.factor ?? 1);
-  const score = scoreFromPoints(points);
   const result: AnalysisResult = {
     slug: target.slug,
     methodology: METHODOLOGY,
     url: target.url,
     finalUrl: source.finalUrl,
-    score,
+    score: scoreOf(signals, credits, visual),
     signals,
     credits,
     visual,
-    rawPoints: rawPoints(signals),
-    points,
     rendered: rendered !== null,
     renderedFacts: rendered,
     hasScreenshot: screenshot !== null && !degraded,

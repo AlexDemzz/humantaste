@@ -17,12 +17,14 @@ const REPORT = {
   signals: [
     {
       title: "Big one",
-      points: 6,
+      points: 30,
       why: "Why it counts.",
       fix: "Change it.",
       hit: { strength: 1, evidence: "line one\n`line two`", source: "css" },
     },
   ],
+  credits: [{ points: 5 }],
+  visual: { points: 3 },
 } as unknown as AnalysisResult;
 
 const get = (path: string, accept?: string) =>
@@ -48,6 +50,9 @@ it("serves a report's Markdown, canonical to its HTML page", async () => {
   const body = await response?.text();
   expect(body).toContain("# linear.app scores 78/100 on humantaste");
   expect(body).toContain("Evidence: `line one 'line two'`");
+  expect(body).toContain(
+    "Sum: 100, minus 30 for the patterns found, plus 8 given back"
+  );
 });
 
 it("answers a report page in Markdown when the client asks for it", async () => {

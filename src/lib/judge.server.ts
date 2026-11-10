@@ -1,4 +1,5 @@
 import { sleep, withJitter } from "./deadline";
+import { JEV_MAX_POINTS } from "./score";
 import type { VisualRead } from "./types";
 
 const ENDPOINT = "https://api.typesafe.ai/v1/systemone";
@@ -26,17 +27,15 @@ const QUESTION = {
 } as const;
 
 const MAX_LOOK = QUESTION.criteria.length - 1;
-const MIN_FACTOR = 0.5;
-const MAX_FACTOR = 1.5;
+/** The middle criterion: from here to a generator look, Jev gives nothing back. */
+const MIXED_LOOK = MAX_LOOK / 2;
 
 /**
- * Turns the visual read into a weight on the code's tell points: ×0.5 for a clearly hand-designed look,
- * ×1 for a mixed one, ×1.5 for a generator look. It never creates points, so a page with no tells stays at 100.
+ * Turns the visual read into whole points given back: all of them for a clearly hand-designed look,
+ * none for a mixed one or worse. It never takes points off, so a page with no patterns stays at 100.
  */
-export const factorFor = (look: number): number =>
-  Math.round(
-    (MIN_FACTOR + ((MAX_FACTOR - MIN_FACTOR) * look) / MAX_LOOK) * 100
-  ) / 100;
+export const pointsFor = (look: number): number =>
+  Math.max(0, Math.round(JEV_MAX_POINTS * (1 - look / MIXED_LOOK)));
 
 interface JevScoreAnswer {
   score: number;
@@ -119,7 +118,7 @@ export const visualRead = async (
     look: Math.round(score * 100) / 100,
     outOf: MAX_LOOK,
     confidence: Math.round(confidence * 100) / 100,
-    factor: factorFor(score),
+    points: pointsFor(score),
     model: answer.model,
   };
 };

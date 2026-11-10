@@ -12,14 +12,13 @@ import {
   parseColor,
 } from "@/lib/color";
 import { extractStatic } from "@/lib/extract";
-import { factorFor } from "@/lib/judge.server";
-import { HALF_AT, scoreFromPoints } from "@/lib/score";
+import { pointsFor } from "@/lib/judge.server";
+import { patternPoints, scoreOf } from "@/lib/score";
 import {
   baseFamily,
   evaluateCredits,
   evaluateSignals,
   isGoogleFont,
-  scoreOf,
 } from "@/lib/signals";
 import type { Facts, RenderedFacts } from "@/lib/types";
 
@@ -68,21 +67,37 @@ const hitIds = (facts: Facts) =>
 const hit = (facts: Facts, id: string) =>
   evaluateSignals(facts).find((s) => s.id === id)?.hit ?? null;
 
-describe("the score curve", () => {
-  it("gives 100 with no tells and 50 at the half-way point", () => {
-    expect(scoreFromPoints(0)).toBe(100);
-    expect(scoreFromPoints(HALF_AT)).toBe(50);
+describe("the score sum", () => {
+  it("takes each pattern's points off 100 and adds back what Jev and a credit give", () => {
+    const patterns = [
+      { points: 10 },
+      { points: 8 },
+      { points: 5 },
+      { points: 4 },
+    ];
+    expect(scoreOf(patterns)).toBe(73);
+    expect(scoreOf(patterns, [{ points: 5 }], { points: 5 })).toBe(83);
   });
 
-  it("charges little for one habit and most of the score for five stacked tells", () => {
-    expect(scoreFromPoints(5)).toBeGreaterThanOrEqual(95);
-    expect(scoreFromPoints(5 * 7)).toBeLessThan(45);
+  it("keeps a page with no patterns at 100 whatever is given back", () => {
+    expect(scoreOf([], [{ points: 5 }], { points: 10 })).toBe(100);
   });
 
-  it("maps the visual read onto a 0.5–1.5 weight", () => {
-    expect(factorFor(0)).toBe(0.5);
-    expect(factorFor(2)).toBe(1);
-    expect(factorFor(4)).toBe(1.5);
+  it("stops at 0 when the patterns take more than 100", () => {
+    expect(scoreOf(Array.from({ length: 12 }, () => ({ points: 10 })))).toBe(0);
+  });
+
+  it("charges a faint pattern one point, and a full one its weight", () => {
+    expect(patternPoints(4, 0.1)).toBe(1);
+    expect(patternPoints(12, 0.5)).toBe(6);
+    expect(patternPoints(16, 1)).toBe(16);
+  });
+
+  it("gives Jev's points back only for a look better than mixed", () => {
+    expect(pointsFor(0)).toBe(10);
+    expect(pointsFor(1)).toBe(5);
+    expect(pointsFor(2)).toBe(0);
+    expect(pointsFor(4)).toBe(0);
   });
 });
 

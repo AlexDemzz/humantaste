@@ -17,9 +17,9 @@ A default is not a crime: Inter is a great face and shadcn is a great start. The
 
 1. **Fetch.** humantaste reads the page's HTML and up to 12 stylesheets, with SSRF guards on every hop.
 2. **Render.** The page opens in headless Chrome at 1440×900 in light mode, and the scan measures what painted: gradients, shadows, blur, pills, cards, emoji and the fonts in use.
-3. **Find the patterns.** Each pattern AI generators reach for has a weight in points and comes with its evidence and a fix. A deliberate choice, like a webfont that isn't on Google Fonts, takes points off.
-4. **Look at it.** Jev gets one look at the screenshot, which weighs the points by ×0.5 to ×1.5. It can never add a pattern, so a page with none stays at 100.
-5. **Score.** `score = 100 / (1 + (points / 30)²)`. One habit costs little, and five stacked patterns cost most of the score.
+3. **Find the patterns.** Each pattern AI generators reach for has a weight in points and comes with its evidence and a fix. A pattern found takes its weight off, scaled by how strongly it shows.
+4. **Look at it.** Jev gets one look at the screenshot and gives back up to 10 points when the page looks hand-designed. It can never take points off or add a pattern.
+5. **Score.** `score = 100 − the patterns' points + the points given back`, kept between 0 and 100. A webfont that isn't on Google Fonts gives 5 points back. Every number is in the report, so the sum can be redone by hand.
 
 ## Add a skill
 
@@ -53,7 +53,7 @@ pnpm exec wrangler d1 migrations apply humantaste --local
 pnpm dev                      # http://localhost:3217
 ```
 
-In dev, D1 and R2 are local and the browser is remote, so you need a Cloudflare login. `TYPESAFE_API_KEY` is optional: without it, Jev's weight stays at ×1. Put it in `.dev.vars`.
+In dev, D1 and R2 are local and the browser is remote, so you need a Cloudflare login. `TYPESAFE_API_KEY` is optional: without it, Jev gives no points back, so scores run up to 10 points lower than in production. Put it in `.dev.vars`.
 
 | Command | What it does |
 | --- | --- |
@@ -102,7 +102,7 @@ The scan's code, in order:
 - **Degraded scans.** If the render broke after launch, the page's document was missing or answered 400 or above, or the Jev call threw, the visitor sees the scan but it is never stored, so it can't replace a full score.
 - **Jev.** A new read is skipped when the screenshot is byte for byte the previous one.
 - **One at a time.** Each site has a `SiteScan` Durable Object (`src/lib/site-scan.server.ts`), in dev too. Anyone who arrives during a scan waits for the same report at no cost, and the scan finishes even if the visitor who started it leaves.
-- **Limits.** Outside dev, new scans are limited to 3 per client per minute, 30 per client per day and 500 per day for the whole site (`src/lib/quota.server.ts`, UTC days). An IPv6 client counts as its /64. A failed scan gets its quota back from both scopes; a degraded scan keeps its charge. A Cloudflare firewall rule on the zone also blocks any IP above 100 requests per 10 seconds.
+- **Limits.** Outside dev, new scans are limited to 3 per client per minute, 30 per client per day and 3000 per day for the whole site (`src/lib/quota.server.ts`, UTC days). An IPv6 client counts as its /64. A failed scan gets its quota back from both scopes; a degraded scan keeps its charge. A Cloudflare firewall rule on the zone also blocks any IP above 100 requests per 10 seconds.
 
 ## License
 

@@ -2,41 +2,37 @@ import { useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { encode } from "uqr";
 
-import { Logo, LogoMark } from "@/components/logo";
+import { Logo } from "@/components/logo";
+import { LOGO } from "@/lib/logo";
 import { tierFor } from "@/lib/score";
 import type { ShareCard } from "@/lib/share";
 
 import { HoloPeel } from "./holo-peel";
 import { MotionDialog } from "./motion-dialog";
-import { PrismFoil } from "./prism-foil";
 import { useTilt } from "./use-tilt";
 
 const HOST_MAX_SIZE = 64;
 const HOST_FIT = 1100;
 
-/** The light layers each side stacks over its face. */
-const Light = () => (
+/** The logo's mark as a mask, so the cover can print it in layers. */
+const MARK = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${LOGO.markViewBox}"><path fill-rule="evenodd" d="${LOGO.mark}"/></svg>`
+)}")`;
+
+const Layer = ({ className }: { className: string }) => (
+  <div className={className} aria-hidden="true" />
+);
+
+/** The cover's print: the mark, printed on the chrome sheet (the sheet itself is the cover's background). */
+const Plate = () => (
   <>
-    <div className="holo-foil" aria-hidden="true" />
-    <div className="holo-glare" aria-hidden="true" />
-    <div className="holo-sweep" aria-hidden="true" />
+    <Layer className="holo-plate holo-plate-ink" />
+    <Layer className="holo-plate holo-plate-bands" />
+    <Layer className="holo-plate holo-plate-rules" />
   </>
 );
 
-/** The back's print: the logo's mark over dark foil. The peel-off cover wears it too. */
-const BackArt = () => (
-  <>
-    <div className="holo-back-art">
-      <LogoMark className="holo-mark" />
-    </div>
-    <Light />
-  </>
-);
-
-/**
- * The scan's link as a QR code. The modules are a mask over the same foil ink as the score, so the code shifts colour
- * with the tilt; light modules on the dark card make it an inverted code, which phone cameras read.
- */
+/** The scan's link as a QR code: a mask, so it takes the card's ink and stays a plain dark-on-light or light-on-dark code. */
 const QrCode = ({ url }: { url: string }) => {
   const mask = useMemo(() => {
     const { data, size } = encode(url, { ecc: "M", border: 0 });
@@ -51,26 +47,35 @@ const QrCode = ({ url }: { url: string }) => {
     <span
       className="holo-qr"
       style={{ "--qr": mask } as CSSProperties}
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- the code is a CSS mask over the foil ink, so there is no image source for an <img>
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- the code is a CSS mask, so there is no image source for an <img>
       role="img"
       aria-label={`QR code to ${url}`}
     />
   );
 };
 
-/** The score and the QR code at the top; at the foot the scanned site, the meter and our logo. */
+/** The score and what it is a score of, with the QR code at the top; at the foot the scanned site, the meter and our logo. */
 const Front = ({ card }: { card: ShareCard }) => (
   <div className="holo-face">
     <div className="holo-head">
-      <span className="holo-figure">
-        <span className="holo-number-chrome" aria-hidden="true">
-          {card.score}
+      <div className="holo-score">
+        <span className="holo-figure">
+          <span className="holo-number holo-number-rim" aria-hidden="true">
+            {card.score}
+          </span>
+          <span className="holo-number holo-number-ink">{card.score}</span>
+          <span className="holo-number holo-number-band" aria-hidden="true">
+            {card.score}
+          </span>
         </span>
-        <span className="holo-number">{card.score}</span>
-      </span>
+        <span className="holo-legend">
+          <span className="holo-of">out of 100</span>
+          <span className="holo-caption">How human this website looks.</span>
+        </span>
+      </div>
       <QrCode url={card.scanUrl} />
     </div>
-    <div className="holo-score-side">
+    <div className="holo-site">
       <span
         className="holo-host"
         style={
@@ -97,8 +102,8 @@ const Front = ({ card }: { card: ShareCard }) => (
 );
 
 /**
- * The scan as a holo card, front up. With `sealed` (a fresh scan), it arrives under a cover printed like the back,
- * which the reader peels off.
+ * The scan as a score card. The footer's drawing is printed on it in varnish, lit by the pointer, and the score's level
+ * is the varnish's material. With `sealed` (a fresh scan), it arrives under a chrome cover the reader peels off.
  */
 export const HoloCard = ({
   card,
@@ -108,7 +113,6 @@ export const HoloCard = ({
   sealed?: boolean;
 }) => {
   const ref = useRef<HTMLElement>(null);
-  const tier = tierFor(card.score);
   const [sealed, setSealed] = useState(startSealed);
   const { askingMotion, allowMotion, skipMotion } = useTilt(ref, {
     still: sealed,
@@ -125,19 +129,21 @@ export const HoloCard = ({
         ref={ref}
         className="holo"
         data-sealed={sealed || undefined}
-        data-tier={tier}
+        data-tier={tierFor(card.score)}
+        style={{ "--mark": MARK } as CSSProperties}
         aria-label={`${card.host} scores ${card.score} out of 100`}
       >
-        <div className="holo-side holo-front">
-          <div className="holo-etch" aria-hidden="true">
-            {tier === "prismatic" && <PrismFoil />}
-          </div>
+        <div className="holo-side">
+          <Layer className="holo-scene" />
+          <Layer className="holo-lit" />
+          <Layer className="holo-flash" />
+          <Layer className="holo-frame" />
           <Front card={card} />
-          <Light />
+          <Layer className="holo-sheen" />
         </div>
         {sealed && (
           <HoloPeel onRevealed={() => setSealed(false)}>
-            <BackArt />
+            <Plate />
           </HoloPeel>
         )}
       </article>

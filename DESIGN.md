@@ -29,12 +29,8 @@ colors:
   alert-red-dark: "#F0708A"
   meter-off: "#D6D6D6"
   meter-off-dark: "#303030"
-  card-ink: "#191715"
-  foil-gold: "#FFCF77"
-  foil-pink: "#F4A5EC"
-  foil-blue: "#A0BAFF"
-  foil-cyan: "#76E2E7"
-  foil-green: "#ADEB9F"
+  card-stock: "#FFFFFF"
+  card-stock-dark: "#191715"
 typography:
   body: { family: system-ui, size: 16px, weight: 400, line-height: 1.625 }
   statement: { family: system-ui, size: 20px, weight: 400, line-height: 1.625 }
@@ -57,7 +53,7 @@ components:
   focus-ring: { colour: "{colors.signal-blue}", width: 3px, opacity: 50% }
   meter: { on: "{colors.ink}", off: "{colors.meter-off}", ticks: 20 }
   logo-mark: { fill: currentColor, size: 0.64em, gap: 0.14em, position: before the word, on the baseline }
-  score-card: { fill: "{colors.card-ink}", radius: "{rounded.card}" }
+  score-card: { fill: ["{colors.card-stock}", "{colors.card-stock-dark}"], radius: "{rounded.card}" }
 shadcnMapping:
   "--background": ["#FFFFFF", "#0A0A0A"]
   "--foreground": ["#242424", "#EEEEEE"]
@@ -99,8 +95,8 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - Nothing has a border. The URL field is a filled pill at 1.09:1 against the page, below the 3:1 WCAG 1.4.11 asks of a field's edge; this is a deliberate choice, and the placeholder, the `Score it` button inside it and the focus ring identify it. `input` stays declared for the disabled and invalid states.
 - `underline` is the resting link underline (`#4D4D4D` at 2.3:1 on the dark page, `#C4C4C4` at 1.7:1 on white), `muted-foreground` its hover colour. It is its own token: `border` is a surface hairline, too close to the page to read as a line under text.
 - `destructive` is the reference's alert red `#CB274C`; its dark value has no reference sample and is the light red lifted to 7:1 on `#0A0A0A`.
-- The foil ink (`foil-*`) belongs to the score card alone. The logo is one ink: the text colour.
-- Dark mode follows `prefers-color-scheme`, with no toggle. Its page is `#0A0A0A`, darker than the reference's `#1A1A1A`; surfaces keep their separation by measured contrast: card `#1A1A1A` at 1.14:1 on the page, wash `#232323` at 1.11:1 on the card. The score card stays dark in both modes.
+- The score card's materials (its varnish, sheen and spectrum, gradients included) belong to the score card alone. The logo is one ink: the text colour.
+- Dark mode follows `prefers-color-scheme`, with no toggle. Its page is `#0A0A0A`, darker than the reference's `#1A1A1A`; surfaces keep their separation by measured contrast: card `#1A1A1A` at 1.14:1 on the page, wash `#232323` at 1.11:1 on the card. The score card follows the theme too: Pearl, white, in light mode; Gloss, dark, in dark mode.
 
 ## Typography
 
@@ -124,7 +120,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - **Header**: a 40px row, the logo at the leading edge, a secondary GitHub button at the trailing edge. The content starts 48px under it, except the home statement, 24px under it.
 - **Home**: the statement and, 20px under it, the form, then Recently scored as a stack of row cards.
 - **Report**: the score card (the column's full width), then the share row and the scan line, then the patterns as accordion cards, then Behind the score as tabs, then the skills worth installing as link row cards, most GitHub stars first, five to a page (external links, the star count and an arrow at the trailing edge, the list in `src/lib/data/taste-skills.json`), then Score another site. A visitor who arrives on a stored report, usually from a shared link, gets the form as Score your site right under Behind the score instead.
-- **Footer**: How it works, the methodology in two short paragraphs, then links to Contact and Privacy. The page closes on the panorama, a pen-and-ink etching of a painter at a lake, on every page, bleeding off both sides and the bottom. It is black ink on transparent (`assets/images/footer-panorama.webp`), masked over `foreground`, so it is one ink in both modes and reads as a negative in dark. From 1024px the footer text rests in its empty sky; below that the text ends 32px above it and the etching crops to the painter, 224px tall at least.
+- **Footer**: How it works, the methodology in two short paragraphs, then links to Contact and Privacy. The page closes on the panorama, a drawing of a painter at a lake in one thin line weight, on every page, bleeding off both sides and the bottom. It is black ink on transparent (`assets/images/footer-panorama.webp`), masked over `foreground`, so it is one ink in both modes and reads as a negative in dark. From 1024px the footer text rests in its empty sky; below that the text ends 32px above it and the drawing crops to the painter, 224px tall at least. The score card prints a crop of the same drawing (`assets/images/card-scene.webp`).
 - **Contact and Privacy**: a section-title `h1` and sections 48px apart, prose only. The words live in `src/lib/info-pages.ts`, which also feeds their Markdown.
 - No sidebar, no app chrome: the reference's shell is out of scope.
 
@@ -138,10 +134,11 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - **Share row**: `Share on X` as the view's one primary button (a link to X's composer, the report's URL closing the text so the post unfurls with the score card), then two secondary icon buttons, `Copy share link` and `Copy image`; after a copy the icon turns to a check. If the browser blocks it, the icon turns to a warning and one `destructive` sentence sits under the row until the next try. An incomplete report is not stored, so it has no share row. The agent prompt is copied from the `Prompt` tab in Behind the score.
 - **URL field** (`InputGroup`): one 40px filled pill; the input on the left and the dark `Score it` pill inside it on the right (`InputGroupAddon align="inline-end"`, `InputGroupButton variant="default" size="sm"`, 32px tall, 4px inset). An invalid URL rings the whole pill in `destructive`.
 - **Meter**: 20 ticks, 2px wide, `foreground` up to the score and `meter-off` after.
-- **Logo** (`Logo`, geometry in `src/lib/logo.ts`): a minimal paint palette (a disc with a filleted thumb bite and a hole at its centre of mass) before the word, in one ink. It sizes off the font size: `text-xl` in the header, the size of the statement. On the score card it sits at the bottom left in `foreground`; the card back (`LogoMark`) and the favicon are the mark alone.
-- **Score card tiers**: the score picks the inks. Matte (0–44): flat ink, no foil. Chrome (45–74): silver ink over a brushed pattern, under the type and revealed by the light. Holo (75–89): foil ink. Prismatic (90–100): foil ink over a gold shadow, a thick gold frame and an embossed triangle foil under the type, drawn in WebGL (`PrismFoil`) so each facet changes colour with the light. The share image draws each tier at rest. The thresholds live in `tierFor` (`src/lib/score.ts`).
+- **Logo** (`Logo`, geometry in `src/lib/logo.ts`): a minimal paint palette (a disc with a filleted thumb bite and a hole at its centre of mass) before the word, in one ink. It sizes off the font size: `text-xl` in the header, the size of the statement. On the score card it sits at the bottom left in `foreground`; the score card's cover and the favicon are the mark alone.
+- **Score card** (`HoloCard`, `holo-card.css`): the footer's drawing is printed on the card, the pointer (or the gyroscope) is the light, and the score's level is the material. It follows the theme. In light mode it is Pearl: white enamel, the drawing a blind print at 8%, the level a sheen laid over the whole card that slides with the tilt; on white a light cannot brighten a line, so its materials are deep inks. In dark mode it is Gloss: matte dark stock, the drawing printed in varnish that the light picks out in a pool. The number, the meter and the lit drawing wear the level's material; the type, the QR code and the logo stay one flat ink, so the code always scans. The effects stay stylised: no photoreal metal, no gold, and nothing offset, so every line stays sharp wherever the light goes.
+- **Score card levels**: Matte (0–44): the unvarnished print, a flat number and no light. Chrome (45–74): silver (graphite on Pearl), no colour. Holo (75–89): on Pearl, Nacre, a silvery ink turning faintly between blue and lilac; on Gloss, a pearl thin film. Prismatic (90–100): dispersed light, the full spectrum in order (on Pearl, a sheen of spectral bands across the card), the number edged in the spectrum and the card alone framed in a spectral hairline. The thresholds live in `tierFor` (`src/lib/score.ts`).
 - **Site card** (`/og.png`, `SiteCardImage` in `og.server.tsx`): the share image of every page without a score of its own. Two sentences on white, the first in ink and the second in prose grey, with the logo in ink at the bottom left.
-- **Score card front**: the score at the top left and the QR code at the top right; the free height between; at the foot, the site, the meter, then the logo at the leading edge. The card carries no opinion on the score: Jev's read weighs the score and shows only in Behind the score. The share image (`og.server.tsx`) draws the same layout.
+- **Score card front**: the score at the top left with what it is beside it ("out of 100", then "How human this website looks."), and the QR code at the top right; the free height between; at the foot, the site, the meter, then the logo at the leading edge. The card carries no opinion on the score: Jev's read weighs the score and shows only in Behind the score. The share image (`og.server.tsx`) draws the same layout as the Pearl card at rest, whatever the theme; it leaves out the number's spectrum rim, which the renderer cannot stroke.
 
 ## States
 
@@ -149,7 +146,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - Hover only where a pointer can hover: row cards and secondary buttons step from `card` to `muted`, link underlines step up to `muted-foreground`. Accordion triggers don't underline.
 - Copied: the icon cross-fades to a check (scale 0.25 → 1, 4px blur, 300ms `ease-swap`), and an `<output>` announces the result.
 - Loading: no score card yet. A `Card` the score card's size holds the Scan spinner (40px) above one 20px line, 16px on a phone, that rolls through what the scan checks every 1.7s; the lines run on a clock, not on progress. The current line wears the `shimmer` utility, the one moving gradient allowed outside the score card. When the score is ready the content fades (180ms) and the score card lands on the `Card`, ready to peel.
-- Fresh score: a scan that just ran (not one read from the store) lands under a plastic cover printed like the back. The plastic runs past the bottom-right corner into a clear tab, its ink thinning out onto it, and the cover reads "Pull to see the score" beside it, the way packaging says how it opens. A hand shows the pull up to three times once the card is on screen; hovering the tab lifts it a little. Dragging lifts the corner toward the viewer, then folds it back over the cover, its underside bare foil. The cover only shines while it turns: flat and still, it shows its print and no glare. Once a tenth of the cover is off, the reader can swing the tip down or to the right and the peel front pivots after it. At nine tenths the rest lets go and the cover flies off and the front lights up, as it does from a tap on the tab or the keyboard; let go any earlier, however fast, and the cover stays exactly where it was left, so it can be peeled in several pulls, picked up again by the tab or anywhere on its bare back; only a corner that lifted without folding over drops back. Once the reader touches the tab, the cover makes sound: the adhesive crackles as fast as it peels, the tab ticks as it lifts, the corner slaps back when it lands and the sheet flutters off on release; the hint stays silent. Reduced motion skips the cover.
+- Fresh score: a scan that just ran (not one read from the store) lands under a cover: a stylised chrome sheet, silver bands under fine ruled lines, with the mark printed on it in a dark film the lines run through; the same at every level, so the level stays a surprise. The sheet runs past the bottom-right corner into a clear tab, its ink thinning out onto it, and the cover reads "Pull to see the score" beside it, the way packaging says how it opens. A hand shows the pull up to three times once the card is on screen; hovering the tab lifts it a little. Dragging lifts the corner toward the viewer, then folds it back over the cover, its underside the sheet's dull back. The cover only shines while it turns: flat and still, it shows its print and no glare. Once a tenth of the cover is off, the reader can swing the tip down or to the right and the peel front pivots after it. At nine tenths the rest lets go and the cover flies off and the front lights up, as it does from a tap on the tab or the keyboard; let go any earlier, however fast, and the cover stays exactly where it was left, so it can be peeled in several pulls, picked up again by the tab or anywhere on its bare back; only a corner that lifted without folding over drops back. Once the reader touches the tab, the cover makes sound: the adhesive crackles as fast as it peels, the tab ticks as it lifts, the corner slaps back when it lands and the sheet flutters off on release; the hint stays silent. Reduced motion skips the cover.
 - Motion access: on iOS, where the browser needs a tap before it can read the gyroscope, a reader who hasn't decided gets a `Dialog` as the card arrives (`popover` fill, 16px radius, no border or blur, a 40% black scrim). An `IconStack` above the title and text says what the motion does and that the browser asks next; `Turn on motion` raises the browser's prompt, `Skip for now` holds off for the session. Reduced motion, and browsers with no prompt, never see it.
 - Errors: one sentence in `destructive` that says what to do next.
 
@@ -158,6 +155,6 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 - Do lay out primitives; the look lives in the theme and the primitives. A className on a primitive carries layout only.
 - Do turn a list into stacked filled row cards, never into ruled flat rows.
 - Don't put a border on a card, a button or the field; step the fill instead.
-- Do keep the foil for the score card, and blue for focus.
+- Do keep the card's materials for the score card, and blue for focus.
 - Don't add gradients, glows, blur, emoji, pills above headings or tracked uppercase labels. humantaste scores sites down for each of these.
 - Don't bring in the reference's sidebar, its Inter face or its blue fills.

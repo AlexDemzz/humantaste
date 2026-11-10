@@ -1,9 +1,9 @@
-import type { ReactElement } from "react";
 import { encode } from "uqr";
 
 import kanitBlackItalic from "../../assets/fonts/display/Kanit-BlackItalic.ttf?arraybuffer";
 import interMedium from "../../assets/fonts/og/Inter-Medium.ttf?arraybuffer";
 import interSemiBold from "../../assets/fonts/og/Inter-SemiBold.ttf?arraybuffer";
+import cardScene from "../../assets/images/og-card-scene.png?arraybuffer";
 import { LOGO, LOGO_HEIGHT_EM } from "./logo";
 import { tierFor } from "./score";
 import type { CardTier } from "./score";
@@ -15,47 +15,216 @@ export const OG_CONTENT_TYPE = "image/png";
 /** A scan is kept until it is rescanned, so its card can sit at the edge for a day. */
 export const OG_CACHE = "public, max-age=3600, s-maxage=86400";
 
-/** The card's dark tokens from holo-card.css and styles.css, in hex: the renderer has no oklch(). */
+/** The light card's tokens from holo-card.css, in hex: the renderer has no oklch(). The share image draws the light
+ * card ("Pearl") at rest, whatever the page's theme. */
 const C = {
-  card: "#191715",
-  fg: "#f0eeec",
-  tickOff: "#343230",
+  stock: "#ffffff",
+  ink: "#242424",
+  quiet: "#565656",
+  tickOff: "#d7d7d7",
 };
 
-/** The card's inks at rest, evenly spaced: the middle third of each gradient, as its 300% background shows it. */
-const FOIL = [
-  "#cde393",
-  "#e9d985",
-  "#ffcf77",
-  "#fcc2a6",
-  "#f7b5cb",
-  "#f4a5ec",
-  "#daadf7",
-  "#bfb4ff",
-  "#a0baff",
-  "#94c8ff",
-  "#86d5f4",
-];
-const SILVER = [
-  "#8c9197",
-  "#797e84",
-  "#666c71",
-  "#54595f",
-  "#83888c",
-  "#c8cbcd",
-  "#eaebed",
-  "#d1d3d6",
-  "#b8bcc0",
-  "#a0a5a9",
-  "#91969b",
-];
-const BRIGHT_SILVER = ["#d3d6d9", "#f4f5f6", "#d3d6d9"];
-/** The frame's slice of the same gradients: its background is 400%, so the middle quarter shows. */
-const FOIL_FRAME = ["#efd782", "#fbc1ab", "#f4a5ec", "#c2b3ff", "#97c4ff"];
-const SILVER_FRAME = ["#747a7f", "#52575d", "#c8cbcd", "#d4d6d9", "#a6aaaf"];
-const GOLD_FRAME = ["#dca236", "#b77d2b", "#925a25", "#be8b41", "#eabf5d"];
-const FOIL_ANGLE = 115;
-const METAL_ANGLE = 160;
+const toBase64 = (bytes: ArrayBuffer) => {
+  const view = new Uint8Array(bytes);
+  const CHUNK = 0x80_00;
+  let binary = "";
+  for (let start = 0; start < view.length; start += CHUNK) {
+    binary += String.fromCodePoint(...view.subarray(start, start + CHUNK));
+  }
+  return btoa(binary);
+};
+
+/** The footer's drawing as the card prints it: white on transparent, so it masks whatever ink is laid through it. */
+const SCENE = `data:image/png;base64,${toBase64(cardScene)}`;
+
+/** A gradient as the card shows it at rest: the slice of its stops its oversized background leaves in view. */
+interface Ink {
+  stops: readonly string[];
+  angle: number;
+}
+
+interface TierLook {
+  /** The number. */
+  coat: Ink;
+  meter: readonly string[];
+  /** The sheen over the card, already laid on the white. */
+  surface: Ink | null;
+  /** How dark the drawing prints. */
+  scene: number;
+  /** The varnish the light lays on the drawing at rest, around the card's centre. */
+  film: {
+    stops: readonly (readonly [string, number])[];
+    opacity: number;
+  } | null;
+  /** The top level's frame. */
+  spectrum: Ink | null;
+}
+
+const FLAT = [C.ink, C.ink];
+const SPECTRUM: Ink = {
+  stops: [
+    "#3dac4c",
+    "#2aa86b",
+    "#0ba483",
+    "#009e99",
+    "#0099ae",
+    "#138db9",
+    "#3680c3",
+    "#4872ce",
+    "#5663d7",
+  ],
+  angle: 90,
+};
+
+/** The film shows at the light's resting strength (--rest), halved as on the card. */
+const LOOKS: Record<CardTier, TierLook> = {
+  matte: {
+    coat: { stops: FLAT, angle: 115 },
+    meter: FLAT,
+    surface: null,
+    scene: 0.2,
+    film: null,
+    spectrum: null,
+  },
+  chrome: {
+    coat: {
+      stops: [
+        "#51575d",
+        "#444a50",
+        "#373d43",
+        "#2b3137",
+        "#494e53",
+        "#74787c",
+        "#898c90",
+        "#7a7e82",
+        "#6b6f74",
+        "#5c6166",
+        "#52585e",
+      ],
+      angle: 160,
+    },
+    meter: ["#696d72", "#73777b", "#7d8185", "#73777b", "#696d72"],
+    surface: {
+      stops: [
+        "#eeeff1",
+        "#e9ebed",
+        "#eff0f2",
+        "#f4f5f6",
+        "#fafbfb",
+        "#f3f5f6",
+        "#edeff0",
+        "#e6e9eb",
+        "#ebedef",
+      ],
+      angle: 160,
+    },
+    scene: 0.08,
+    film: {
+      stops: [
+        ["#282f36", 0],
+        ["#595e64", 0.5],
+        ["#82878c", 1],
+      ],
+      opacity: 0.225,
+    },
+    spectrum: null,
+  },
+  holo: {
+    coat: {
+      stops: [
+        "#5e768e",
+        "#6d8598",
+        "#7c94a1",
+        "#8095a1",
+        "#738294",
+        "#666f87",
+        "#595d7a",
+        "#525273",
+        "#606584",
+        "#6e7895",
+        "#7d8ca6",
+      ],
+      angle: 115,
+    },
+    meter: ["#707492", "#797797", "#827b9c", "#797797", "#707492"],
+    surface: {
+      stops: [
+        "#f8f6ff",
+        "#f7f6fe",
+        "#f7f8fe",
+        "#f7fafe",
+        "#f8fcfe",
+        "#fafdfe",
+        "#fdfeff",
+        "#fefeff",
+        "#fafcff",
+      ],
+      angle: 115,
+    },
+    scene: 0.08,
+    film: {
+      stops: [
+        ["#425677", 0],
+        ["#857a9a", 0.5],
+        ["#5a7685", 1],
+      ],
+      opacity: 0.275,
+    },
+    spectrum: null,
+  },
+  prismatic: {
+    coat: {
+      stops: ["#23252e", "#202229", "#1e1f24", "#232128", "#28242b"],
+      angle: 115,
+    },
+    meter: SPECTRUM.stops,
+    surface: {
+      stops: [
+        "#fff1d8",
+        "#faf7dc",
+        "#eef9de",
+        "#e0f9e0",
+        "#d9f8e9",
+        "#d5f7f5",
+        "#d6f2fd",
+        "#daecff",
+        "#e3e7ff",
+        "#f0e3ff",
+        "#fbe1f8",
+        "#ffe0eb",
+        "#ffdfde",
+        "#ffe5d9",
+        "#ffebd5",
+        "#fff1d8",
+        "#faf7dc",
+        "#eef9de",
+        "#e0f9e0",
+        "#d9f8e9",
+        "#d5f7f5",
+        "#d6f2fd",
+        "#daecff",
+        "#e3e7ff",
+        "#f0e3ff",
+      ],
+      angle: 115,
+    },
+    scene: 0.08,
+    film: {
+      stops: [
+        ["#242424", 0],
+        ["#242424", 0.4],
+        ["#e54151", 0.52],
+        ["#ee921a", 0.61],
+        ["#3fac4a", 0.7],
+        ["#0099ae", 0.79],
+        ["#5761d8", 0.89],
+        ["#b740b1", 1],
+      ],
+      opacity: 0.35,
+    },
+    spectrum: SPECTRUM,
+  },
+};
 
 const FACE_INLINE = 72;
 const METER_WIDTH = OG_SIZE.width - 2 * FACE_INLINE;
@@ -66,71 +235,19 @@ const NUMBER_SIZE = 250;
 const NUMBER_TRACKING = -0.05;
 /** Room after the last figure, so the italic's lean keeps its ink. */
 const NUMBER_TAIL = 0.1;
-/** The card-coloured cut, then the chrome copy, pushed down and right behind the number. */
-const CUT_OFFSET = 7;
-const CHROME_OFFSET = 13;
 const HEAD_GAP = 24;
+const SCORE_GAP = 40;
 /** The same space above and below the meter. */
 const METER_GAP = 32;
 /** The logo set at the foot like 30px type, as on the card. */
 const BRAND_SIZE = 30;
 const FRAME_INSET = 16;
+const FRAME_WIDTH = 2;
 const FRAME_RADIUS = 22;
-
-/** The chrome copy's gradient at rest, where the card shows its dark band just above the middle. */
-const CHROME =
-  "linear-gradient(180deg, #b5b9be 0%, #4b4f55 42%, #eceef0 58%, #a9adb2 100%)";
-
-interface TierLook {
-  card: string;
-  /** Every foil-inked mark: the number, the QR code and the meter, and the host unless `hostInk` is set. */
-  ink: readonly string[];
-  /** For a tier whose ink has bands too dark to read a site's name in. */
-  hostInk?: readonly string[];
-  angle: number;
-  /** The copy behind the number. */
-  shadow: string;
-  frame: {
-    stops: readonly string[];
-    angle: number;
-    width: number;
-    opacity: number;
-  } | null;
-}
-
-const LOOKS: Record<CardTier, TierLook> = {
-  matte: {
-    card: C.card,
-    ink: [C.fg, C.fg],
-    angle: FOIL_ANGLE,
-    shadow: "linear-gradient(#3f3d3a, #3f3d3a)",
-    frame: null,
-  },
-  chrome: {
-    card: C.card,
-    ink: SILVER,
-    hostInk: BRIGHT_SILVER,
-    angle: METAL_ANGLE,
-    shadow:
-      "linear-gradient(180deg, #82878c 0%, #2f3338 45%, #9b9fa3 55%, #393e42 100%)",
-    frame: { stops: SILVER_FRAME, angle: METAL_ANGLE, width: 5, opacity: 0.75 },
-  },
-  holo: {
-    card: C.card,
-    ink: FOIL,
-    angle: FOIL_ANGLE,
-    shadow: CHROME,
-    frame: { stops: FOIL_FRAME, angle: FOIL_ANGLE, width: 5, opacity: 0.75 },
-  },
-  prismatic: {
-    card: C.card,
-    ink: FOIL,
-    angle: FOIL_ANGLE,
-    shadow:
-      "linear-gradient(180deg, #fddb7c 0%, #925a25 42%, #fff6c8 58%, #c18434 100%)",
-    frame: { stops: GOLD_FRAME, angle: METAL_ANGLE, width: 9, opacity: 1 },
-  },
-};
+/** The frame at rest: 0.55, plus the light's resting strength. */
+const FRAME_OPACITY = 0.865;
+/** The radius of the pool of light, centred on a card at rest. */
+const LIGHT = 640;
 
 const { width: W, height: H } = OG_SIZE;
 
@@ -153,186 +270,118 @@ const gradientLine = (
   };
 };
 
-const FACET_SIZE = 26;
-const SHEAR = 0.57735;
-const STRETCH = 1.1547;
-const STOCK_RGB = [0.106, 0.099, 0.094] as const;
-const TINT = [0.96, 0.98, 1.05] as const;
+const evenStops = (stops: readonly string[]) =>
+  stops.map((stop, i) => (
+    <stop key={i} offset={i / (stops.length - 1)} stopColor={stop} />
+  ));
 
-/** One facet of the prismatic foil at rest: the colour of the shader in prism-foil.tsx, taken at the facet's centre. */
-const facetFill = (x: number, y: number, facet: number, up: number) => {
-  const hx = 0.24 - (x / W - 0.5) * 0.62;
-  const hy = -0.16 - (y / H - 0.5) * 0.33;
-  const angle = 0.8 + (facet - 1) * 0.5 + up * 0.25;
-  const gx = Math.cos(angle);
-  const gy = Math.sin(angle);
-  const shift = (facet - 1) * 0.05;
-  const t = (Math.abs(gx * (hx + shift) + gy * (hy + shift)) * 1500) / 900;
-  const mirror = 0.4 * Math.exp(-((gx * hx + gy * hy - 0.2) ** 2) * 40);
-  const raw = [0, 0.33, 0.67].map(
-    (phase) => (0.5 + 0.5 * Math.cos(2 * Math.PI * (t + phase)) + mirror) * 0.72
-  );
-  const luma =
-    (raw[0] ?? 0) * 0.3 + (raw[1] ?? 0) * 0.59 + (raw[2] ?? 0) * 0.11;
-  const amount = (0.2 + 0.34 * Math.exp(-(hx * hx + hy * hy) * 1.6)) * 0.85;
-  const channels = STOCK_RGB.map((stock, i) => {
-    const pastel = (raw[i] ?? 0) * 0.62 + luma * (TINT[i] ?? 1) * 0.38;
-    const value = Math.min(1, stock + pastel * amount);
-    return Math.round(value * 255)
-      .toString(16)
-      .padStart(2, "0");
-  });
-  return `#${channels.join("")}`;
+const FRAME_BOX = {
+  x: FRAME_INSET + FRAME_WIDTH / 2,
+  y: FRAME_INSET + FRAME_WIDTH / 2,
+  width: W - 2 * FRAME_INSET - FRAME_WIDTH,
+  height: H - 2 * FRAME_INSET - FRAME_WIDTH,
 };
 
-const PRISM_FACETS = (() => {
-  const facets: ReactElement[] = [];
-  const rows = Math.ceil((H * STRETCH) / FACET_SIZE);
-  const columns = Math.ceil(W / FACET_SIZE);
-  const toCard = (qx: number, qy: number) => {
-    const y = (qy * FACET_SIZE) / STRETCH;
-    return [qx * FACET_SIZE + y * SHEAR, y] as const;
-  };
-  for (let row = 0; row <= rows; row += 1) {
-    for (let column = -rows; column <= columns; column += 1) {
-      for (const up of [0, 1]) {
-        const corners =
-          up === 1
-            ? [
-                toCard(column, row),
-                toCard(column + 1, row),
-                toCard(column, row + 1),
-              ]
-            : [
-                toCard(column + 1, row),
-                toCard(column + 1, row + 1),
-                toCard(column, row + 1),
-              ];
-        const [cx, cy] = toCard(
-          column + (up === 1 ? 1 / 3 : 2 / 3),
-          row + (up === 1 ? 1 / 3 : 2 / 3)
-        );
-        if (
-          cx > -FACET_SIZE &&
-          cx < W + FACET_SIZE &&
-          cy > -FACET_SIZE &&
-          cy < H + FACET_SIZE
-        ) {
-          const facet = (((column + row * 2 + up) % 3) + 3) % 3;
-          const fill = facetFill(cx, cy, facet, up);
-          facets.push(
-            <polygon
-              key={`${column}:${row}:${up}`}
-              points={corners.map((corner) => corner.join(",")).join(" ")}
-              fill={fill}
-              stroke="#000000"
-              strokeOpacity="0.14"
-              strokeWidth="1"
-            />
-          );
-        }
-      }
-    }
-  }
-  return facets;
-})();
-
-/** A mask for the light on a card at rest: full at the centre, down to `edge` at `stop` of the way to the corners. */
-const restMask = (id: string, stop: number, edge: number) => (
-  <mask id={id}>
-    <radialGradient
-      id={`${id}-light`}
-      gradientUnits="userSpaceOnUse"
-      cx={W / 2}
-      cy={H / 2}
-      r={Math.hypot(W / 2, H / 2)}
-    >
-      <stop offset="0" stopColor="#ffffff" />
-      <stop offset={stop} stopColor="#ffffff" stopOpacity={edge} />
-    </radialGradient>
-    <rect width={W} height={H} fill={`url(#${id}-light)`} />
-  </mask>
-);
-
-/** Satori only serializes plain SVG elements inside an svg, so the stock's layers are values rather than components. */
-const STOCK_LAYERS: Partial<Record<CardTier, ReactElement>> = {
-  chrome: (
-    <g mask="url(#lit)" opacity="0.55">
-      <defs>
-        {restMask("lit", 0.75, 0.25)}
-        <pattern id="brush" width={W} height="6" patternUnits="userSpaceOnUse">
-          <rect width={W} height="1" fill="#bbbec1" fillOpacity="0.2" />
-        </pattern>
+/**
+ * Everything under the type, as on the card at rest: the sheen, the drawing, its varnish around the centre, and the
+ * top level's frame. Satori only serializes plain SVG elements inside an svg, and only preloads an <image> it can see
+ * in the element tree before rendering, so this is a function the card calls, not a component.
+ */
+const stock = (look: TierLook) => (
+  <svg
+    width={W}
+    height={H}
+    viewBox={`0 0 ${W} ${H}`}
+    style={{ position: "absolute", top: 0, left: 0 }}
+  >
+    <defs>
+      <mask id="scene">
+        <image href={SCENE} width={W} height={H} />
+      </mask>
+      {look.surface && (
         <linearGradient
-          id="sheen"
+          id="surface"
           gradientUnits="userSpaceOnUse"
-          x1="-103"
-          y1="127"
-          x2="1303"
-          y2="503"
+          {...gradientLine(look.surface.angle, {
+            x: 0,
+            y: 0,
+            width: W,
+            height: H,
+          })}
         >
-          <stop offset="0" stopColor="#cbced1" stopOpacity="0" />
-          <stop offset="0.5" stopColor="#cbced1" stopOpacity="0.3" />
-          <stop offset="1" stopColor="#cbced1" stopOpacity="0" />
+          {evenStops(look.surface.stops)}
         </linearGradient>
-      </defs>
-      <rect width={W} height={H} fill="url(#brush)" />
-      <rect width={W} height={H} fill="url(#sheen)" />
-    </g>
-  ),
-  prismatic: <g>{PRISM_FACETS}</g>,
-};
-
-/** The tier's layers under the type and the foil frame over them, as on the card at rest. */
-const Stock = ({ tier }: { tier: CardTier }) => {
-  const { frame } = LOOKS[tier];
-  const inset = frame ? FRAME_INSET + frame.width / 2 : 0;
-  return (
-    <svg
+      )}
+      {look.film && (
+        <radialGradient
+          id="film"
+          gradientUnits="userSpaceOnUse"
+          cx={W / 2}
+          cy={H / 2}
+          r={LIGHT}
+        >
+          {look.film.stops.map(([color, offset]) => (
+            <stop key={offset} offset={offset} stopColor={color} />
+          ))}
+        </radialGradient>
+      )}
+      {look.film && (
+        <mask id="pool">
+          <radialGradient
+            id="pool-light"
+            gradientUnits="userSpaceOnUse"
+            cx={W / 2}
+            cy={H / 2}
+            r={LIGHT}
+          >
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset="0.6" stopColor="#ffffff" stopOpacity="0.8" />
+            <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
+          <rect width={W} height={H} fill="url(#pool-light)" />
+        </mask>
+      )}
+      {look.spectrum && (
+        <linearGradient
+          id="frame"
+          gradientUnits="userSpaceOnUse"
+          {...gradientLine(look.spectrum.angle, FRAME_BOX)}
+        >
+          {evenStops(look.spectrum.stops)}
+        </linearGradient>
+      )}
+    </defs>
+    {look.surface && <rect width={W} height={H} fill="url(#surface)" />}
+    <rect
       width={W}
       height={H}
-      viewBox={`0 0 ${W} ${H}`}
-      style={{ position: "absolute", top: 0, left: 0 }}
-    >
-      {frame && (
-        <defs>
-          <linearGradient
-            id="frame"
-            gradientUnits="userSpaceOnUse"
-            {...gradientLine(frame.angle, {
-              x: FRAME_INSET,
-              y: FRAME_INSET,
-              width: W - 2 * FRAME_INSET,
-              height: H - 2 * FRAME_INSET,
-            })}
-          >
-            {frame.stops.map((stop, i) => (
-              <stop
-                key={i}
-                offset={i / (frame.stops.length - 1)}
-                stopColor={stop}
-              />
-            ))}
-          </linearGradient>
-        </defs>
-      )}
-      {STOCK_LAYERS[tier]}
-      {frame && (
+      fill={C.ink}
+      fillOpacity={look.scene}
+      mask="url(#scene)"
+    />
+    {look.film && (
+      <g mask="url(#scene)">
         <rect
-          x={inset}
-          y={inset}
-          width={W - 2 * inset}
-          height={H - 2 * inset}
-          rx={FRAME_RADIUS - frame.width / 2}
-          fill="none"
-          stroke="url(#frame)"
-          strokeWidth={frame.width}
-          strokeOpacity={frame.opacity}
+          width={W}
+          height={H}
+          fill="url(#film)"
+          opacity={look.film.opacity}
+          mask="url(#pool)"
         />
-      )}
-    </svg>
-  );
-};
+      </g>
+    )}
+    {look.spectrum && (
+      <rect
+        {...FRAME_BOX}
+        rx={FRAME_RADIUS - FRAME_WIDTH / 2}
+        fill="none"
+        stroke="url(#frame)"
+        strokeWidth={FRAME_WIDTH}
+        strokeOpacity={FRAME_OPACITY}
+      />
+    )}
+  </svg>
+);
 
 const hexToRgb = (hex: string): [number, number, number] => {
   const n = Number.parseInt(hex.slice(1), 16);
@@ -356,22 +405,15 @@ const inkAt = (stops: readonly string[], t: number): string => {
 const hostSize = (host: string) => Math.min(64, Math.round(1100 / host.length));
 
 /** Gradient text: the renderer paints the background through the glyphs. */
-const inkText = (angle: number, stops: readonly string[]) =>
+const inkText = ({ angle, stops }: Ink) =>
   ({
     backgroundImage: `linear-gradient(${angle}deg, ${stops.join(", ")})`,
     backgroundClip: "text",
     color: "transparent",
   }) as const;
 
-const QrCode = ({
-  url,
-  stops,
-  angle,
-}: {
-  url: string;
-  stops: readonly string[];
-  angle: number;
-}) => {
+/** The QR code in the card's one flat ink, so it scans. */
+const QrCode = ({ url }: { url: string }) => {
   const { data, size } = encode(url, { ecc: "M", border: 0 });
   // Whole-pixel modules with no gap between them: scanners read the run lengths.
   const module = Math.max(1, Math.round(QR_TARGET / size));
@@ -385,18 +427,7 @@ const QrCode = ({
       viewBox={`0 0 ${size} ${size}`}
       shapeRendering="crispEdges"
     >
-      <defs>
-        <linearGradient
-          id="ink"
-          gradientUnits="userSpaceOnUse"
-          {...gradientLine(angle, { x: 0, y: 0, width: size, height: size })}
-        >
-          {stops.map((stop, i) => (
-            <stop key={i} offset={i / (stops.length - 1)} stopColor={stop} />
-          ))}
-        </linearGradient>
-      </defs>
-      <path d={cells.join("")} fill="url(#ink)" />
+      <path d={cells.join("")} fill={C.ink} />
     </svg>
   );
 };
@@ -444,10 +475,10 @@ const Brand = () => (
     height={LOGO_HEIGHT_EM * BRAND_SIZE}
     viewBox={LOGO.viewBox}
   >
-    <path fill={C.fg} fillRule="evenodd" d={LOGO.mark} />
+    <path fill={C.ink} fillRule="evenodd" d={LOGO.mark} />
     <path
-      fill={C.fg}
-      stroke={C.fg}
+      fill={C.ink}
+      stroke={C.ink}
       strokeWidth={LOGO.stroke}
       strokeLinejoin="round"
       d={LOGO.word}
@@ -455,7 +486,10 @@ const Brand = () => (
   </svg>
 );
 
-/** The score in foil ink, over a card-coloured cut and a chrome copy, as on the card. */
+/**
+ * The score in the level's material, then what it is a score of. The card's spectrum rim on the top level's number is
+ * left out: the renderer draws no text stroke, and an outline faked from offset copies would blur.
+ */
 const Score = ({ score, look }: { score: number; look: TierLook }) => {
   const figures = {
     fontFamily: "Kanit",
@@ -466,33 +500,48 @@ const Score = ({ score, look }: { score: number; look: TierLook }) => {
     letterSpacing: NUMBER_TRACKING * NUMBER_SIZE,
     paddingRight: NUMBER_TAIL * NUMBER_SIZE,
   } as const;
-  const behind = (offset: number) =>
-    ({ ...figures, position: "absolute", top: offset, left: offset }) as const;
   return (
-    <div style={{ display: "flex", position: "relative" }}>
-      <span
+    <div style={{ display: "flex", alignItems: "flex-start", gap: SCORE_GAP }}>
+      <span style={{ ...figures, ...inkText(look.coat) }}>{score}</span>
+      <div
         style={{
-          ...behind(CHROME_OFFSET),
-          backgroundImage: look.shadow,
-          backgroundClip: "text",
-          color: "transparent",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          paddingTop: 8,
+          maxWidth: 340,
         }}
       >
-        {score}
-      </span>
-      <span style={{ ...behind(CUT_OFFSET), color: look.card }}>{score}</span>
-      <span style={{ ...figures, ...inkText(look.angle, look.ink) }}>
-        {score}
-      </span>
+        <span
+          style={{
+            fontSize: 44,
+            fontWeight: 600,
+            lineHeight: 1,
+            letterSpacing: -0.02 * 44,
+            color: C.ink,
+          }}
+        >
+          out of 100
+        </span>
+        <span
+          style={{
+            fontSize: 26,
+            lineHeight: 1.25,
+            color: C.quiet,
+            textWrap: "balance",
+          }}
+        >
+          How human this website looks.
+        </span>
+      </div>
     </div>
   );
 };
 
-/** The holo card's front, frozen at rest: the same marks in the same order of weight as the card on the scan page. */
+/** The score card's front, frozen at rest: the same marks in the same order of weight as the card on the scan page. */
 export const ShareCardImage = ({ card }: { card: ShareCard }) => {
   const host = hostSize(card.host);
-  const tier = tierFor(card.score);
-  const look = LOOKS[tier];
+  const look = LOOKS[tierFor(card.score)];
   return (
     <div
       style={{
@@ -500,13 +549,13 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
         position: "relative",
         width: OG_SIZE.width,
         height: OG_SIZE.height,
-        background: look.card,
-        color: C.fg,
+        background: C.stock,
+        color: C.ink,
         fontFamily: "Inter",
         fontWeight: 500,
       }}
     >
-      <Stock tier={tier} />
+      {stock(look)}
 
       <div
         style={{
@@ -526,7 +575,7 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
           }}
         >
           <Score score={card.score} look={look} />
-          <QrCode url={card.scanUrl} stops={look.ink} angle={look.angle} />
+          <QrCode url={card.scanUrl} />
         </div>
 
         <div
@@ -545,14 +594,14 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
               lineHeight: 1.05,
               letterSpacing: -0.02 * host,
               wordBreak: "break-all",
-              ...inkText(look.angle, look.hostInk ?? look.ink),
+              color: C.ink,
             }}
           >
             {card.host}
           </span>
         </div>
 
-        <Meter value={card.score} stops={look.ink} />
+        <Meter value={card.score} stops={look.meter} />
 
         <div
           style={{
@@ -628,7 +677,8 @@ export const renderShareCard = async (
   card: ShareCard
 ): Promise<ArrayBuffer> => {
   const { ImageResponse } = await import("@cf-wasm/og");
-  const image = new ImageResponse(<ShareCardImage card={card} />, {
+  // Called, not mounted: Satori looks for the drawing's <image> in the tree it is handed.
+  const image = new ImageResponse(ShareCardImage({ card }), {
     ...OG_SIZE,
     fonts: [
       { name: "Kanit", data: kanitBlackItalic, weight: 900, style: "italic" },

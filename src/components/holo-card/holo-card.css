@@ -35,11 +35,18 @@
   initial-value: 0;
 }
 
-/* 0 under the cover, 1 once it is off. Transitioned, so the foil fades in. */
-@property --lit {
+/* 0 under the cover, 1 once it is off. Transitioned, so the card lights up as it is uncovered. */
+@property --on {
   syntax: "<number>";
   inherits: true;
-  initial-value: 0;
+  initial-value: 1;
+}
+
+/* Where the band of light is as it crosses the drawing on arrival: 100% is off the leading edge, 0% off the trailing. */
+@property --flash {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 100%;
 }
 
 :root {
@@ -57,46 +64,66 @@
   perspective: 1600px;
 }
 
+/* The card follows the page's theme. Light is "Pearl": white enamel, the footer's drawing a blind print, the level a
+   sheen over the whole card. Dark is "Gloss": matte dark stock, the drawing printed in varnish that the pointer lights.
+   On white, light cannot brighten a line, so Pearl's materials are deep inks and its light shows as colour. The tokens:
+   --coat is the number and the arrival flash, --meter-on the meter, --film the drawing under the light, --surface
+   Pearl's sheen. */
 .holo {
-  /* One card unit is one pixel of the 1200×630 OG image. */
+  /* One card unit is one pixel of the 1200×630 share image. */
   --u: calc(100cqi / 1200);
   --holo-radius: calc(36 * var(--u));
-  --card-bg: light-dark(oklch(0.995 0.003 70), oklch(0.205 0.005 70));
-  --card-rule: light-dark(oklch(0.9 0.004 70), oklch(0.3 0.005 70));
-  /* Cool hues only: yellows and oranges screened onto the dark back read as brown. */
-  --holo-rainbow: repeating-linear-gradient(
-    115deg,
-    oklch(0.58 0.2 340) 0%,
-    oklch(0.55 0.2 300) 6%,
-    oklch(0.55 0.17 265) 12%,
-    oklch(0.65 0.13 220) 18%,
-    oklch(0.68 0.13 180) 24%,
-    oklch(0.6 0.16 300) 30%,
-    oklch(0.58 0.2 340) 36%
-  );
-  /* The foil ink. Tiers swap --holo-ink; the peel-off cover keeps the foil whatever the tier. */
-  --holo-foil-ink: repeating-linear-gradient(
-    115deg,
-    oklch(0.82 0.13 330) 0%,
-    oklch(0.8 0.12 270) 10%,
-    oklch(0.85 0.1 200) 20%,
-    oklch(0.88 0.12 140) 30%,
-    oklch(0.88 0.12 80) 40%,
-    oklch(0.82 0.13 330) 50%
-  );
-  --holo-ink: var(--holo-foil-ink);
+  --meter-gap: calc(32 * var(--u));
+  /* The pool of light around the pointer. */
+  --light: calc(640 * var(--u));
+  /* How much of the light is already there before the pointer arrives. */
+  --rest: 0.55;
+  --lit: calc(var(--on) * (var(--rest) + var(--active) * (1 - var(--rest))));
 
-  /* The card is always dark, whatever the page's theme: light-dark() tokens resolve to their dark side inside it. */
-  color-scheme: dark;
-  /* The page's dark tokens, held here so the card stays dark in a light page. */
-  --foreground: oklch(0.95 0.003 70);
-  --muted-foreground: oklch(0.7 0.006 70);
-  --meter-off: oklch(0.32 0.005 70);
+  --stock: oklch(1 0 0);
+  --ink: oklch(0.26 0 0);
+  --quiet: oklch(0.453 0 0);
+  --meter-off: oklch(0.88 0 0);
+  --card-rule: oklch(0.91 0 0);
+  --flat: linear-gradient(var(--ink), var(--ink));
+  --spectrum: linear-gradient(
+    90deg,
+    oklch(0.62 0.2 20) 0%,
+    oklch(0.74 0.16 65) 17%,
+    oklch(0.66 0.17 145) 33%,
+    oklch(0.62 0.12 210) 50%,
+    oklch(0.55 0.18 275) 67%,
+    oklch(0.58 0.2 330) 83%,
+    oklch(0.62 0.2 20) 100%
+  );
+  /* The page's text tokens, held here so the card's type follows the card's stock. */
+  --foreground: var(--ink);
+  --muted-foreground: var(--quiet);
+
+  /* The peel-off cover: a stylised chrome sheet (silver bands under fine ruled lines), the same at every level. */
+  --mark-size: 240;
+  --cover-ink: oklch(0.2 0.005 70);
+  --plate-rules: repeating-linear-gradient(
+    0deg,
+    oklch(1 0 none / 0.1) 0 1px,
+    transparent 1px 3px
+  );
+  --plate-bands: linear-gradient(
+    160deg,
+    oklch(0.8 0.006 250) 0%,
+    oklch(0.96 0.003 250) 22%,
+    oklch(0.76 0.008 250) 46%,
+    oklch(0.62 0.01 250) 58%,
+    oklch(0.93 0.004 250) 76%,
+    oklch(0.8 0.006 250) 100%
+  );
+
+  color-scheme: light;
   position: relative;
   display: grid;
   aspect-ratio: 1200 / 630;
   border-radius: var(--holo-radius);
-  color: var(--foreground);
+  color: var(--ink);
   font-size: calc(28 * var(--u));
   line-height: 1.3;
   transform: rotateX(var(--rx)) rotateY(var(--ry));
@@ -104,17 +131,12 @@
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
-}
-
-.holo {
-  --lit: 1;
-
-  transition: --lit 700ms var(--ease-out) 300ms;
+  transition: --on 700ms var(--ease-out) 300ms;
 }
 
 /* Under the cover the front stays unlit; it lights up once the cover is off. */
 .holo[data-sealed] {
-  --lit: 0;
+  --on: 0;
 }
 
 .holo-side {
@@ -125,7 +147,7 @@
   isolation: isolate;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  background: var(--card-bg);
+  background: var(--stock);
   box-shadow:
     0 0 0 1px var(--card-rule),
     0 calc(36 * var(--u)) calc(72 * var(--u)) calc(-30 * var(--u))
@@ -136,75 +158,158 @@
   grid-area: 1 / 1;
 }
 
-/* The cover's print: dark foil and the logo. */
+/* The cover's print: the mark on the chrome sheet. */
 
 .holo-back {
-  --back-stock: oklch(0.19 0.006 70);
-  /* The first ring sits as far from the mark's 120 radius as the rings sit from each other: 14 of clear stock. */
-  --rings-start: calc(134 * var(--u));
-
-  color: oklch(0.95 0.003 70);
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      var(--back-stock) var(--rings-start),
-      transparent 0
-    ),
-    repeating-radial-gradient(
-      circle at 50% 50%,
-      transparent 0 calc(6 * var(--u)),
-      oklch(1 0 none / 0.07) calc(6 * var(--u)) calc(8 * var(--u)),
-      transparent calc(8 * var(--u)) calc(16 * var(--u))
-    ),
-    var(--back-stock);
+  color: var(--cover-ink);
+  background: var(--plate-rules), var(--plate-bands);
 }
 
-.holo-back-art {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.holo-plate {
+  pointer-events: none;
+  mask: var(--mark) center / calc(var(--mark-size) * var(--u)) no-repeat;
 }
 
-.holo-mark {
-  font-size: calc(240 * var(--u));
+/* The mark is printed on the sheet, not cut out of it: the ink is a film, so the sheet's bands show through it a
+   little, and its ruled lines run on across the mark. Both are kept faint: the texture should only just show. */
+.holo-plate-ink {
+  background: var(--cover-ink);
+  mix-blend-mode: multiply;
+  opacity: 0.94;
+}
+
+.holo-plate-bands {
+  background: var(--plate-bands);
+  mix-blend-mode: screen;
+  opacity: 0.04;
+}
+
+.holo-plate-rules {
+  background: repeating-linear-gradient(
+    0deg,
+    oklch(1 0 none / 0.03) 0 1px,
+    transparent 1px 3px
+  );
 }
 
 /* Front: the score and the QR code at the top, everything else at the foot; the free height sits between them. */
 
 .holo-face {
-  /* The same space above and below the meter. */
-  --meter-gap: calc(32 * var(--u));
-  /* The share image's line height, so the space around the meter reads the same here: the page's 1.625 pads the text. */
-
+  position: relative;
   display: flex;
   flex-direction: column;
   padding-block: calc(60 * var(--u));
   padding-inline: calc(72 * var(--u));
 }
 
-/* The number and its chrome copy share one cell; the copy sits behind, pushed down and right. */
+.holo-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: calc(24 * var(--u));
+}
+
+/* The score and what it is a score of share the leading side of the top row; the QR code keeps the trailing side. */
+.holo-score {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(40 * var(--u));
+  min-inline-size: 0;
+}
+
+/* The number's layers share one cell. */
 .holo-figure {
   flex: none;
   display: grid;
 }
 
-.holo-number,
-.holo-number-chrome {
+.holo-figure > * {
   grid-area: 1 / 1;
+}
+
+.holo-number {
   font-family: "Kanit", sans-serif;
   font-style: italic;
   font-weight: 900;
   font-size: calc(250 * var(--u));
   line-height: 0.72;
   letter-spacing: -0.05em;
+  /* background-clip: text only paints inside the box: pad it for the italic's lean, and pull the layout back. */
+  padding-block: 0.3em;
+  padding-inline-end: 0.1em;
+  margin-block: -0.3em;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
-/* A copy in the card colour cuts a gap between the number and its chrome. */
-.holo-number {
-  filter: drop-shadow(calc(7 * var(--u)) calc(7 * var(--u)) 0 var(--card-bg));
+/* The number is coated in the level's material, which slides with the tilt like light on it. */
+.holo-number-ink {
+  background-image: var(--coat);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
 }
 
-.holo-score-side {
+/* A glint crosses the number with the light: thin and half clear, so the number never fades into the white stock. */
+.holo-number-band {
+  background-image: linear-gradient(
+    105deg,
+    transparent 46%,
+    oklch(1 0 none / 0.5) 50%,
+    transparent 54%
+  );
+  background-size: 300% 100%;
+  background-position: calc(100% - var(--px)) 0;
+  background-repeat: no-repeat;
+  opacity: calc(0.25 + var(--active) * 0.75);
+}
+
+/* The top level's rim: a copy behind the number whose transparent stroke lets the spectrum through; the number covers
+   the stroke's inner half. */
+.holo-number-rim {
+  display: none;
+  -webkit-text-stroke: max(3px, calc(7 * var(--u))) transparent;
+  background-image: var(--spectrum);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+}
+
+/* The unit, in the site's own face: Kanit keeps its one job, the number. */
+.holo-legend {
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--u));
+  padding-block-start: calc(8 * var(--u));
+  max-inline-size: calc(340 * var(--u));
+}
+
+.holo-of {
+  font-size: calc(44 * var(--u));
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.holo-caption {
+  font-size: calc(26 * var(--u));
+  line-height: 1.25;
+  color: var(--muted-foreground);
+  text-wrap: balance;
+}
+
+/* The QR code stays one flat ink, so it scans: dark on Pearl, light on Gloss. */
+.holo-qr {
+  flex: none;
+  inline-size: calc(150 * var(--u));
+  aspect-ratio: 1;
+  background: currentColor;
+  mask-image: var(--qr);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
+.holo-site {
   display: flex;
   flex-direction: column;
   margin-block: auto var(--meter-gap);
@@ -216,7 +321,6 @@
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  color: var(--foreground);
   overflow-wrap: anywhere;
 }
 
@@ -229,9 +333,10 @@
   position: relative;
   flex: none;
   block-size: calc(22 * var(--u));
-  background: repeating-linear-gradient(
+  background: var(--meter-off);
+  mask-image: repeating-linear-gradient(
     to right,
-    var(--meter-off) 0 var(--tick),
+    oklch(0 0 none) 0 var(--tick),
     transparent var(--tick) var(--pitch)
   );
 }
@@ -244,321 +349,399 @@
     100%,
     max(var(--tick), round(up, var(--value) * 1%, var(--pitch)))
   );
-  background-image: var(--holo-ink);
+  background: var(--meter-on);
   background-size: 300% 300%;
   background-position: var(--px) var(--py);
-  mask-image: repeating-linear-gradient(
-    to right,
-    oklch(0 0 none) 0 var(--tick),
-    transparent var(--tick) var(--pitch)
-  );
-}
-
-/* Light: foil and glare over each side, never taking the pointer. */
-
-.holo-etch,
-.holo-foil,
-.holo-glare,
-.holo-sweep {
-  pointer-events: none;
-}
-
-.holo-foil {
-  background-image: var(--holo-rainbow);
-  background-size: 400% 400%;
-  background-position: var(--px) var(--py);
-  mix-blend-mode: screen;
-}
-
-.holo-glare {
-  background: radial-gradient(
-    farthest-corner circle at var(--px) var(--py),
-    oklch(1 0 none / 0.8) 0%,
-    oklch(1 0 none / 0.14) 32%,
-    oklch(0 0 none / 0.16) 100%
-  );
-  mix-blend-mode: overlay;
-}
-
-.holo-sweep {
-  background: linear-gradient(
-    105deg,
-    transparent 35%,
-    oklch(1 0 none / 0.75) 50%,
-    transparent 65%
-  );
-  mix-blend-mode: overlay;
-  translate: -100% 0;
-}
-
-.holo-back .holo-foil {
-  mask-image: radial-gradient(
-    farthest-corner circle at var(--px) var(--py),
-    oklch(0 0 none) 0%,
-    oklch(0 0 none / 0.35) 80%
-  );
-  opacity: 0.8;
-}
-
-.holo-back .holo-glare {
-  opacity: calc(0.35 + var(--active) * 0.5);
-}
-
-/* The front keeps its foil to a frame, the number and the lit ticks. */
-.holo-front .holo-foil {
-  margin: calc(16 * var(--u));
-  border: calc(5 * var(--u)) solid transparent;
-  border-radius: calc(22 * var(--u));
-  background-image: var(--holo-ink);
-  background-origin: border-box;
-  mix-blend-mode: normal;
-  mask:
-    linear-gradient(oklch(0 0 none) 0 0) padding-box exclude,
-    linear-gradient(oklch(0 0 none) 0 0) border-box;
-  opacity: calc(var(--lit) * (0.75 + var(--active) * 0.25));
-}
-
-.holo-front .holo-glare {
-  opacity: calc(var(--lit) * var(--active) * 0.85);
-}
-
-/* background-clip: text only paints inside the box: pad it so tall figures and the italic's lean keep their ink, and pull the layout back. */
-.holo-front .holo-number,
-.holo-front .holo-number-chrome {
-  padding-block: 0.3em;
-  padding-inline-end: 0.1em;
-  margin-block: -0.3em;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* The bright band follows the tilt like light on metal. */
-.holo-front .holo-number-chrome {
-  translate: calc(13 * var(--u)) calc(13 * var(--u));
-  background-image: linear-gradient(
-    180deg,
-    oklch(0.98 0 none) 0%,
-    oklch(0.82 0.008 250) 28%,
-    oklch(0.42 0.012 250) 47%,
-    oklch(0.95 0.004 250) 53%,
-    oklch(0.68 0.01 250) 76%,
-    oklch(0.9 0.004 250) 100%
-  );
-  background-size: 100% 260%;
-  background-position: 50% var(--py);
-}
-
-.holo-front .holo-number {
-  background-image: var(--holo-ink);
-  background-size: 300% 300%;
-  background-position: var(--px) var(--py);
-}
-
-@keyframes holo-sweep {
-  from {
-    translate: -100% 0;
-  }
-  to {
-    translate: 100% 0;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .holo:not([data-sealed]) .holo-front .holo-sweep {
-    animation: holo-sweep 900ms var(--ease-in-out) 650ms both;
-  }
 }
 
 .holo-foot {
   display: flex;
   align-items: center;
   margin-block-start: var(--meter-gap);
-  color: var(--foreground);
 }
 
 .holo-brand {
   font-size: calc(30 * var(--u));
 }
 
-/* Top row: the score on the left, the scan's QR code on the right. */
-.holo-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: calc(24 * var(--u));
+/* Light: the drawing, its varnish and the sheen, never taking the pointer. */
+
+.holo-scene,
+.holo-lit,
+.holo-flash,
+.holo-frame,
+.holo-sheen {
+  pointer-events: none;
 }
 
-.holo-qr {
-  flex: none;
-  inline-size: calc(150 * var(--u));
-  aspect-ratio: 1;
-  background-image: var(--holo-ink);
-  background-size: 300% 300%;
-  background-position: var(--px) var(--py);
-  mask-image: var(--qr);
+/* The drawing, an ink mask cropped from the footer's (card-scene.webp): on Pearl a blind print, barely there. */
+.holo-scene {
+  mask: url("../../../assets/images/card-scene.webp") center / 100% 100%
+    no-repeat;
+  background: var(--ink);
+  opacity: 0.08;
+}
+
+/* The varnish on the drawing inside the pool of light: its colour turns with the distance from the light. */
+.holo-lit {
+  background: var(--film);
+  mask-image:
+    url("../../../assets/images/card-scene.webp"),
+    radial-gradient(
+      circle var(--light) at var(--px) var(--py),
+      oklch(0 0 none) 0%,
+      oklch(0 0 none / 0.8) 60%,
+      transparent 100%
+    );
   mask-size: 100% 100%;
   mask-repeat: no-repeat;
+  mask-composite: intersect;
+  opacity: calc(var(--lit) * 0.5);
 }
 
-/* The scanned site wears the same foil ink as the score; the padding keeps descenders inside the painted box. */
-.holo-front .holo-host {
-  padding-block: 0.15em;
-  margin-block: -0.15em;
-  background-image: var(--holo-ink);
+/* The lines catch a band of light once, as the card arrives. */
+.holo-flash {
+  background-image: var(--coat);
   background-size: 300% 300%;
   background-position: var(--px) var(--py);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Tiers: the score picks the inks. The holo tier keeps the foil inks above; chrome and prismatic add to the stock. */
-
-.holo-etch {
-  mix-blend-mode: screen;
-  mask: radial-gradient(
-    farthest-corner circle at var(--px) var(--py),
-    oklch(0 0 none) 0%,
-    oklch(0 0 none / 0.25) 75%
-  );
-  opacity: calc(var(--lit) * (0.55 + var(--active) * 0.45));
-}
-
-.holo[data-tier="matte"] {
-  --holo-ink: linear-gradient(var(--foreground), var(--foreground));
-}
-
-.holo[data-tier="matte"] .holo-front .holo-number-chrome {
-  background-image: linear-gradient(oklch(0.36 0.005 70), oklch(0.36 0.005 70));
-}
-
-.holo[data-tier="matte"] .holo-front .holo-foil,
-.holo[data-tier="matte"] .holo-front .holo-sweep {
-  display: none;
-}
-
-.holo[data-tier="matte"] .holo-front .holo-glare {
-  opacity: calc(var(--lit) * var(--active) * 0.3);
-}
-
-.holo[data-tier="chrome"] {
-  --holo-ink: linear-gradient(
-    160deg,
-    oklch(0.62 0.01 250) 0%,
-    oklch(0.95 0.003 250) 16%,
-    oklch(0.72 0.01 250) 30%,
-    oklch(0.45 0.012 250) 44%,
-    oklch(0.97 0.002 250) 52%,
-    oklch(0.66 0.01 250) 66%,
-    oklch(0.88 0.005 250) 82%,
-    oklch(0.6 0.01 250) 100%
-  );
-}
-
-/* The silver ink's dark bands would swallow the site's name: it keeps only the bright end of the metal. */
-.holo[data-tier="chrome"] .holo-front .holo-host {
-  background-image: linear-gradient(
-    160deg,
-    oklch(0.86 0.005 250) 0%,
-    oklch(0.97 0.002 250) 50%,
-    oklch(0.86 0.005 250) 100%
-  );
-}
-
-.holo[data-tier="chrome"] .holo-front .holo-number-chrome {
-  background-image: linear-gradient(
-    180deg,
-    oklch(0.62 0.01 250) 0%,
-    oklch(0.32 0.01 250) 45%,
-    oklch(0.7 0.008 250) 55%,
-    oklch(0.36 0.01 250) 100%
-  );
-}
-
-.holo[data-tier="chrome"] .holo-etch {
-  background:
+  mask-image:
+    url("../../../assets/images/card-scene.webp"),
     linear-gradient(
-        105deg,
-        transparent 30%,
-        oklch(0.85 0.005 250 / 0.3) 50%,
-        transparent 70%
-      )
-      var(--px) 0 / 300% 100%,
-    repeating-linear-gradient(
-      0deg,
-      oklch(0.8 0.005 250 / 0.2) 0 1px,
-      transparent 1px calc(6 * var(--u))
+      105deg,
+      transparent 40%,
+      oklch(0 0 none) 50%,
+      transparent 60%
     );
+  mask-size:
+    100% 100%,
+    300% 100%;
+  mask-position:
+    center,
+    var(--flash) 0;
+  mask-repeat: no-repeat;
+  mask-composite: intersect;
 }
 
-.holo[data-tier="prismatic"] {
-  --metal-gold: linear-gradient(
-    160deg,
-    oklch(0.6 0.11 65) 0%,
-    oklch(0.9 0.12 90) 16%,
-    oklch(0.98 0.06 98) 24%,
-    oklch(0.74 0.14 78) 38%,
-    oklch(0.52 0.1 60) 50%,
-    oklch(0.86 0.13 88) 64%,
-    oklch(0.97 0.06 96) 72%,
-    oklch(0.66 0.12 70) 86%,
-    oklch(0.82 0.13 84) 100%
-  );
-}
-
-.holo[data-tier="prismatic"] .holo-front .holo-number-chrome {
-  background-image: var(--metal-gold);
-}
-
-.holo[data-tier="prismatic"] .holo-front .holo-foil {
-  border-width: calc(9 * var(--u));
-  background-image: var(--metal-gold);
-  opacity: var(--lit);
-}
-
-.holo[data-tier="prismatic"] .holo-front .holo-sweep {
-  background: linear-gradient(
-    105deg,
-    transparent 35%,
-    oklch(0.95 0.1 90 / 0.8) 50%,
-    transparent 65%
-  );
-}
-
-/* A WebGL canvas gets its own layer: below zero keeps it under the type, inside the side's isolation. */
-.holo[data-tier="prismatic"] .holo-etch {
-  position: relative;
-  z-index: -1;
-  mask: none;
-  mix-blend-mode: normal;
-  opacity: var(--lit);
-}
-
-.holo-prism {
-  display: block;
-  inline-size: 100%;
-  block-size: 100%;
-}
-
-@keyframes holo-flare {
+@keyframes holo-flash {
   from {
-    opacity: 1;
+    --flash: 100%;
+  }
+  to {
+    --flash: 0%;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .holo[data-tier="prismatic"] .holo-front .holo-sweep {
-    animation-iteration-count: 2;
-  }
-
-  .holo[data-tier="prismatic"]:not([data-sealed]) .holo-front .holo-foil {
-    animation: holo-flare 1400ms var(--ease-out) 250ms backwards;
+  .holo:not([data-sealed]) .holo-flash {
+    animation: holo-flash 1200ms var(--ease-in-out) 500ms both;
   }
 }
 
-/* Peel-off cover: a fresh scan lands under a cover printed like the back. holo-peel.tsx writes the clip paths and the
-   fold's mirror every frame. */
+/* Pearl's sheen: the level's material laid over the whole card and multiplied onto the white, sliding with the tilt.
+   Above the type, so it sits on the card's surface. */
+.holo-sheen {
+  position: relative;
+  background: var(--surface);
+  background-size: 250% 250%;
+  background-position: var(--px) var(--py);
+  mix-blend-mode: multiply;
+  opacity: calc(var(--on) * (0.45 + var(--active) * 0.4));
+}
+
+/* The top level alone is framed. */
+.holo-frame {
+  display: none;
+  margin: calc(16 * var(--u));
+  border: max(1px, calc(2 * var(--u))) solid transparent;
+  border-radius: calc(22 * var(--u));
+  background-image: var(--frame-ink, var(--coat));
+  background-origin: border-box;
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+  mask:
+    linear-gradient(oklch(0 0 none) 0 0) padding-box exclude,
+    linear-gradient(oklch(0 0 none) 0 0) border-box;
+  opacity: calc(0.55 + var(--lit) * 0.45);
+}
+
+/* Levels: the score picks the material (thresholds in tierFor, src/lib/score.ts). */
+
+/* Matte is the unvarnished print: a flat number, a darker drawing and no light. */
+.holo[data-tier="matte"] {
+  --coat: var(--flat);
+  --meter-on: var(--flat);
+}
+
+.holo[data-tier="matte"] .holo-scene {
+  opacity: 0.2;
+}
+
+.holo[data-tier="matte"]
+  :is(.holo-lit, .holo-flash, .holo-sheen, .holo-number-band) {
+  display: none;
+}
+
+/* Chrome: graphite silver, no colour yet, only metal. */
+.holo[data-tier="chrome"] {
+  --rest: 0.45;
+  --coat: linear-gradient(
+    160deg,
+    oklch(0.42 0.01 250) 0%,
+    oklch(0.64 0.008 250) 16%,
+    oklch(0.5 0.012 250) 30%,
+    oklch(0.3 0.014 250) 44%,
+    oklch(0.66 0.006 250) 52%,
+    oklch(0.45 0.012 250) 66%,
+    oklch(0.62 0.01 250) 82%,
+    oklch(0.4 0.012 250) 100%
+  );
+  --film: radial-gradient(
+    circle var(--light) at var(--px) var(--py),
+    oklch(0.3 0.016 250) 0%,
+    oklch(0.48 0.012 250) 50%,
+    oklch(0.62 0.01 250) 100%
+  );
+  --meter-on: linear-gradient(
+    160deg,
+    oklch(0.4 0.01 250) 0%,
+    oklch(0.6 0.008 250) 50%,
+    oklch(0.4 0.01 250) 100%
+  );
+  --surface: linear-gradient(
+    160deg,
+    oklch(0.9 0.006 250) 0%,
+    oklch(1 0 0) 18%,
+    oklch(0.86 0.008 250) 34%,
+    oklch(0.97 0.002 250) 50%,
+    oklch(0.84 0.01 250) 66%,
+    oklch(1 0 0) 82%,
+    oklch(0.9 0.006 250) 100%
+  );
+}
+
+/* Holo, "Nacre": almost colourless. A silvery ink whose bands turn faintly between blue and lilac as the card tilts,
+   the way mother-of-pearl does; no single hue owns it. */
+.holo[data-tier="holo"] {
+  --coat: linear-gradient(
+    115deg,
+    oklch(0.52 0.05 245) 0%,
+    oklch(0.72 0.045 295) 14%,
+    oklch(0.48 0.06 255) 28%,
+    oklch(0.68 0.03 225) 42%,
+    oklch(0.44 0.055 285) 56%,
+    oklch(0.7 0.04 250) 70%,
+    oklch(0.5 0.06 300) 84%,
+    oklch(0.52 0.05 245) 100%
+  );
+  --film: radial-gradient(
+    circle var(--light) at var(--px) var(--py),
+    oklch(0.45 0.06 260) 0%,
+    oklch(0.6 0.05 300) 50%,
+    oklch(0.55 0.04 230) 100%
+  );
+  --meter-on: linear-gradient(
+    90deg,
+    oklch(0.5 0.05 245) 0%,
+    oklch(0.6 0.05 295) 50%,
+    oklch(0.5 0.05 245) 100%
+  );
+  --surface: linear-gradient(
+    115deg,
+    oklch(0.95 0.025 240) 0%,
+    oklch(1 0 0) 16%,
+    oklch(0.94 0.03 295) 32%,
+    oklch(0.97 0.012 225) 48%,
+    oklch(1 0 0) 64%,
+    oklch(0.94 0.028 265) 80%,
+    oklch(0.95 0.025 240) 100%
+  );
+}
+
+/* Prismatic: dispersed light. The sheen is the whole spectrum in order, in bands that run across the card with the
+   tilt; the drawing darkens to ink under the light and breaks into the spectrum at the rim of the pool; the number is
+   ink, edged in the spectrum. */
+.holo[data-tier="prismatic"] {
+  --rest: 0.7;
+  --coat: linear-gradient(
+    115deg,
+    oklch(0.32 0.03 275) 0%,
+    oklch(0.24 0.01 275) 50%,
+    oklch(0.32 0.03 330) 100%
+  );
+  --film: radial-gradient(
+    circle var(--light) at var(--px) var(--py),
+    oklch(0.26 0 none) 0%,
+    oklch(0.26 0 none) 40%,
+    oklch(0.62 0.2 20) 52%,
+    oklch(0.74 0.16 65) 61%,
+    oklch(0.66 0.17 145) 70%,
+    oklch(0.62 0.12 210) 79%,
+    oklch(0.55 0.18 275) 89%,
+    oklch(0.58 0.2 330) 100%
+  );
+  --meter-on: var(--spectrum);
+  --frame-ink: var(--spectrum);
+  --surface: repeating-linear-gradient(
+    115deg,
+    oklch(0.86 0.1 20) 0%,
+    oklch(0.9 0.09 65) 3.5%,
+    oklch(0.94 0.08 105) 7%,
+    oklch(0.9 0.1 150) 10.5%,
+    oklch(0.89 0.08 205) 14%,
+    oklch(0.85 0.09 265) 17.5%,
+    oklch(0.86 0.1 320) 21%,
+    oklch(0.86 0.1 20) 25%
+  );
+}
+
+.holo[data-tier="prismatic"] :is(.holo-frame, .holo-number-rim) {
+  display: block;
+}
+
+/* Gloss, the dark card: the drawing printed in varnish on matte stock, and the pointer is the light. White light can
+   brighten a line here, so the materials are pale and the light is a pool over the card. Nothing is offset, so every
+   line stays sharp wherever the light goes. */
+@media (prefers-color-scheme: dark) {
+  .holo {
+    --stock: oklch(0.205 0.005 70);
+    --ink: oklch(0.95 0.003 70);
+    --quiet: oklch(0.7 0.006 70);
+    --meter-off: oklch(0.32 0.005 70);
+    --card-rule: oklch(0.3 0.005 70);
+    --spectrum: linear-gradient(
+      90deg,
+      oklch(0.8 0.14 15) 0%,
+      oklch(0.87 0.13 75) 17%,
+      oklch(0.88 0.13 145) 33%,
+      oklch(0.86 0.1 200) 50%,
+      oklch(0.78 0.13 270) 67%,
+      oklch(0.8 0.15 330) 83%,
+      oklch(0.8 0.14 15) 100%
+    );
+
+    color-scheme: dark;
+  }
+
+  .holo-scene {
+    opacity: 0.13;
+  }
+
+  .holo-lit {
+    opacity: var(--lit);
+  }
+
+  .holo-flash {
+    background: oklch(1 0 none);
+  }
+
+  .holo-number-band {
+    background-image: linear-gradient(
+      105deg,
+      transparent 42%,
+      oklch(1 0 none) 50%,
+      transparent 58%
+    );
+  }
+
+  /* The pool of light, barely there on the matte stock. */
+  .holo-sheen {
+    background: radial-gradient(
+      circle var(--light) at var(--px) var(--py),
+      oklch(1 0 none / 0.1) 0%,
+      transparent 100%
+    );
+    mix-blend-mode: normal;
+    opacity: var(--lit);
+  }
+
+  .holo[data-tier="matte"] .holo-scene {
+    opacity: 0.22;
+  }
+
+  /* Chrome: clear varnish over silver. */
+  .holo[data-tier="chrome"] {
+    --coat: linear-gradient(
+      160deg,
+      oklch(0.66 0.01 250) 0%,
+      oklch(0.95 0.003 250) 16%,
+      oklch(0.74 0.01 250) 30%,
+      oklch(0.56 0.012 250) 44%,
+      oklch(0.97 0.002 250) 52%,
+      oklch(0.68 0.01 250) 66%,
+      oklch(0.88 0.005 250) 82%,
+      oklch(0.64 0.01 250) 100%
+    );
+    --film: radial-gradient(
+      circle var(--light) at var(--px) var(--py),
+      oklch(1 0 none) 0%,
+      oklch(0.88 0.012 250) 50%,
+      oklch(0.72 0.016 250) 100%
+    );
+    /* The silver's dark bands would read as unlit ticks: the meter keeps the bright end of the metal. */
+    --meter-on: linear-gradient(
+      160deg,
+      oklch(0.8 0.008 250) 0%,
+      oklch(0.97 0.002 250) 50%,
+      oklch(0.8 0.008 250) 100%
+    );
+  }
+
+  /* Holo: a pearl thin film. */
+  .holo[data-tier="holo"] {
+    --coat: linear-gradient(
+      115deg,
+      oklch(0.9 0.09 200) 0%,
+      oklch(0.97 0.02 250) 14%,
+      oklch(0.84 0.13 300) 30%,
+      oklch(0.9 0.09 350) 44%,
+      oklch(0.97 0.03 90) 56%,
+      oklch(0.88 0.1 160) 72%,
+      oklch(0.9 0.09 200) 100%
+    );
+    --film: radial-gradient(
+      circle var(--light) at var(--px) var(--py),
+      oklch(1 0 none) 0%,
+      oklch(0.9 0.09 200) 30%,
+      oklch(0.84 0.13 300) 55%,
+      oklch(0.86 0.12 20) 80%,
+      oklch(0.9 0.1 90) 100%
+    );
+    --meter-on: var(--coat);
+  }
+
+  /* Prismatic, "Prism": white light, dispersed. The drawing is white under the light and breaks into the spectrum at
+     the rim of the pool, like a halo; the number is a pale wash of the spectrum with white glints, the full spectrum
+     along its edge. */
+  .holo[data-tier="prismatic"] {
+    --coat: linear-gradient(
+      115deg,
+      oklch(0.88 0.11 15) 0%,
+      oklch(0.99 0.01 60) 10%,
+      oklch(0.93 0.11 90) 22%,
+      oklch(0.91 0.12 150) 36%,
+      oklch(0.99 0.01 200) 46%,
+      oklch(0.9 0.09 210) 58%,
+      oklch(0.84 0.12 275) 72%,
+      oklch(0.99 0.01 300) 82%,
+      oklch(0.87 0.12 335) 92%,
+      oklch(0.88 0.11 15) 100%
+    );
+    --film: radial-gradient(
+      circle var(--light) at var(--px) var(--py),
+      oklch(1 0 none) 0%,
+      oklch(1 0 none) 40%,
+      oklch(0.84 0.14 20) 52%,
+      oklch(0.9 0.13 85) 61%,
+      oklch(0.88 0.14 150) 70%,
+      oklch(0.85 0.11 210) 79%,
+      oklch(0.76 0.15 275) 89%,
+      oklch(0.78 0.15 330) 100%
+    );
+  }
+}
+
+/* Peel-off cover: a fresh scan lands under a chrome sheet with the mark printed on it. holo-peel.tsx writes the clip
+   paths and the fold's mirror every frame. */
 
 .holo-peel {
   grid-area: 1 / 1;
@@ -605,7 +788,7 @@
   transform-origin: 0 0;
 }
 
-/* Its top face is the cover's own print; its underside is bare foil. Only one shows at a time. */
+/* Its top face is the cover's own print; its underside is the sheet's dull back. Only one shows at a time. */
 .holo-peel-top,
 .holo-peel-under {
   position: absolute;
@@ -614,28 +797,14 @@
   visibility: hidden;
 }
 
-/* The cover is a reflection only while it moves: flat on the card, it shows its print and no glare. */
-.holo-peel .holo-glare,
-.holo-peel .holo-sweep {
-  display: none;
-}
-
 .holo-peel-under {
   overflow: clip;
   cursor: grab;
   pointer-events: auto;
   touch-action: none;
   border-radius: var(--holo-radius);
-  background:
-    repeating-radial-gradient(
-      circle at 50% 50%,
-      oklch(1 0 none / 0.12) 0 calc(2 * var(--u)),
-      transparent calc(2 * var(--u)) calc(14 * var(--u))
-    ),
-    var(--holo-foil-ink);
-  background-size:
-    auto,
-    140% 140%;
+  /* The dull back of the chrome sheet. */
+  background: oklch(0.27 0.005 250);
 }
 
 /* The crease catches the light; the far end of the flap curls into shadow. */
@@ -725,7 +894,7 @@
   font-size: calc(26 * var(--u));
   font-weight: 500;
   line-height: 1;
-  color: oklch(0.92 0.008 250 / 0.7);
+  color: oklch(0.22 0.005 70 / 0.85);
 }
 
 .holo-peel-print svg {

@@ -15,7 +15,6 @@ import { Route as OgDotpngRouteImport } from './routes/og[.]png'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as OgSplatRouteImport } from './routes/og.$'
-import { Route as PrototypesSkinRouteImport } from './routes/prototypes.skin'
 import { Route as ScanSplatRouteImport } from './routes/scan.$'
 import { Route as ShotSplatRouteImport } from './routes/shot.$'
 import { Route as ApiReportSplatRouteImport } from './routes/api/report.$'
@@ -50,11 +49,6 @@ const OgSplatRoute = OgSplatRouteImport.update({
   path: '/og/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrototypesSkinRoute = PrototypesSkinRouteImport.update({
-  id: '/prototypes/skin',
-  path: '/prototypes/skin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ScanSplatRoute = ScanSplatRouteImport.update({
   id: '/scan/$',
   path: '/scan/$',
@@ -78,7 +72,6 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/og/$': typeof OgSplatRoute
-  '/prototypes/skin': typeof PrototypesSkinRoute
   '/scan/$': typeof ScanSplatRoute
   '/shot/$': typeof ShotSplatRoute
   '/api/report/$': typeof ApiReportSplatRoute
@@ -90,7 +83,6 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/og/$': typeof OgSplatRoute
-  '/prototypes/skin': typeof PrototypesSkinRoute
   '/scan/$': typeof ScanSplatRoute
   '/shot/$': typeof ShotSplatRoute
   '/api/report/$': typeof ApiReportSplatRoute
@@ -103,7 +95,6 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/og/$': typeof OgSplatRoute
-  '/prototypes/skin': typeof PrototypesSkinRoute
   '/scan/$': typeof ScanSplatRoute
   '/shot/$': typeof ShotSplatRoute
   '/api/report/$': typeof ApiReportSplatRoute
@@ -117,7 +108,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sitemap.xml'
     | '/og/$'
-    | '/prototypes/skin'
     | '/scan/$'
     | '/shot/$'
     | '/api/report/$'
@@ -129,7 +119,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sitemap.xml'
     | '/og/$'
-    | '/prototypes/skin'
     | '/scan/$'
     | '/shot/$'
     | '/api/report/$'
@@ -141,7 +130,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sitemap.xml'
     | '/og/$'
-    | '/prototypes/skin'
     | '/scan/$'
     | '/shot/$'
     | '/api/report/$'
@@ -154,7 +142,6 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   OgSplatRoute: typeof OgSplatRoute
-  PrototypesSkinRoute: typeof PrototypesSkinRoute
   ScanSplatRoute: typeof ScanSplatRoute
   ShotSplatRoute: typeof ShotSplatRoute
   ApiReportSplatRoute: typeof ApiReportSplatRoute
@@ -204,13 +191,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OgSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/prototypes/skin': {
-      id: '/prototypes/skin'
-      path: '/prototypes/skin'
-      fullPath: '/prototypes/skin'
-      preLoaderRoute: typeof PrototypesSkinRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/scan/$': {
       id: '/scan/$'
       path: '/scan/$'
@@ -242,7 +222,6 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   OgSplatRoute: OgSplatRoute,
-  PrototypesSkinRoute: PrototypesSkinRoute,
   ScanSplatRoute: ScanSplatRoute,
   ShotSplatRoute: ShotSplatRoute,
   ApiReportSplatRoute: ApiReportSplatRoute,

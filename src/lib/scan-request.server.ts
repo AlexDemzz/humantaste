@@ -31,6 +31,14 @@ const QUOTA_REFUSALS: Record<QuotaRefusal, string> = {
 };
 
 const SCAN_INTERRUPTED = "Scoring was interrupted. Try again in a minute.";
+const UNREADABLE =
+  "The site didn't let our browser open the page, so there is no score. Try again in a minute.";
+
+/** Most patterns are measured on the rendered page: the static checks alone would pass almost any site, so they give no score. */
+export const withoutUnrendered = (outcome: ScanOutcome): ScanOutcome =>
+  outcome.ok && !outcome.result.rendered
+    ? { ok: false, error: UNREADABLE }
+    : outcome;
 
 type ScanAdmission =
   | { ok: true; release: () => Promise<void> }
@@ -138,11 +146,13 @@ export const requestScan = async (
     if (stored) {
       return { ok: true, result: stored };
     }
-    return await env.SITE_SCAN.getByName(target.slug).scan({
-      target,
-      fresh,
-      ip: getRequestHeader("cf-connecting-ip") ?? "unknown",
-    });
+    return withoutUnrendered(
+      await env.SITE_SCAN.getByName(target.slug).scan({
+        target,
+        fresh,
+        ip: getRequestHeader("cf-connecting-ip") ?? "unknown",
+      })
+    );
   } catch (error) {
     return {
       ok: false,

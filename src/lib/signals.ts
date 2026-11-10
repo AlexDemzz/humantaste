@@ -21,7 +21,7 @@ import type {
 } from "./types";
 
 /** Bump when a check, threshold or weight changes: stored scans from another methodology are redone. */
-export const METHODOLOGY = "2026-11-10.1";
+export const METHODOLOGY = "2026-11-10.2";
 
 interface SignalDef {
   id: string;
@@ -150,6 +150,8 @@ const BUZZWORDS: [RegExp, number][] = [
   [/\bwhether you'?re an? .{1,40} or an? /u, 0.8],
 ];
 const BUZZ_FULL_AT = 4;
+/** The length of a landing page. Past it, the copy checks weigh their finds against how much text there is. */
+const LANDING_PAGE_WORDS = 800;
 
 const PROOF_BOILERPLATE: RegExp[] = [
   /\btrusted by (?:\d[\d,.]*k?\+?|thousands|millions|leading|top|teams)/u,
@@ -273,6 +275,10 @@ const MIN_PURPLE_BUTTONS = 3;
 /** Washes and glows are tells when they are everywhere; a handful also turns up in product demos and charts. */
 const MIN_WASHES = 6;
 const MIN_GLOWS = 6;
+/** A faint blur softens an edge; from here the panel reads as frosted glass. */
+const MIN_GLASS_BLUR_PX = 8;
+/** A blurred button is one control's style, not a frosted surface. */
+const BUTTON_TAG = /^(?:a|button)(?:\.|$)/u;
 /** A hair of overshoot is craft; past this it bounces. */
 const OVERSHOOT = 0.2;
 
@@ -379,6 +385,16 @@ const isGlow = (css: string): boolean =>
       layer.stops.some((s) => s.alpha >= 0.15 && s.color.c >= 0.1)
   );
 
+const wordCount = (text: string): number =>
+  text.split(/\s+/u).filter(Boolean).length;
+
+/**
+ * A phrase counts once however long the page is, so years of blog posts or a long product page collect them by volume alone.
+ * This scales a copy check down by how far the page runs past a landing page's length.
+ */
+const lengthDiscount = (text: string): number =>
+  Math.min(1, LANDING_PAGE_WORDS / Math.max(wordCount(text), 1));
+
 /* ---------- Checks ---------- */
 
 const SIGNALS: SignalDef[] = [
@@ -479,16 +495,18 @@ const SIGNALS: SignalDef[] = [
     title: "Pill above the headline",
     weight: 12,
     why: "A rounded badge over the H1 is in nearly every generated hero, whether or not there is news.",
-    fix: "Ship it only for real, dated news that links somewhere, or move news to a changelog link in the header.",
+    fix: "Ship it only for real news that links somewhere, or move news to a changelog link in the header.",
     needsRender: true,
     detect: ({ rendered: r }) => {
       if (!r?.pill) {
         return null;
       }
-      const news = NEWS.test(r.pill.text) && !HYPE.test(r.pill.text);
-      if (news && r.pill.href) {
+      const hype = HYPE.test(r.pill.text);
+      // A pill that leads somewhere is an announcement; generated ones are decoration and link nowhere.
+      if (r.pill.href && !hype) {
         return null;
       }
+      const news = NEWS.test(r.pill.text) && !hype;
       return {
         strength: news ? 0.4 : 1,
         evidence: `pill above the H1: ${quote(r.pill.text, 60)}${r.pill.href ? "" : ", links nowhere"}`,
@@ -512,7 +530,7 @@ const SIGNALS: SignalDef[] = [
       }
       return {
         strength: ramp(n, 4, 8),
-        evidence: `${n} small uppercase labels, e.g. ${labels
+        evidence: `${n} small uppercase labels above headings, e.g. ${labels
           .slice(0, 3)
           .map((t) => quote(t, 24))
           .join(", ")}`,
@@ -628,22 +646,14 @@ const SIGNALS: SignalDef[] = [
     detect: ({ static: s, rendered: r }) => {
       if (r) {
         const bg = r.pageBackground.replaceAll(/\s+/gu, " ");
-        const color = parseColor(bg);
-        if (SLOP_DARKS.has(bg)) {
-          return {
-            strength: 1,
-            evidence: `renders ${bg} (a stock Tailwind/shadcn dark) even when the visitor prefers light`,
-            source: "rendered",
-          };
-        }
-        if (color && color.l < 0.2 && color.c < 0.02) {
-          return {
-            strength: 0.5,
-            evidence: `renders near-black ${bg} even when the visitor prefers light`,
-            source: "rendered",
-          };
-        }
-        return null;
+        // Black pages are as old as the web: only the exact stock values point at a generator.
+        return SLOP_DARKS.has(bg)
+          ? {
+              strength: 1,
+              evidence: `renders ${bg} (a stock Tailwind/shadcn dark) even when the visitor prefers light`,
+              source: "rendered",
+            }
+          : null;
       }
       const zinc = s.classTokens.filter((t) =>
         /(?:^|:)(?:bg|text|border)-zinc-\d+/u.test(t)
@@ -836,7 +846,11 @@ const SIGNALS: SignalDef[] = [
     detect: ({ static: s, rendered: r }) => {
       if (r) {
         const panels = r.backdropBlur.filter(
-          (b) => !b.navBar && b.bgAlpha < 0.9
+          (b) =>
+            !b.navBar &&
+            b.bgAlpha < 0.9 &&
+            b.px >= MIN_GLASS_BLUR_PX &&
+            !BUTTON_TAG.test(b.tag)
         );
         const [first] = panels;
         if (!first || panels.length < 2) {
@@ -971,26 +985,21 @@ const SIGNALS: SignalDef[] = [
     category: "icons",
     title: "The sparkles icon",
     weight: 8,
-    why: "✨ has become the universal ‘AI inside’ badge. It promises magic instead of saying what happens.",
+    why: "The sparkles icon has become the universal ‘AI inside’ badge. It promises magic instead of saying what happens.",
     fix: "Replace it with an icon or word for what the feature actually does.",
+    // The ✨ emoji in a sentence is how people write; only the icon in the interface counts.
     detect: ({ static: s, rendered: r }) => {
       const icons =
         (r?.sparkles ?? 0) ||
         (s.htmlLower.match(/lucide-sparkles?\b|data-lucide="sparkles?"/gu)
           ?.length ??
           0);
-      const emoji = (s.text.match(/✨/gu) ?? []).length;
-      if (icons + emoji === 0) {
+      if (icons === 0) {
         return null;
       }
       return {
-        strength: ramp(icons + emoji, 1, 2),
-        evidence: [
-          icons ? `${icons}× sparkles icon` : "",
-          emoji ? `${emoji}× ✨` : "",
-        ]
-          .filter(Boolean)
-          .join(", "),
+        strength: ramp(icons, 1, 2),
+        evidence: `${icons}× sparkles icon`,
         source: r?.sparkles ? "rendered" : "static",
       };
     },
@@ -1037,11 +1046,11 @@ const SIGNALS: SignalDef[] = [
         return null;
       }
       return {
-        strength: clamp01(total / BUZZ_FULL_AT),
-        evidence: found
+        strength: clamp01(total / BUZZ_FULL_AT) * lengthDiscount(s.text),
+        evidence: `${found
           .slice(0, 5)
           .map((f) => quote(f, 40))
-          .join(", "),
+          .join(", ")} in ${wordCount(s.text)} words`,
         source: "static",
       };
     },
@@ -1069,11 +1078,11 @@ const SIGNALS: SignalDef[] = [
         return null;
       }
       return {
-        strength: clamp01(total / AI_VOCAB_FULL_AT),
-        evidence: found
+        strength: clamp01(total / AI_VOCAB_FULL_AT) * lengthDiscount(s.text),
+        evidence: `${found
           .slice(0, 6)
           .map((f) => quote(f, 30))
-          .join(", "),
+          .join(", ")} in ${wordCount(s.text)} words`,
         source: "static",
       };
     },
@@ -1161,11 +1170,11 @@ const SIGNALS: SignalDef[] = [
         return null;
       }
       return {
-        strength: ramp(found.length, 2, 3),
-        evidence: found
+        strength: ramp(found.length, 2, 3) * lengthDiscount(s.text),
+        evidence: `${found
           .slice(0, 2)
           .map((f) => quote(f, 50))
-          .join(", "),
+          .join(", ")} in ${wordCount(s.text)} words`,
         source: "static",
       };
     },
@@ -1194,10 +1203,6 @@ const SIGNALS: SignalDef[] = [
           `raw Markdown in the page, e.g. ${quote(firstMarkdown.trim(), 30)}`
         );
       }
-      const deadLinks = (s.htmlLower.match(/<a [^>]*href="#"/gu) ?? []).length;
-      if (deadLinks >= 5) {
-        found.push(`${deadLinks} links to “#”`);
-      }
       return found.length > 0
         ? {
             strength: ramp(found.length, 1, 2),
@@ -1224,7 +1229,7 @@ const SIGNALS: SignalDef[] = [
       }
       return {
         strength: ramp(n, 5, 12),
-        evidence: `${n} blocks below the fold wait at opacity 0, e.g. ${r?.hiddenAtRest.examples[0] ?? ""}`,
+        evidence: `${n} blocks below the fold wait at opacity 0, shifted down, e.g. ${r?.hiddenAtRest.examples[0] ?? ""}`,
         source: "rendered",
       };
     },
@@ -1399,6 +1404,40 @@ export const SIGNAL_IDS = SIGNALS.map((s) => s.id);
 
 const MIN_STRENGTH = 0.1;
 
+/** One gradient can read as a purple wash, a decorative gradient and a halo at once. Together they cost no more than the heaviest. */
+const GRADIENT_FAMILY = new Set(["purple", "gradient-washes", "orbs"]);
+const GRADIENT_FAMILY_CAP = 16;
+
+/** Trims the family's smaller finds so its sum stops at the cap, and says so in their evidence. A pattern found still costs 1. */
+const capGradientFamily = (results: SignalResult[]): SignalResult[] => {
+  let left = GRADIENT_FAMILY_CAP;
+  const capped = new Map<string, number>();
+  const family = results
+    .filter((r) => r.hit && GRADIENT_FAMILY.has(r.id))
+    .toSorted((a, b) => b.points - a.points);
+  for (const result of family) {
+    const points = Math.max(1, Math.min(result.points, left));
+    left = Math.max(0, left - points);
+    if (points < result.points) {
+      capped.set(result.id, points);
+    }
+  }
+  return results.map((result) => {
+    const points = capped.get(result.id);
+    if (points === undefined || !result.hit) {
+      return result;
+    }
+    return {
+      ...result,
+      points,
+      hit: {
+        ...result.hit,
+        evidence: `${result.hit.evidence}. Counted with the other gradient patterns, which cost ${GRADIENT_FAMILY_CAP} points at most together`,
+      },
+    };
+  });
+};
+
 const isEnglish = (facts: Facts): boolean => {
   const lang = facts.rendered?.lang || facts.static.lang;
   return lang === "" || lang.startsWith("en");
@@ -1406,7 +1445,7 @@ const isEnglish = (facts: Facts): boolean => {
 
 export const evaluateSignals = (facts: Facts): SignalResult[] => {
   const english = isEnglish(facts);
-  return SIGNALS.map((def) => {
+  const results = SIGNALS.map((def) => {
     const checked =
       (!def.needsRender || facts.rendered !== null) &&
       (!def.englishOnly || english);
@@ -1423,7 +1462,8 @@ export const evaluateSignals = (facts: Facts): SignalResult[] => {
       points: hit ? patternPoints(def.weight, hit.strength) : 0,
       checked,
     };
-  }).toSorted((a, b) => b.points - a.points);
+  });
+  return capGradientFamily(results).toSorted((a, b) => b.points - a.points);
 };
 
 const GOOGLE_FAMILIES = new Set(GOOGLE_FONTS as string[]);

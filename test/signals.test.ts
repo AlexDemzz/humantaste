@@ -67,6 +67,14 @@ const hitIds = (facts: Facts) =>
 const hit = (facts: Facts, id: string) =>
   evaluateSignals(facts).find((s) => s.id === id)?.hit ?? null;
 
+const panel = (tag: string, px: number) => ({
+  tag,
+  px,
+  width: 400,
+  navBar: false,
+  bgAlpha: 0.4,
+});
+
 describe("the score sum", () => {
   it("takes each pattern's points off 100 and adds back what Jev and a credit give", () => {
     const patterns = [
@@ -141,6 +149,16 @@ describe("static checks on captured pages", () => {
     expect(
       hitIds(staticFacts("alexandrejoly.me", ["style-1.css"]))
     ).not.toContain("buzzwords");
+  });
+
+  it("weighs template phrases against the length of the page", () => {
+    const phrases =
+      "A seamless, effortless, cutting-edge way to supercharge your work.";
+    const filler = "We wrote about the keyboard again today. ".repeat(600);
+    expect(hit(proseFacts(phrases), "buzzwords")?.strength).toBe(1);
+    expect(
+      hit(proseFacts(phrases + filler), "buzzwords")?.strength
+    ).toBeLessThan(0.25);
   });
 
   it("skips English copy checks on pages in another language", () => {
@@ -285,6 +303,20 @@ describe("static checks on captured pages", () => {
     expect(hit(listFacts(leadIns), "labelled-items")).toBeNull();
   });
 
+  it("counts the sparkles icon, not the emoji in a sentence", () => {
+    expect(
+      hit(proseFacts("Shipped it ✨ and it felt great ✨ ✨"), "sparkles")
+    ).toBeNull();
+    expect(
+      hit(
+        htmlFacts(
+          '<button><svg class="lucide lucide-sparkles"></svg>Ask</button>'
+        ),
+        "sparkles"
+      )?.evidence
+    ).toBe("1× sparkles icon");
+  });
+
   it("flags overshooting easing but not a hair of overshoot", () => {
     expect(
       hit(
@@ -393,6 +425,94 @@ describe("rendered checks on captured measurements", () => {
         "eyebrow-pill"
       )?.strength
     ).toBe(1);
+  });
+
+  it("lets an announcement pill that links somewhere pass, dated or not", () => {
+    const { rendered } = loadRendered("freesubtitlemaker.lovable.app");
+    const withPill = (pill: RenderedFacts["pill"]) => ({
+      url: "https://a.com/",
+      static: EMPTY_STATIC,
+      rendered: { ...rendered, pill },
+    });
+    expect(
+      hit(
+        withPill({
+          text: "What you missed at Forward",
+          href: "https://a.com/forward",
+        }),
+        "eyebrow-pill"
+      )
+    ).toBeNull();
+    expect(
+      hit(
+        withPill({
+          text: "Trusted by 12,000+ teams",
+          href: "https://a.com/customers",
+        }),
+        "eyebrow-pill"
+      )?.strength
+    ).toBe(1);
+    expect(
+      hit(withPill({ text: "Evidence first", href: null }), "eyebrow-pill")
+        ?.strength
+    ).toBe(1);
+  });
+
+  it("calls a dark page stock only at the exact Tailwind and shadcn values", () => {
+    const { rendered } = loadRendered("linear.app");
+    const onGround = (pageBackground: string) => ({
+      url: "https://a.com/",
+      static: EMPTY_STATIC,
+      rendered: { ...rendered, pageBackground },
+    });
+    expect(hit(onGround("rgb(0, 0, 0)"), "default-dark")).toBeNull();
+    expect(hit(onGround("rgb(8, 9, 10)"), "default-dark")).toBeNull();
+    expect(hit(onGround("rgb(9, 9, 11)"), "default-dark")?.strength).toBe(1);
+  });
+
+  it("counts frosted panels, not blurred buttons or a faint blur", () => {
+    const { rendered } = loadRendered("linear.app");
+    const blurred = (backdropBlur: RenderedFacts["backdropBlur"]) => ({
+      url: "https://a.com/",
+      static: EMPTY_STATIC,
+      rendered: { ...rendered, backdropBlur },
+    });
+    expect(
+      hit(
+        blurred([
+          panel("a.button.secondary", 20),
+          panel("button.cta", 20),
+          panel("a", 20),
+          panel("div.frame", 2),
+          panel("div.card", 12),
+        ]),
+        "glass"
+      )
+    ).toBeNull();
+    expect(
+      hit(
+        blurred([
+          panel("div.card", 12),
+          panel("aside.panel", 8),
+          panel("article.quote", 20),
+        ]),
+        "glass"
+      )?.evidence
+    ).toMatch(/^3 blurred/u);
+  });
+
+  it("counts the three gradient patterns as one family that costs 16 points at most", () => {
+    const results = evaluateSignals(renderedFacts("stripe.com"));
+    const family = results.filter(
+      (s) => s.hit && ["purple", "gradient-washes", "orbs"].includes(s.id)
+    );
+    expect(family.length).toBeGreaterThan(1);
+    expect(family.reduce((sum, s) => sum + s.points, 0)).toBeLessThanOrEqual(
+      16 + family.length - 1
+    );
+    expect(scoreOf(results)).toBe(
+      100 - results.reduce((sum, s) => sum + s.points, 0)
+    );
   });
 
   it("ignores a two-tone headline whose second part is only greyed out", () => {

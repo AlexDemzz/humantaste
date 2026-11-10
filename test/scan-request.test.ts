@@ -157,6 +157,25 @@ describe("requestScan", () => {
     });
   });
 
+  it("gives no score when the page could not be rendered, and says to try again", async () => {
+    scan.mockResolvedValue({
+      ok: true,
+      result: { ...RESULT, score: 100, rendered: false, degraded: true },
+    });
+    const outcome = await requestScan(SLUG);
+    expect(outcome).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/no score.*try again/iu),
+    });
+    expect(outcome).not.toHaveProperty("result");
+  });
+
+  it("keeps a rendered scan whose visual read failed", async () => {
+    const result = { ...RESULT, rendered: true, degraded: true };
+    scan.mockResolvedValue({ ok: true, result });
+    await expect(requestScan(SLUG)).resolves.toEqual({ ok: true, result });
+  });
+
   it("answers a bad address without waking any object", async () => {
     await expect(requestScan("not a url")).resolves.toMatchObject({
       ok: false,

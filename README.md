@@ -17,7 +17,7 @@ A default is not a crime: Inter is a great face and shadcn is a great start. The
 
 1. **Fetch.** humantaste reads the page's HTML and up to 12 stylesheets, with SSRF guards on every hop.
 2. **Render.** The page opens in headless Chrome at 1440×900 in light mode, and the scan measures what painted: gradients, shadows, blur, pills, cards, emoji and the fonts in use.
-3. **Find the patterns.** Each pattern AI generators reach for has a weight in points and comes with its evidence and a fix. A pattern found takes its weight off, scaled by how strongly it shows.
+3. **Find the patterns.** Each pattern AI generators reach for has a weight in points and comes with its evidence and a fix. A pattern found takes its weight off, scaled by how strongly it shows. The three gradient patterns (purple washes, decorative gradients, halos) often read the same gradient, so together they take 16 points at most.
 4. **Look at it.** Jev gets one look at the screenshot and gives back up to 10 points when the page looks hand-designed. It can never take points off or add a pattern.
 5. **Score.** `score = 100 − the patterns' points + the points given back`, kept between 0 and 100. A webfont that isn't on Google Fonts gives 5 points back. Every number is in the report, so the sum can be redone by hand.
 
@@ -99,7 +99,7 @@ The scan's code, in order:
 - **Storage.** Each site keeps its latest scan, keyed by the normalised target, until someone presses "Score again".
 - **Methodology.** A scan from an older version (`METHODOLOGY` in `signals.ts`) counts as missing. Bump it whenever a check or weight changes.
 - **Failed scans.** If no browser can be had, the scan fails and nothing is stored. When the direct fetch was refused too, the scan fails with that refusal.
-- **Degraded scans.** If the render broke after launch, the page's document was missing or answered 400 or above, or the Jev call threw, the visitor sees the scan but it is never stored, so it can't replace a full score.
+- **Degraded scans.** If the render broke after launch, the page's document was missing or answered 400 or above, or the Jev call threw, the scan is never stored, so it can't replace a full score. Without a render there is no score to show: the visitor is told the site couldn't be opened. When only the Jev call failed, the visitor sees the scan with no points given back.
 - **Jev.** A new read is skipped when the screenshot is byte for byte the previous one.
 - **One at a time.** Each site has a `SiteScan` Durable Object (`src/lib/site-scan.server.ts`), in dev too. Anyone who arrives during a scan waits for the same report at no cost, and the scan finishes even if the visitor who started it leaves.
 - **Limits.** Outside dev, new scans are limited to 3 per client per minute, 30 per client per day and 3000 per day for the whole site (`src/lib/quota.server.ts`, UTC days). An IPv6 client counts as its /64. A failed scan gets its quota back from both scopes; a degraded scan keeps its charge. A Cloudflare firewall rule on the zone also blocks any IP above 100 requests per 10 seconds.

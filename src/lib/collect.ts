@@ -64,6 +64,17 @@ export const COLLECT = String.raw`(() => {
     return false;
   };
 
+  // A label is an eyebrow when a heading starts right under it; sidebar and metadata labels have none.
+  const headingBoxes = [...document.querySelectorAll("h1, h2, h3, [role=heading]")].filter(visible).map((el) => el.getBoundingClientRect());
+  const aboveHeading = (r) => headingBoxes.some((h) => h.top >= r.bottom - 4 && h.top - r.bottom <= 96 && h.left <= r.right && h.right >= r.left);
+  // The generated reveal fades a block in while it slides up; a plain fade or a carousel's sideways offset is something else.
+  const slidesUp = (transform) => {
+    const m = transform.match(/^matrix\(([^)]+)\)$/);
+    if (!m) return false;
+    const [, , , , tx, ty] = m[1].split(",").map(Number);
+    return Math.abs(tx) < 1 && ty >= 4 && ty <= 120;
+  };
+
   const gradients = [];
   const blur = [];
   const shadows = new Map();
@@ -125,7 +136,7 @@ export const COLLECT = String.raw`(() => {
       const t = text(el);
       if (t.length >= 4 && t.length <= 40 && /[a-z]/i.test(t) && !/\d/.test(t) && !el.closest("nav, header, footer, button, th, label, figcaption, time")) {
         const upper = s.textTransform === "uppercase" || t === t.toUpperCase();
-        if (upper && !tracked.includes(t)) tracked.push(t);
+        if (upper && aboveHeading(r) && !tracked.includes(t)) tracked.push(t);
       }
     }
 
@@ -136,11 +147,11 @@ export const COLLECT = String.raw`(() => {
       buttonFills.set(bgImage.slice(0, 200), (buttonFills.get(bgImage.slice(0, 200)) || 0) + 1);
     }
 
-    if (r.top > vh && el.childElementCount <= 12 && text(el).length >= 24 && Number(s.opacity) < 0.05) {
+    if (r.top > vh && el.childElementCount <= 12 && text(el).length >= 24 && Number(s.opacity) < 0.05 && slidesUp(s.transform)) {
       const parentHidden = el.parentElement && effectiveOpacity(el.parentElement) < 0.05;
       if (!parentHidden) {
         hiddenAtRest++;
-        if (hiddenExamples.length < 2) hiddenExamples.push(label(el) + " { opacity: " + s.opacity + (s.transform !== "none" ? "; transform: " + s.transform : "") + " }");
+        if (hiddenExamples.length < 2) hiddenExamples.push(label(el) + " { opacity: " + s.opacity + "; transform: " + s.transform + " }");
       }
     }
   }

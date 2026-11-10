@@ -61,9 +61,6 @@ const ScanMeta = ({ result }: { result: AnalysisResult }) => {
     <>
       <p className="text-sm tabular-nums">
         {patterns} of {result.signals.length} patterns found.{" "}
-        {result.rendered
-          ? ""
-          : "Rendering failed, so only the static checks ran. "}
         {result.notes.length > 0 && `${result.notes.join(" ")} `}Scored{" "}
         <time dateTime={result.analyzedAt}>{scoredAt(result)}</time>.{" "}
         <button

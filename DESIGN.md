@@ -11,9 +11,9 @@ colors:
   surface: "#F5F5F5"
   surface-dark: "#1A1A1A"
   ink: "#242424"
-  ink-dark: "#DEDEDE"
+  ink-dark: "#EEEEEE"
   button: "#333333"
-  button-dark: "#DEDEDE"
+  button-dark: "#EEEEEE"
   wash: "#EBEBEB"
   wash-dark: "#232323"
   prose: "#565656"
@@ -60,19 +60,19 @@ components:
   score-card: { fill: "{colors.card-ink}", radius: "{rounded.card}" }
 shadcnMapping:
   "--background": ["#FFFFFF", "#0A0A0A"]
-  "--foreground": ["#242424", "#DEDEDE"]
+  "--foreground": ["#242424", "#EEEEEE"]
   "--card": ["#F5F5F5", "#1A1A1A"]
-  "--card-foreground": ["#242424", "#DEDEDE"]
+  "--card-foreground": ["#242424", "#EEEEEE"]
   "--popover": ["#F5F5F5", "#1A1A1A"]
-  "--popover-foreground": ["#242424", "#DEDEDE"]
-  "--primary": ["#333333", "#DEDEDE"]
+  "--popover-foreground": ["#242424", "#EEEEEE"]
+  "--primary": ["#333333", "#EEEEEE"]
   "--primary-foreground": ["#FFFFFF", "#0A0A0A"]
   "--secondary": ["#F5F5F5", "#1A1A1A"]
-  "--secondary-foreground": ["#242424", "#DEDEDE"]
+  "--secondary-foreground": ["#242424", "#EEEEEE"]
   "--muted": ["#EBEBEB", "#232323"]
   "--muted-foreground": ["#565656", "#A1A1A1"]
   "--accent": ["#EBEBEB", "#232323"]
-  "--accent-foreground": ["#242424", "#DEDEDE"]
+  "--accent-foreground": ["#242424", "#EEEEEE"]
   "--destructive": ["#CB274C", "#F0708A"]
   "--border": ["#EBEBEB", "#1D1D1D"]
   "--input": ["#8F8F8F", "#636363"]
@@ -93,7 +93,7 @@ One reading column on white. The logo and the GitHub button, a one-sentence stat
 ## Colour
 
 - Neutrals are pure greys with no tint, as in the reference: white paper, `#242424` ink, `#565656` prose. Surfaces (`card`: cards, the field; `secondary`: secondary buttons) are one step off the page, `#F5F5F5`; `muted` is one step further, `#EBEBEB`, for hover fills and blocks inside a card.
-- The reference's dark button `#333333` is `--primary`. In dark mode the primary inverts to `#DEDEDE` on `#0A0A0A`: the reference's dark `#252525` button is a quiet fill beside its blue CTA, and humantaste has one primary per view that must read as one.
+- The reference's dark button `#333333` is `--primary`. In dark mode the primary inverts to `#EEEEEE` on `#0A0A0A`: the reference's dark `#252525` button is a quiet fill beside its blue CTA, and humantaste has one primary per view that must read as one.
 - The reference's blue `#0092FF` is the focus ring only. White text on it measures 3.2:1, below 4.5:1 for 14px labels, so no button takes it as a fill. In light mode the ring steps down to `#008EFA`, so it holds 3:1 on `card` (WCAG 1.4.11).
 - Text has two levels, `foreground` and `muted-foreground`, and no third. Evidence, the How it works footer and the placeholder are `muted-foreground`; the reference's placeholder grey `#A0A0A0` measures 2.6:1 and is not used for text.
 - Nothing has a border. The URL field is a filled pill at 1.09:1 against the page, below the 3:1 WCAG 1.4.11 asks of a field's edge; this is a deliberate choice, and the placeholder, the `Score it` button inside it and the focus ring identify it. `input` stays declared for the disabled and invalid states.

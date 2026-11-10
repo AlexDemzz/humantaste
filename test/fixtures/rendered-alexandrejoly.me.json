@@ -65,6 +65,11 @@
         "glyphs": 65,
         "webfont": false
       }
-    ]
+    ],
+    "logoTile": null,
+    "pulsingDots": {
+      "count": 0,
+      "example": ""
+    }
   }
 }

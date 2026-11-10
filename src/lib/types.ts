@@ -98,6 +98,10 @@ export interface RenderedFacts {
   emojiIcons: string[];
   sparkles: number;
   lucideLogo: boolean;
+  /** A square of CSS gradient at the start of the header, where the logo goes. */
+  logoTile: { css: string; size: number; sparkle: boolean } | null;
+  /** Dot-sized elements looping Tailwind's pulse or ping animation. */
+  pulsingDots: { count: number; example: string };
   viewport: { width: number; height: number };
 }
 

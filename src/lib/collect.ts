@@ -85,6 +85,8 @@ export const COLLECT = String.raw`(() => {
   const buttonFills = new Map();
   let hiddenAtRest = 0;
   const hiddenExamples = [];
+  let pulsingDots = 0;
+  let pulsingExample = "";
 
   for (const el of all) {
     const s = cs(el);
@@ -92,6 +94,12 @@ export const COLLECT = String.raw`(() => {
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2 || s.visibility === "hidden") continue;
     const area = r.width * r.height;
+
+    // Tailwind's own keyframe names on something dot-sized: a status light, not a loading skeleton.
+    if (r.width <= 32 && r.height <= 32 && /(?:^|,\s*)(?:pulse|ping)(?:\s*,|$)/.test(s.animationName) && s.animationIterationCount.includes("infinite") && !el.closest("[aria-busy=true]")) {
+      pulsingDots++;
+      if (!pulsingExample) pulsingExample = label(el) + " { animation: " + s.animationName + " }";
+    }
 
     const bf = s.backdropFilter || s.webkitBackdropFilter || "";
     const blurPx = parseFloat((bf.match(/blur\(([\d.]+)px\)/) || [])[1] || "0");
@@ -290,6 +298,18 @@ export const COLLECT = String.raw`(() => {
     if (emojiIcons.length < 40 && !emojiIcons.includes(t.slice(0, 50))) emojiIcons.push(t.slice(0, 50));
   }
 
+  // The logo slot filled with a square of CSS gradient, at the start of the header.
+  let logoTile = null;
+  for (const el of document.querySelectorAll("header *, nav *, [role=banner] *")) {
+    if (el.closest("svg")) continue;
+    const r = el.getBoundingClientRect();
+    if (r.top + scrollY > 120 || r.left > vw * 0.4 || r.width < 20 || r.width > 56 || Math.abs(r.width - r.height) > 2 || !visible(el)) continue;
+    const s = cs(el);
+    if (!s.backgroundImage.includes("gradient")) continue;
+    logoTile = { css: s.backgroundImage.slice(0, 200), size: Math.round(r.width), sparkle: Boolean(el.querySelector('svg[class*="sparkle"]')) };
+    break;
+  }
+
   const sparkles = document.querySelectorAll('svg[class*="sparkle"], [data-lucide*="sparkle"], [data-icon*="sparkle"]').length;
   const brand = document.querySelector("header a[href='/'], nav a[href='/'], header a:first-of-type");
   const lucideLogo = Boolean(brand && brand.querySelector("svg[class*='lucide']"));
@@ -318,6 +338,8 @@ export const COLLECT = String.raw`(() => {
     emojiIcons,
     sparkles,
     lucideLogo,
+    logoTile,
+    pulsingDots: { count: pulsingDots, example: pulsingExample },
     viewport: { width: vw, height: vh },
   };
 })()`;

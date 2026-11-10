@@ -515,6 +515,51 @@ describe("rendered checks on captured measurements", () => {
     );
   });
 
+  it("flags a gradient square in the logo slot, not a grey one", () => {
+    const { rendered } = loadRendered("linear.app");
+    const withTile = (logoTile: RenderedFacts["logoTile"]) => ({
+      url: "https://a.com/",
+      static: EMPTY_STATIC,
+      rendered: { ...rendered, logoTile },
+    });
+    expect(
+      hit(
+        withTile({
+          css: "linear-gradient(135deg, rgb(99, 102, 241), rgb(168, 85, 247))",
+          size: 32,
+          sparkle: true,
+        }),
+        "gradient-logo"
+      )?.evidence
+    ).toMatch(/32px square.*sparkles icon/u);
+    expect(
+      hit(
+        withTile({
+          css: "linear-gradient(rgb(40, 40, 40), rgb(20, 20, 20))",
+          size: 32,
+          sparkle: false,
+        }),
+        "gradient-logo"
+      )
+    ).toBeNull();
+    expect(hit(withTile(null), "gradient-logo")).toBeNull();
+  });
+
+  it("charges one pulsing dot half of what several cost", () => {
+    const { rendered } = loadRendered("linear.app");
+    const withDots = (count: number) => ({
+      url: "https://a.com/",
+      static: EMPTY_STATIC,
+      rendered: {
+        ...rendered,
+        pulsingDots: { count, example: "span.animate-ping" },
+      },
+    });
+    expect(hit(withDots(0), "pulsing-dot")).toBeNull();
+    expect(hit(withDots(1), "pulsing-dot")?.strength).toBe(0.5);
+    expect(hit(withDots(3), "pulsing-dot")?.strength).toBe(1);
+  });
+
   it("ignores a two-tone headline whose second part is only greyed out", () => {
     const { rendered } = loadRendered("freesubtitlemaker.lovable.app");
     const accent = (headlineAccent: RenderedFacts["headlineAccent"]) => ({

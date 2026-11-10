@@ -21,7 +21,7 @@ import type {
 } from "./types";
 
 /** Bump when a check, threshold or weight changes: stored scans from another methodology are redone. */
-export const METHODOLOGY = "2026-11-10.2";
+export const METHODOLOGY = "2026-11-10.3";
 
 interface SignalDef {
   id: string;
@@ -1021,6 +1021,26 @@ const SIGNALS: SignalDef[] = [
           }
         : null,
   },
+  {
+    id: "gradient-logo",
+    category: "icons",
+    title: "A gradient tile as the logo",
+    weight: 8,
+    why: "A small rounded square of gradient, often with an icon inside, is what generators put where the brand mark goes.",
+    fix: "Draw a mark or set a wordmark in a face you chose. A logo is a shape, not a CSS background.",
+    needsRender: true,
+    detect: ({ rendered: r }) => {
+      const tile = r?.logoTile;
+      if (!tile || !hasVividStop(colorStops(tile.css))) {
+        return null;
+      }
+      return {
+        strength: 1,
+        evidence: `a ${tile.size}px square at the start of the header filled with ${tile.css.slice(0, 80)}${tile.sparkle ? ", holding a sparkles icon" : ""}`,
+        source: "rendered",
+      };
+    },
+  },
 
   // Copy
   {
@@ -1230,6 +1250,26 @@ const SIGNALS: SignalDef[] = [
       return {
         strength: ramp(n, 5, 12),
         evidence: `${n} blocks below the fold wait at opacity 0, shifted down, e.g. ${r?.hiddenAtRest.examples[0] ?? ""}`,
+        source: "rendered",
+      };
+    },
+  },
+  {
+    id: "pulsing-dot",
+    category: "motion",
+    title: "A pulsing status dot",
+    weight: 6,
+    why: "A dot that pulses beside a label says ‘live’ where nothing is live. Generators add it to make a static page feel like a running system.",
+    fix: "Keep the pulse for something that is updating right now, and say what it is.",
+    needsRender: true,
+    detect: ({ rendered: r }) => {
+      const dots = r?.pulsingDots;
+      if (!dots || dots.count === 0) {
+        return null;
+      }
+      return {
+        strength: ramp(dots.count, 1, 2),
+        evidence: `${plural(dots.count, "dot")} looping Tailwind's pulse or ping, e.g. ${dots.example}`,
         source: "rendered",
       };
     },

@@ -208,6 +208,11 @@
         "glyphs": 8,
         "webfont": true
       }
-    ]
+    ],
+    "logoTile": null,
+    "pulsingDots": {
+      "count": 0,
+      "example": ""
+    }
   }
 }

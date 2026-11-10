@@ -1,0 +1,431 @@
+{
+  "slug": "yoursite.com",
+  "methodology": "2026-11-09.1",
+  "url": "https://yoursite.com",
+  "finalUrl": "https://yoursite.com/",
+  "score": 82,
+  "signals": [
+    {
+      "id": "stock-tokens",
+      "category": "fingerprint",
+      "title": "Untouched shadcn theme",
+      "weight": 12,
+      "why": "The stock radius and neutral ramp ship on thousands of sites, so the page inherits their face.",
+      "fix": "Pick your own radius and tint the neutrals toward a hue (even chroma 0.005 reads warmer or cooler than stock).",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "second-wave-face",
+      "category": "type",
+      "title": "This year's ‘tasteful’ display serif",
+      "weight": 8,
+      "why": "Instrument Serif, Fraunces and Playfair Display were the anti-slop fix for headings. Now every generator told to look editorial lands on them.",
+      "fix": "Pick a display serif from outside the current shortlist, or let the body face carry the headings.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "accent-word",
+      "category": "type",
+      "title": "One accented word in the headline",
+      "weight": 14,
+      "why": "A single word in another colour, italic or gradient is how generated heroes say ‘this part matters’.",
+      "fix": "Set the headline in one voice. If a word matters, choose a word that carries it.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "gradient-text",
+      "category": "type",
+      "title": "Multicolour gradient text",
+      "weight": 14,
+      "why": "Clipped rainbow headlines are the generator's way of saying ‘important’. Readers have learnt to skim past them.",
+      "fix": "Set the text in one solid colour. A tonal ramp of one hue is fine; a hue jump is the tell.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "eyebrow-pill",
+      "category": "type",
+      "title": "Pill above the headline",
+      "weight": 12,
+      "why": "A rounded badge over the H1 is in nearly every generated hero, whether or not there is news.",
+      "fix": "Ship it only for real, dated news that links somewhere, or move news to a changelog link in the header.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "tracked-labels",
+      "category": "type",
+      "title": "Tracked all-caps labels everywhere",
+      "weight": 6,
+      "why": "Small spaced capitals over every section (FEATURES, PRICING, HOW IT WORKS) are the default way generators fake editorial structure.",
+      "fix": "Let the section heading do the work. Keep small caps for real metadata like dates or table headers.",
+      "hit": {
+        "strength": 1.0,
+        "evidence": "FEATURES, PRICING, TESTIMONIALS, FAQ set in caps at 0.12em",
+        "source": "rendered"
+      },
+      "points": 4,
+      "checked": true
+    },
+    {
+      "id": "purple",
+      "category": "colour",
+      "title": "Indigo-to-pink, the house colour",
+      "weight": 16,
+      "why": "Tailwind's indigo-500 became the colour of generated landing pages. It signals ‘AI product’ before anyone reads a word.",
+      "fix": "Use your brand hue. If you want a gradient, keep it within one hue family (under 40°).",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "gradient-washes",
+      "category": "colour",
+      "title": "Gradients as decoration",
+      "weight": 10,
+      "why": "Coloured washes behind sections, cards and buttons fill space the content should fill.",
+      "fix": "Keep one gradient where it means something, or none. Flat surfaces read as more confident.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "default-dark",
+      "category": "colour",
+      "title": "Dark by default, untinted",
+      "weight": 8,
+      "why": "Near-black from the Tailwind ramp is the stock ‘premium’ look, not a decision, especially when it ignores the visitor's light preference.",
+      "fix": "Respect prefers-color-scheme, and tint the dark ground toward your brand hue.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "claude-look",
+      "category": "colour",
+      "title": "Cream and terracotta",
+      "weight": 10,
+      "why": "Warm cream with a terracotta accent is the newer generated look, borrowed from Anthropic's own palette.",
+      "fix": "If warm paper suits you, pair it with an accent from your own brand, not #D97757.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "card-row",
+      "category": "layout",
+      "title": "Three rounded cards in a row",
+      "weight": 12,
+      "why": "Feature, feature, feature in identical rounded boxes is the generator's default rhythm for any content.",
+      "fix": "Let the content decide the layout: a list, a table, one large example, or uneven columns.",
+      "hit": {
+        "strength": 1.0,
+        "evidence": "3 cards in one row, 16px radius, the same soft shadow (section.features > div)",
+        "source": "rendered"
+      },
+      "points": 8,
+      "checked": true
+    },
+    {
+      "id": "icon-tiles",
+      "category": "layout",
+      "title": "Icons in tinted tiles",
+      "weight": 12,
+      "why": "An icon on a pale tinted square above every feature is the single most recognisable generated pattern.",
+      "fix": "Use the icon inline with the title at text size, show the real product, or drop the icons.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "stat-banner",
+      "category": "layout",
+      "title": "A row of big round numbers",
+      "weight": 10,
+      "why": "‘10K+ users · 99.9% uptime · 4.9★’ is the default proof section, real numbers or not.",
+      "fix": "Show one number that matters with its source, or a real customer and what changed for them.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "numbered-steps",
+      "category": "layout",
+      "title": "01 · 02 · 03 markers",
+      "weight": 6,
+      "why": "Zero-padded numbers on sections that aren't a sequence are editorial costume.",
+      "fix": "Number things only when order matters to the reader.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "centered",
+      "category": "layout",
+      "title": "Everything centred",
+      "weight": 6,
+      "why": "Centring every block removes the edge the eye reads from and makes every section look the same.",
+      "fix": "Centre the hero if you want, then align sections to a start edge with a clear column.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "side-stripe",
+      "category": "layout",
+      "title": "Coloured stripe down the side of cards",
+      "weight": 10,
+      "why": "A thick coloured left border on cards and callouts is one of the most recognisable generated details.",
+      "fix": "Use a heading, an icon at text size or a background tint to mark the card, not a side stripe.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "glass",
+      "category": "effects",
+      "title": "Frosted glass on everything",
+      "weight": 8,
+      "why": "One frosted header is fine. Frosted cards, badges and buttons turn into a texture with no depth logic.",
+      "fix": "Keep backdrop blur for the one layer that actually floats over content, usually the sticky header.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "glow",
+      "category": "effects",
+      "title": "Coloured glows",
+      "weight": 10,
+      "why": "A soft coloured halo under buttons and cards is the default ‘cool’ of generated UI. Real light doesn't come from a button.",
+      "fix": "Use a neutral shadow that explains elevation, or none.",
+      "hit": {
+        "strength": 1.0,
+        "evidence": "box-shadow: 0 0 40px rgb(99 102 241 / 0.4) on 4 elements",
+        "source": "rendered"
+      },
+      "points": 6,
+      "checked": true
+    },
+    {
+      "id": "orbs",
+      "category": "effects",
+      "title": "Blurred orbs and halos",
+      "weight": 10,
+      "why": "Big blurred colour blobs behind the hero are filler that says ‘tech’ without showing anything.",
+      "fix": "Show the product, a real image, or let the type stand on a plain ground.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "pattern-bg",
+      "category": "effects",
+      "title": "Dot or grid wallpaper",
+      "weight": 6,
+      "why": "A tiled dot or line grid behind the hero is the stock way to make empty space look technical.",
+      "fix": "Keep grid lines for surfaces that are really a canvas, a map or a blueprint.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "emoji-icons",
+      "category": "icons",
+      "title": "Emoji standing in for icons",
+      "weight": 16,
+      "why": "🚀 and ✅ at the start of nav links, headings and bullets come straight from chat output pasted into a page.",
+      "fix": "Use plain bullets, numbers or one line-icon set drawn at text size. Emoji belong in sentences, not in structure.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "sparkles",
+      "category": "icons",
+      "title": "The sparkles icon",
+      "weight": 8,
+      "why": "✨ has become the universal ‘AI inside’ badge. It promises magic instead of saying what happens.",
+      "fix": "Replace it with an icon or word for what the feature actually does.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "lucide-logo",
+      "category": "icons",
+      "title": "A Lucide icon as the logo",
+      "weight": 8,
+      "why": "Generators fill the logo slot with whatever icon the library ships. A brand mark from a free icon set says the brand is a placeholder.",
+      "fix": "Draw a wordmark, even a plain one in a face you chose.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "buzzwords",
+      "category": "copy",
+      "title": "Template marketing phrases",
+      "weight": 12,
+      "why": "Phrases that fit any product tell the reader nothing about this one.",
+      "fix": "Say what it does, for whom, in plain words, and name one specific thing it does better.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "ai-vocabulary",
+      "category": "copy",
+      "title": "Words a model reaches for",
+      "weight": 8,
+      "why": "Delve, tapestry, pivotal, testament to, serves as: each is fine once, but together they are the vocabulary of unedited model output.",
+      "fix": "Use the plain word: ‘is’ for ‘serves as’, ‘use’ for ‘leverage’, and cut praise the reader can't check.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "labelled-items",
+      "category": "copy",
+      "title": "‘Label: text’ in every bullet",
+      "weight": 6,
+      "why": "A bold label and a colon at the start of each list item is how chat answers structure everything, and it usually restates the line it opens.",
+      "fix": "Write the item as a sentence, or let a bold lead-in end in a full stop and add something new after it.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "proof-boilerplate",
+      "category": "copy",
+      "title": "Boilerplate social proof",
+      "weight": 8,
+      "why": "‘Trusted by 10,000+ teams’ and ‘No credit card required’ are filled in by default, so readers discount them.",
+      "fix": "Name a real customer, link a real review, or leave it out until you have one.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "em-dashes",
+      "category": "copy",
+      "title": "Em dashes in every sentence",
+      "weight": 6,
+      "why": "One em dash is good punctuation. One every few lines is the rhythm of generated prose.",
+      "fix": "Use full stops, commas and colons; keep the dash for real interruptions.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "contrast-cadence",
+      "category": "copy",
+      "title": "‘It's not X, it's Y’ and ‘not just X, but Y’",
+      "weight": 6,
+      "why": "The rebuttal cadence, repeated, is the most quoted tell of generated copy.",
+      "fix": "Say what it is. Skip the strawman.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "placeholders",
+      "category": "copy",
+      "title": "Leftovers from a template or a chat",
+      "weight": 12,
+      "why": "Lorem ipsum, ‘Feature 1’, raw **Markdown**, chatbot citation markers or ‘I hope this helps’ mean nobody read the page before it shipped.",
+      "fix": "Replace every placeholder with real content, delete the chat leftovers, or remove the section.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "reveal-on-scroll",
+      "category": "motion",
+      "title": "Every section fades in on scroll",
+      "weight": 6,
+      "why": "The same fade-and-slide-up on every block is the default motion of generated pages, and it hides content from anyone who doesn't scroll slowly.",
+      "fix": "Show content at rest. Animate one thing that explains something, and respect reduced motion.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "bounce-easing",
+      "category": "motion",
+      "title": "Bouncy easing",
+      "weight": 4,
+      "why": "Overshooting curves make interfaces feel like toys. Generators add them to look ‘delightful’.",
+      "fix": "Use an ease-out with no overshoot for UI; save springs for things that are physically thrown.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "starter-head",
+      "category": "fingerprint",
+      "title": "The starter's tab title, favicon or share tags",
+      "weight": 8,
+      "why": "The tab title, favicon and share card are the first things anyone sees of a page, and these are still the values the scaffolder or site builder wrote.",
+      "fix": "Give the page its own title, description, favicon and share tags.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "lovable-tokens",
+      "category": "fingerprint",
+      "title": "Lovable's starter tokens",
+      "weight": 12,
+      "why": "The generator's own prompt names these variables. Keeping them keeps its look.",
+      "fix": "Rename and redefine the tokens around your own palette and elevation.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "effect-kit",
+      "category": "fingerprint",
+      "title": "Copy-paste effect components",
+      "weight": 8,
+      "why": "Border beams, shimmer buttons, meteors and number tickers come from the same few registries every generator pulls from.",
+      "fix": "Keep one effect if it explains something; drop the rest.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    },
+    {
+      "id": "stock-photos",
+      "category": "fingerprint",
+      "title": "Placeholder and stock photo hosts",
+      "weight": 6,
+      "why": "Hotlinked Unsplash, picsum and pravatar images are what generators drop in when there is no real product to show.",
+      "fix": "Show the actual product, team or work. One real screenshot beats ten stock photos.",
+      "hit": null,
+      "points": 0,
+      "checked": true
+    }
+  ],
+  "credits": [],
+  "visual": {
+    "look": 2,
+    "outOf": 4,
+    "confidence": 0.61,
+    "points": 0,
+    "model": "jev-1.14.0"
+  },
+  "rendered": true,
+  "renderedFacts": null,
+  "hasScreenshot": false,
+  "degraded": false,
+  "notes": [],
+  "analyzedAt": "2026-11-09T17:58:06.510Z"
+}

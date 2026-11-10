@@ -1,0 +1,449 @@
+/* PROTOTYPE: the validated score card, "Gloss" (see fx.tsx for what each round settled). It keeps Today's layout,
+   stock and type, and carries the footer's drawing as a vignette (card-scene.webp, an ink mask cropped from it). */
+
+/* Where the band of light is as it crosses the card on arrival: 100% is off the leading edge, 0% off the trailing. */
+@property --on {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --flash {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 100%;
+}
+
+.fx {
+  --stock: oklch(0.205 0.005 70);
+  --ink: oklch(0.95 0.003 70);
+  --quiet: oklch(0.7 0.006 70);
+  --rainbow: repeating-linear-gradient(
+    115deg,
+    oklch(0.82 0.13 330) 0%,
+    oklch(0.8 0.12 270) 10%,
+    oklch(0.85 0.1 200) 20%,
+    oklch(0.88 0.12 140) 30%,
+    oklch(0.88 0.12 80) 40%,
+    oklch(0.82 0.13 330) 50%
+  );
+  --silver: linear-gradient(
+    160deg,
+    oklch(0.66 0.01 250) 0%,
+    oklch(0.95 0.003 250) 16%,
+    oklch(0.74 0.01 250) 30%,
+    oklch(0.56 0.012 250) 44%,
+    oklch(0.97 0.002 250) 52%,
+    oklch(0.68 0.01 250) 66%,
+    oklch(0.88 0.005 250) 82%,
+    oklch(0.64 0.01 250) 100%
+  );
+  --gold: linear-gradient(
+    160deg,
+    oklch(0.66 0.12 68) 0%,
+    oklch(0.9 0.12 90) 16%,
+    oklch(0.98 0.06 98) 24%,
+    oklch(0.76 0.14 78) 38%,
+    oklch(0.6 0.11 62) 50%,
+    oklch(0.86 0.13 88) 64%,
+    oklch(0.97 0.06 96) 72%,
+    oklch(0.7 0.12 70) 86%,
+    oklch(0.84 0.13 84) 100%
+  );
+  --flat: linear-gradient(var(--ink), var(--ink));
+  /* The ink the score picks. */
+  --tier-ink: var(--rainbow);
+  --meter-on: var(--tier-ink);
+  --meter-off: oklch(0.32 0.005 70);
+  --pc-radius: calc(36 * var(--u));
+  /* The card is dark whatever the page's theme. */
+  --foreground: var(--ink);
+  --muted-foreground: var(--quiet);
+
+  /* What the production side and its peel-off cover read (holo-card.css). */
+  --holo-radius: var(--pc-radius);
+  --card-bg: var(--stock);
+  --card-rule: oklch(0.3 0.005 70);
+  --holo-foil-ink: var(--rainbow);
+  /* 0 under the cover, 1 once it is off: the card lights up as it is uncovered. */
+  --on: 1;
+
+  color-scheme: dark;
+  color: var(--ink);
+  /* The stock, its clip and its shadow sit on the side (.holo-side), so the cover can swing past the card's edge. */
+  overflow: visible;
+  isolation: auto;
+  transition: --on 700ms var(--ease-out) 300ms;
+}
+
+.fx[data-sealed] {
+  --on: 0;
+}
+
+.fx[data-sealed] .fx-flash {
+  animation: none;
+}
+
+.fx[data-tier="matte"] {
+  --tier-ink: var(--flat);
+}
+
+.fx[data-tier="chrome"] {
+  --tier-ink: var(--silver);
+}
+
+.fx[data-tier="prismatic"] {
+  --tier-ink: var(--gold);
+}
+
+.fx-number {
+  font-family: "Kanit", sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: calc(250 * var(--u));
+  line-height: 0.72;
+  letter-spacing: -0.05em;
+  /* background-clip: text only paints inside the box: pad it for the italic's lean, and pull the layout back. */
+  padding-block: 0.3em;
+  padding-inline-end: 0.1em;
+  margin-block: -0.3em;
+}
+
+.fx .pc-host {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Anything painted in the tier's ink: the gradient slides with the tilt, like light on foil. */
+.fx-foil {
+  background-image: var(--tier-ink);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+}
+
+.fx-scene {
+  mask: url("./card-scene.webp") center / 100% 100% no-repeat;
+}
+
+/* The lines catch a band of light once, as the card arrives. */
+.fx-flash {
+  background: oklch(1 0 none);
+  mask-image:
+    url("./card-scene.webp"),
+    linear-gradient(
+      105deg,
+      transparent 40%,
+      oklch(0 0 none) 50%,
+      transparent 60%
+    );
+  mask-size:
+    100% 100%,
+    300% 100%;
+  mask-position:
+    center,
+    var(--flash) 0;
+  mask-repeat: no-repeat;
+  mask-composite: intersect;
+}
+
+@keyframes fx-flash {
+  from {
+    --flash: 100%;
+  }
+  to {
+    --flash: 0%;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fx-flash {
+    animation: fx-flash 1200ms var(--ease-in-out) 500ms both;
+  }
+}
+
+.fx[data-tier="matte"] .fx-flash {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------
+   Gloss: the drawing is printed in varnish on matte stock, and the pointer is the light. The level is the varnish:
+   none (matte), clear silver (chrome), a pearl thin film (holo), white light dispersed (prismatic). The number and the meter are
+   coated in the same material, so the level reads before the card is touched. */
+
+.fx-gloss {
+  --light: calc(640 * var(--u));
+  /* How much of the light is already there before the pointer arrives. */
+  --rest: 0.55;
+  --lit: calc(var(--on) * (var(--rest) + var(--active) * (1 - var(--rest))));
+  /* The varnish on the lines: its colour turns with the distance from the light. */
+  --film: radial-gradient(
+    circle var(--light) at var(--px) var(--py),
+    oklch(1 0 none) 0%,
+    oklch(0.9 0.09 200) 30%,
+    oklch(0.84 0.13 300) 55%,
+    oklch(0.86 0.12 20) 80%,
+    oklch(0.9 0.1 90) 100%
+  );
+  /* The same material, laid on the number and the meter. */
+  --coat: linear-gradient(
+    115deg,
+    oklch(0.9 0.09 200) 0%,
+    oklch(0.97 0.02 250) 14%,
+    oklch(0.84 0.13 300) 30%,
+    oklch(0.9 0.09 350) 44%,
+    oklch(0.97 0.03 90) 56%,
+    oklch(0.88 0.1 160) 72%,
+    oklch(0.9 0.09 200) 100%
+  );
+  --pool: oklch(1 0 none / 0.1);
+  --meter-on: var(--coat);
+}
+
+.fx-gloss .fx-scene {
+  background: var(--ink);
+  opacity: 0.13;
+}
+
+/* The varnish inside the pool of light. */
+.fx-gloss .fx-lit {
+  background: var(--film);
+  mask-image:
+    url("./card-scene.webp"),
+    radial-gradient(
+      circle var(--light) at var(--px) var(--py),
+      oklch(0 0 none) 0%,
+      oklch(0 0 none / 0.8) 60%,
+      transparent 100%
+    );
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mask-composite: intersect;
+  opacity: var(--lit);
+}
+
+/* The pool itself, barely there on the matte stock. */
+.fx-gloss .fx-sheen {
+  position: relative;
+  background: radial-gradient(
+    circle var(--light) at var(--px) var(--py),
+    var(--pool) 0%,
+    transparent 100%
+  );
+  opacity: var(--lit);
+}
+
+.fx-gloss .fx-number-ink {
+  color: transparent;
+  background-image: var(--coat);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* A bright band crosses the number with the light. */
+.fx-gloss .fx-number-band {
+  color: transparent;
+  background-image: linear-gradient(
+    105deg,
+    transparent 42%,
+    oklch(1 0 none) 50%,
+    transparent 58%
+  );
+  background-size: 300% 100%;
+  background-position: calc(100% - var(--px)) 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  opacity: calc(0.25 + var(--active) * 0.75);
+}
+
+/* The top level alone is framed, in its own leaf. */
+.fx-gloss .fx-frame {
+  display: none;
+}
+
+/* Matte is the unvarnished print: the drawing in a darker ink, a flat number, and no light. */
+.fx-gloss[data-tier="matte"] {
+  --coat: var(--flat);
+}
+
+.fx-gloss[data-tier="matte"] .fx-scene {
+  opacity: 0.22;
+}
+
+.fx-gloss[data-tier="matte"] :is(.fx-lit, .fx-sheen, .fx-number-band) {
+  display: none;
+}
+
+/* Chrome: clear varnish over silver. No colour yet, only metal. */
+.fx-gloss[data-tier="chrome"] {
+  --rest: 0.45;
+  --film: radial-gradient(
+    circle var(--light) at var(--px) var(--py),
+    oklch(1 0 none) 0%,
+    oklch(0.88 0.012 250) 50%,
+    oklch(0.72 0.016 250) 100%
+  );
+  --coat: var(--silver);
+  /* The silver's dark bands would read as unlit ticks: the meter keeps the bright end of the metal. */
+  --meter-on: linear-gradient(
+    160deg,
+    oklch(0.8 0.008 250) 0%,
+    oklch(0.97 0.002 250) 50%,
+    oklch(0.8 0.008 250) 100%
+  );
+}
+
+/* Prismatic, the top level. Round 3 settled it on "Prism" (the gold leaf read as cheap). It alone is framed. */
+
+.fx-gloss[data-tier="prismatic"] {
+  --rest: 0.7;
+}
+
+.fx-gloss[data-tier="prismatic"] .fx-frame {
+  display: block;
+  margin: calc(16 * var(--u));
+  border: max(1px, calc(2 * var(--u))) solid transparent;
+  border-radius: calc(22 * var(--u));
+  background-image: var(--frame-ink, var(--coat));
+  background-origin: border-box;
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+  mask:
+    linear-gradient(oklch(0 0 none) 0 0) padding-box exclude,
+    linear-gradient(oklch(0 0 none) 0 0) border-box;
+  opacity: calc(0.55 + var(--lit) * 0.45);
+}
+
+.fx-gloss .fx-number-rim {
+  display: none;
+}
+
+/* Prism: white light, dispersed. The drawing is white under the light and breaks into the spectrum at the rim of
+   the pool, like a halo; the number is a pale wash of the spectrum, with the full spectrum along its edge. Nothing is offset, so every
+   line stays sharp wherever the light goes. */
+
+.fx-gloss[data-tier="prismatic"] {
+  --spectrum: linear-gradient(
+    90deg,
+    oklch(0.8 0.14 15) 0%,
+    oklch(0.87 0.13 75) 17%,
+    oklch(0.88 0.13 145) 33%,
+    oklch(0.86 0.1 200) 50%,
+    oklch(0.78 0.13 270) 67%,
+    oklch(0.8 0.15 330) 83%,
+    oklch(0.8 0.14 15) 100%
+  );
+  --film: radial-gradient(
+    circle var(--light) at var(--px) var(--py),
+    oklch(1 0 none) 0%,
+    oklch(1 0 none) 40%,
+    oklch(0.84 0.14 20) 52%,
+    oklch(0.9 0.13 85) 61%,
+    oklch(0.88 0.14 150) 70%,
+    oklch(0.85 0.11 210) 79%,
+    oklch(0.76 0.15 275) 89%,
+    oklch(0.78 0.15 330) 100%
+  );
+  /* The number keeps a tint, as it has at the holo level: the whole spectrum in order, washed pale, with white
+     glints between the colours. */
+  --coat: linear-gradient(
+    115deg,
+    oklch(0.88 0.11 15) 0%,
+    oklch(0.99 0.01 60) 10%,
+    oklch(0.93 0.11 90) 22%,
+    oklch(0.91 0.12 150) 36%,
+    oklch(0.99 0.01 200) 46%,
+    oklch(0.9 0.09 210) 58%,
+    oklch(0.84 0.12 275) 72%,
+    oklch(0.99 0.01 300) 82%,
+    oklch(0.87 0.12 335) 92%,
+    oklch(0.88 0.11 15) 100%
+  );
+  --meter-on: var(--spectrum);
+  --frame-ink: var(--spectrum);
+}
+
+/* The rim: a copy of the number behind it whose stroke is transparent and lets the spectrum through. The white
+   number covers the stroke's inner half. */
+.fx-gloss[data-tier="prismatic"] .fx-number-rim {
+  display: block;
+  color: transparent;
+  -webkit-text-stroke: max(3px, calc(7 * var(--u))) transparent;
+  background-image: var(--spectrum);
+  background-size: 300% 300%;
+  background-position: var(--px) var(--py);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------
+   The peel-off cover of the Gloss card. The production peel; its print is "Plate": a stylised sheet of chrome (a
+   diagonal run of silver bands under fine ruled lines) with the mark printed on it. Stylised on purpose: a
+   photoreal brushed metal was tried and rejected. The cover is the same at every level, so the level stays a
+   surprise. */
+
+.fx-gloss {
+  --mark-size: 240;
+  --cover-ink: oklch(0.2 0.005 70);
+  --plate-rules: repeating-linear-gradient(
+    0deg,
+    oklch(1 0 none / 0.1) 0 1px,
+    transparent 1px 3px
+  );
+  --plate-bands: linear-gradient(
+    160deg,
+    oklch(0.8 0.006 250) 0%,
+    oklch(0.96 0.003 250) 22%,
+    oklch(0.76 0.008 250) 46%,
+    oklch(0.62 0.01 250) 58%,
+    oklch(0.93 0.004 250) 76%,
+    oklch(0.8 0.006 250) 100%
+  );
+}
+
+.fx-gloss .holo-back {
+  color: var(--cover-ink);
+  background: var(--plate-rules), var(--plate-bands);
+}
+
+.fx-gloss .holo-peel-print {
+  color: oklch(0.22 0.005 70 / 0.85);
+}
+
+/* The dull back of the sheet. */
+.fx-gloss .holo-peel-under {
+  background: oklch(0.27 0.005 250);
+}
+
+.fx-cover {
+  pointer-events: none;
+}
+
+/* The logo's mark as a mask, so each layer of its print can be cut to it. */
+.fx-cover-mark {
+  mask: var(--mark) center / calc(var(--mark-size) * var(--u)) no-repeat;
+}
+
+/* The mark is printed on the sheet, not cut out of it: the ink is a film, so the sheet's bands show through it a
+   little, and its ruled lines run on across the mark. Both are kept faint: the texture should only just show. */
+.fx-plate-ink {
+  background: var(--cover-ink);
+  mix-blend-mode: multiply;
+  opacity: 0.94;
+}
+
+.fx-plate-bands {
+  background: var(--plate-bands);
+  mix-blend-mode: screen;
+  opacity: 0.04;
+}
+
+.fx-plate-rules {
+  background: repeating-linear-gradient(
+    0deg,
+    oklch(1 0 none / 0.03) 0 1px,
+    transparent 1px 3px
+  );
+}

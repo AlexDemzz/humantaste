@@ -1,0 +1,34 @@
+/* PROTOTYPE variant "Today": the production card, plus the words that say what the number is. */
+
+/* The score and its legend share the leading side of the top row; the QR code keeps the trailing side. */
+.td-score {
+  display: flex;
+  align-items: flex-start;
+  /* Clears the chrome copy pushed 13 units right of the number. */
+  gap: calc(40 * var(--u));
+  min-inline-size: 0;
+}
+
+.td-legend {
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--u));
+  padding-block-start: calc(8 * var(--u));
+  max-inline-size: calc(340 * var(--u));
+}
+
+/* The unit, in the site's own face: Kanit keeps its one job, the number. */
+.td-of {
+  font-size: calc(44 * var(--u));
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.td-caption {
+  font-size: calc(26 * var(--u));
+  line-height: 1.25;
+  color: var(--muted-foreground);
+  text-wrap: balance;
+}

@@ -16,6 +16,11 @@ import type { RenderedFacts, RenderedFont } from "./types";
 
 const NAV_TIMEOUT_MS = 15_000;
 const SETTLE_MS = 1200;
+/**
+ * No page is measured sooner than this after it opens. A hero that mounts late is then there on every scan,
+ * where a fast network used to catch the page before it.
+ */
+const MIN_OPEN_MS = 6000;
 /** Slow trackers and chat widgets can hold the load event forever; the page is usually painted long before. */
 const LOAD_GRACE_MS = 8000;
 export const VIEWPORT = { width: 1440, height: 900 };
@@ -187,9 +192,12 @@ const readPage = async (
     waitUntil: "domcontentloaded",
     timeout: NAV_TIMEOUT_MS,
   });
+  const openedAt = Date.now();
   await settle(page, "load", LOAD_GRACE_MS);
   await settle(page, "networkidle", 4000);
-  await page.waitForTimeout(SETTLE_MS);
+  await page.waitForTimeout(
+    Math.max(SETTLE_MS, MIN_OPEN_MS - (Date.now() - openedAt))
+  );
   await freezeScripts(page);
   await page.evaluate(REMOVE_CONSENT_BANNERS);
   await page.evaluate("document.fonts.ready");

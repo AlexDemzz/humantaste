@@ -8,6 +8,7 @@
   "routes": [{ "pattern": "humantaste.xyz", "custom_domain": true }],
   "observability": { "enabled": true, "traces": { "enabled": true } },
   "browser": { "binding": "BROWSER", "remote": true },
+  "media": { "binding": "MEDIA", "remote": true },
   "d1_databases": [
     {
       "binding": "DB",

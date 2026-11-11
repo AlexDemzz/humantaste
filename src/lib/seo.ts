@@ -2,8 +2,10 @@ import type { ComponentProps } from "react";
 
 import { INFO_PAGE_SLUGS, INFO_PAGES } from "./info-pages";
 import type { InfoPageSlug } from "./info-pages";
+import { hasSheen } from "./score";
 import {
   cardPath,
+  cardVideoPath,
   pathSlug,
   reportUrl,
   scanPath,
@@ -54,7 +56,9 @@ interface PageHeadOptions {
   noindex?: boolean;
   path: string;
   title: string;
-  type: "article" | "website";
+  type: "article" | "video.other" | "website";
+  /** The image stays beside it: the video's first frame, and all that most platforms show. */
+  videoPath?: string;
 }
 
 interface PageHead {
@@ -73,6 +77,7 @@ const pageHead = ({
   path,
   title,
   type,
+  videoPath,
 }: PageHeadOptions): PageHead => {
   const url = absolute(path);
   const links: ComponentProps<"link">[] = [];
@@ -103,6 +108,14 @@ const pageHead = ({
     { name: "twitter:site", content: X_HANDLE },
     { name: "twitter:creator", content: X_HANDLE },
   ];
+  if (videoPath) {
+    meta.push(
+      { property: "og:video", content: absolute(videoPath) },
+      { property: "og:video:type", content: "video/mp4" },
+      { property: "og:video:width", content: "1200" },
+      { property: "og:video:height", content: "630" }
+    );
+  }
   if (modified) {
     meta.push({ property: "article:modified_time", content: modified });
   }
@@ -184,6 +197,7 @@ export const reportHead = (result: AnalysisResult): PageHead => {
     alt: `Score card: ${slug} scores ${score} out of 100.`,
     path: cardPath(slug),
   };
+  const videoPath = hasSheen(score) ? cardVideoPath(slug) : undefined;
   return {
     ...pageHead({
       description,
@@ -192,7 +206,9 @@ export const reportHead = (result: AnalysisResult): PageHead => {
       modified: analyzedAt,
       path: scanPath(slug),
       title,
-      type: "article",
+      // Discord only plays a page's video when the page calls itself one.
+      type: videoPath ? "video.other" : "article",
+      videoPath,
     }),
     scripts: [
       jsonLd({

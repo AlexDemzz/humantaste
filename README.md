@@ -51,7 +51,7 @@ pnpm exec wrangler d1 migrations apply humantaste --local
 pnpm dev                      # http://localhost:3217
 ```
 
-In dev, D1 and R2 are local and the browser is remote, so you need a Cloudflare login. `TYPESAFE_API_KEY` is optional: without it, Jev gives no points back, so scores run up to 10 points lower than in production. Put it in `.dev.vars`.
+In dev, D1 and R2 are local and the browser and Media Transformations are remote, so you need a Cloudflare login. `TYPESAFE_API_KEY` is optional: without it, Jev gives no points back, so scores run up to 10 points lower than in production. Put it in `.dev.vars`.
 
 | Command | What it does |
 | --- | --- |
@@ -88,6 +88,7 @@ The scan's code, in order:
 
 - `/scan/<host[/path]>`: the report. The URL is normalised (scheme, `www.` and trailing slash dropped) and redirects to its canonical form. It is server-rendered from the stored scan; a missing scan runs in the browser's request. `?page=2` turns the skills list.
 - `/og/<host>.png`: the 1200×630 share card, drawn from the stored scan (satori + resvg), so it can't be forged with query params. It never starts a scan: a page with no score gets a 404 and no `og:image`.
+- `/og/<host>.mp4`: the same card with its sheen sliding across it, for `og:video`. Discord and iMessage play it; everywhere else shows the PNG. The Worker draws the frames into a GIF and Media Transformations turns it into a 2.4-second H.264 MP4, kept in the edge cache. A matte card has no sheen, so it gets a 404 and no `og:video`.
 - `/shot/<host>.jpg`: what the renderer saw.
 - `/api/report/<host>`: the report as JSON.
 

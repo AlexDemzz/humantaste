@@ -1,3 +1,4 @@
+import type { Font } from "@cf-wasm/og";
 import { encode } from "uqr";
 
 import kanitBlackItalic from "../../assets/fonts/display/Kanit-BlackItalic.ttf?arraybuffer";
@@ -43,12 +44,21 @@ interface Ink {
   angle: number;
 }
 
+/**
+ * The level's sheen, already laid on the white: one turn of a gradient that repeats across the card. On the card it is
+ * a background two and a half times the card's size, and `turn` is the share of that gradient's line one turn takes.
+ */
+export interface Sheen {
+  stops: readonly string[];
+  angle: number;
+  turn: number;
+}
+
 interface TierLook {
   /** The number. */
   coat: Ink;
   meter: readonly string[];
-  /** The sheen over the card, already laid on the white. */
-  surface: Ink | null;
+  surface: Sheen | null;
   /** How dark the drawing prints. */
   scene: number;
   /** The varnish the light lays on the drawing at rest, around the card's centre. */
@@ -106,6 +116,12 @@ const LOOKS: Record<CardTier, TierLook> = {
     meter: ["#696d72", "#73777b", "#7d8185", "#73777b", "#696d72"],
     surface: {
       stops: [
+        "#eff0f2",
+        "#f3f4f5",
+        "#f8f8f9",
+        "#fcfdfd",
+        "#fcfcfd",
+        "#f5f6f7",
         "#eeeff1",
         "#e9ebed",
         "#eff0f2",
@@ -115,8 +131,15 @@ const LOOKS: Record<CardTier, TierLook> = {
         "#edeff0",
         "#e6e9eb",
         "#ebedef",
+        "#f4f5f6",
+        "#fcfcfc",
+        "#fcfdfd",
+        "#f8f8f9",
+        "#f3f4f5",
+        "#eff0f2",
       ],
       angle: 160,
+      turn: 1,
     },
     scene: 0.08,
     film: {
@@ -149,6 +172,12 @@ const LOOKS: Record<CardTier, TierLook> = {
     meter: ["#707492", "#797797", "#827b9c", "#797797", "#707492"],
     surface: {
       stops: [
+        "#f1f9ff",
+        "#f5fbff",
+        "#fafdff",
+        "#feffff",
+        "#fdfcff",
+        "#faf9ff",
         "#f8f6ff",
         "#f7f6fe",
         "#f7f8fe",
@@ -158,8 +187,15 @@ const LOOKS: Record<CardTier, TierLook> = {
         "#fdfeff",
         "#fefeff",
         "#fafcff",
+        "#f6f9ff",
+        "#f2f6ff",
+        "#f2f7ff",
+        "#f2f7ff",
+        "#f1f8ff",
+        "#f1f9ff",
       ],
       angle: 115,
+      turn: 1,
     },
     scene: 0.08,
     film: {
@@ -180,18 +216,6 @@ const LOOKS: Record<CardTier, TierLook> = {
     meter: SPECTRUM.stops,
     surface: {
       stops: [
-        "#fff1d8",
-        "#faf7dc",
-        "#eef9de",
-        "#e0f9e0",
-        "#d9f8e9",
-        "#d5f7f5",
-        "#d6f2fd",
-        "#daecff",
-        "#e3e7ff",
-        "#f0e3ff",
-        "#fbe1f8",
-        "#ffe0eb",
         "#ffdfde",
         "#ffe5d9",
         "#ffebd5",
@@ -205,8 +229,12 @@ const LOOKS: Record<CardTier, TierLook> = {
         "#daecff",
         "#e3e7ff",
         "#f0e3ff",
+        "#fbe1f8",
+        "#ffe0eb",
+        "#ffdfde",
       ],
       angle: 115,
+      turn: 0.25,
     },
     scene: 0.08,
     film: {
@@ -275,6 +303,23 @@ const evenStops = (stops: readonly string[]) =>
     <stop key={i} offset={i / (stops.length - 1)} stopColor={stop} />
   ));
 
+const SHEEN_SCALE = 2.5;
+
+/** Where one turn of the sheen starts and ends on a card at rest; the gradient repeats from there. */
+export const sheenLine = ({ angle, turn }: Sheen) => {
+  const line = gradientLine(angle, {
+    x: (W * (1 - SHEEN_SCALE)) / 2,
+    y: (H * (1 - SHEEN_SCALE)) / 2,
+    width: W * SHEEN_SCALE,
+    height: H * SHEEN_SCALE,
+  });
+  return {
+    ...line,
+    x2: line.x1 + (line.x2 - line.x1) * turn,
+    y2: line.y1 + (line.y2 - line.y1) * turn,
+  };
+};
+
 const FRAME_BOX = {
   x: FRAME_INSET + FRAME_WIDTH / 2,
   y: FRAME_INSET + FRAME_WIDTH / 2,
@@ -287,7 +332,7 @@ const FRAME_BOX = {
  * top level's frame. Satori only serializes plain SVG elements inside an svg, and only preloads an <image> it can see
  * in the element tree before rendering, so this is a function the card calls, not a component.
  */
-const stock = (look: TierLook) => (
+const stock = (look: TierLook, withSheen: boolean) => (
   <svg
     width={W}
     height={H}
@@ -302,12 +347,8 @@ const stock = (look: TierLook) => (
         <linearGradient
           id="surface"
           gradientUnits="userSpaceOnUse"
-          {...gradientLine(look.surface.angle, {
-            x: 0,
-            y: 0,
-            width: W,
-            height: H,
-          })}
+          spreadMethod="repeat"
+          {...sheenLine(look.surface)}
         >
           {evenStops(look.surface.stops)}
         </linearGradient>
@@ -351,7 +392,9 @@ const stock = (look: TierLook) => (
         </linearGradient>
       )}
     </defs>
-    {look.surface && <rect width={W} height={H} fill="url(#surface)" />}
+    {look.surface && withSheen && (
+      <rect width={W} height={H} fill="url(#surface)" />
+    )}
     <rect
       width={W}
       height={H}
@@ -389,17 +432,19 @@ const hexToRgb = (hex: string): [number, number, number] => {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
 
-/** The ink's colour a fraction `t` of the way along its stops. */
-const inkAt = (stops: readonly string[], t: number): string => {
+/** The ink's red, green and blue a fraction `t` of the way along its stops. */
+export const rgbAt = (stops: readonly string[], t: number): number[] => {
   const span = (stops.length - 1) * Math.min(1, Math.max(0, t));
   const index = Math.min(stops.length - 2, Math.floor(span));
   const from = hexToRgb(stops[index] ?? "#ffffff");
   const to = hexToRgb(stops[index + 1] ?? "#ffffff");
-  const mix = from.map((channel, i) =>
+  return from.map((channel, i) =>
     Math.round(channel + ((to[i] ?? channel) - channel) * (span - index))
   );
-  return `rgb(${mix.join(" ")})`;
 };
+
+const inkAt = (stops: readonly string[], t: number) =>
+  `rgb(${rgbAt(stops, t).join(" ")})`;
 
 /** The host is the card's second voice: 64px at most, smaller when it is long. */
 const hostSize = (host: string) => Math.min(64, Math.round(1100 / host.length));
@@ -538,8 +583,17 @@ const Score = ({ score, look }: { score: number; look: TierLook }) => {
   );
 };
 
-/** The score card's front, frozen at rest: the same marks in the same order of weight as the card on the scan page. */
-export const ShareCardImage = ({ card }: { card: ShareCard }) => {
+/**
+ * The score card's front, frozen at rest: the same marks in the same order of weight as the card on the scan page.
+ * The video leaves the sheen off to lay it on itself, frame by frame.
+ */
+const ShareCardImage = ({
+  card,
+  withSheen = true,
+}: {
+  card: ShareCard;
+  withSheen?: boolean;
+}) => {
   const host = hostSize(card.host);
   const look = LOOKS[tierFor(card.score)];
   return (
@@ -555,7 +609,7 @@ export const ShareCardImage = ({ card }: { card: ShareCard }) => {
         fontWeight: 500,
       }}
     >
-      {stock(look)}
+      {stock(look, withSheen)}
 
       <div
         style={{
@@ -672,6 +726,12 @@ export const renderSiteCard = async (): Promise<ArrayBuffer> => {
   return image.arrayBuffer();
 };
 
+const CARD_FONTS: Font[] = [
+  { name: "Kanit", data: kanitBlackItalic, weight: 900, style: "italic" },
+  { name: "Inter", data: interMedium, weight: 500 },
+  { name: "Inter", data: interSemiBold, weight: 600 },
+];
+
 /** Renders the card to PNG bytes with the same renderer as our other OG images: Satori and resvg compiled to WASM. */
 export const renderShareCard = async (
   card: ShareCard
@@ -680,11 +740,21 @@ export const renderShareCard = async (
   // Called, not mounted: Satori looks for the drawing's <image> in the tree it is handed.
   const image = new ImageResponse(ShareCardImage({ card }), {
     ...OG_SIZE,
-    fonts: [
-      { name: "Kanit", data: kanitBlackItalic, weight: 900, style: "italic" },
-      { name: "Inter", data: interMedium, weight: 500 },
-      { name: "Inter", data: interSemiBold, weight: 600 },
-    ],
+    fonts: CARD_FONTS,
   });
   return image.arrayBuffer();
+};
+
+/** What the card's video is drawn from: its pixels (RGBA) with the sheen left off, and the sheen. Null for matte. */
+export const renderShareCardLayers = async (card: ShareCard) => {
+  const sheen = LOOKS[tierFor(card.score)].surface;
+  if (!sheen) {
+    return null;
+  }
+  const { render } = await import("@cf-wasm/og");
+  const { pixels } = await render(ShareCardImage({ card, withSheen: false }), {
+    ...OG_SIZE,
+    fonts: CARD_FONTS,
+  }).asPng();
+  return { pixels, sheen };
 };

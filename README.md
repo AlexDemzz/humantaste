@@ -95,7 +95,7 @@ The scan's code, in order:
 ## What a scan keeps
 
 - **Storage.** Each site keeps its latest scan, keyed by the normalised target, until someone presses "Score again".
-- **Methodology.** A scan from an older version (`METHODOLOGY` in `signals.ts`) counts as missing. Bump it whenever a check or weight changes.
+- **Methodology.** Each scan keeps the version that scored it (`METHODOLOGY` in `signals.ts`). Bump it whenever a check or weight changes. A report from an older version still shows until someone presses "Score again", except reports from before `2026-11-10.1`, whose points are stored in another shape: those count as missing.
 - **Failed scans.** If no browser can be had, the scan fails and nothing is stored. When the direct fetch was refused too, the scan fails with that refusal.
 - **Degraded scans.** If the render broke after launch, the page's document was missing or answered 400 or above, or the Jev call threw, the scan is never stored, so it can't replace a full score. Without a render there is no score to show: the visitor is told the site couldn't be opened. When only the Jev call failed, the visitor sees the scan with no points given back.
 - **Jev.** A new read is skipped when the screenshot is byte for byte the previous one.

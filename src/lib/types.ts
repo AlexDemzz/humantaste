@@ -166,7 +166,7 @@ export interface VisualRead {
 export interface AnalysisResult {
   /** The clean path after /scan/. */
   slug: string;
-  /** Bumped whenever checks or weights change, so stored scans are redone rather than mixed. */
+  /** The checks and weights that scored this scan. Bumped whenever they change; "Score again" brings a report up to date. */
   methodology: string;
   url: string;
   finalUrl: string;

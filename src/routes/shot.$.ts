@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { loadScan, loadScreenshot } from "@/lib/store.server";
+import { loadScreenshot } from "@/lib/store.server";
 import { parseTarget } from "@/lib/target";
 
 export const Route = createFileRoute("/shot/$")({
@@ -11,10 +11,7 @@ export const Route = createFileRoute("/shot/$")({
           const { slug } = parseTarget(
             (params._splat ?? "").replace(/\.jpg$/u, "")
           );
-          // A report from an older methodology is hidden, and its screenshot goes with it.
-          const shot = (await loadScan(slug))
-            ? await loadScreenshot(slug)
-            : null;
+          const shot = await loadScreenshot(slug);
           if (shot) {
             return new Response(shot, {
               headers: {

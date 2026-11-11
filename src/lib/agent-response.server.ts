@@ -1,5 +1,3 @@
-import { waitUntil } from "cloudflare:workers";
-
 import { prefersMarkdown } from "./accept";
 import { isInfoPageSlug } from "./info-pages";
 import {
@@ -8,7 +6,7 @@ import {
   llmsTxt,
   missingReportMarkdown,
   reportMarkdown,
-  scoringReportMarkdown,
+  scanErrorMarkdown,
 } from "./markdown";
 import { requestScan } from "./scan-request.server";
 import { HOME_MARKDOWN_PATH, absolute } from "./seo";
@@ -18,7 +16,6 @@ import { parseTarget } from "./target";
 
 const READ_METHODS = new Set(["GET", "HEAD"]);
 const RECENT_REPORTS = 12;
-const SCORING_RETRY_AFTER_SECONDS = 60;
 // `/scan/example.md` is a site in Moldova, so a report's Markdown lives under its own prefix.
 const REPORT_MARKDOWN = /^\/md\/(?<site>.+)\.md$/u;
 const REPORT_PAGE = /^\/scan\/(?<site>.+)$/u;
@@ -30,21 +27,14 @@ const textResponse = (
   {
     canonical,
     contentType,
-    retryAfter,
     status = 200,
-  }: {
-    canonical?: string;
-    contentType: string;
-    retryAfter?: number;
-    status?: number;
-  }
+  }: { canonical?: string; contentType: string; status?: number }
 ) =>
   new Response(request.method === "HEAD" ? null : body, {
     headers: {
       "content-type": contentType,
       vary: "Accept",
       ...(canonical && { link: `<${canonical}>; rel="canonical"` }),
-      ...(retryAfter !== undefined && { "retry-after": String(retryAfter) }),
     },
     status,
   });
@@ -52,7 +42,7 @@ const textResponse = (
 const markdownResponse = (
   request: Request,
   body: string,
-  options: { canonical?: string; retryAfter?: number; status?: number }
+  options: { canonical?: string; status?: number }
 ) =>
   textResponse(request, body, {
     ...options,
@@ -73,28 +63,30 @@ const parsedSlug = (site: string) => {
   }
 };
 
+const HTTP_UNPROCESSABLE = 422;
+const HTTP_TOO_MANY_REQUESTS = 429;
+
+/** A site nobody has scored yet is scored now, as its HTML page does. A HEAD only asks, so it starts no scan. */
 const reportResponse = async (request: Request, site: string) => {
   const slug = parsedSlug(site);
-  const report = slug ? await loadScan(slug) : null;
-  if (slug && report) {
-    return markdownResponse(request, reportMarkdown(report), {
-      canonical: reportUrl(slug),
-    });
-  }
-  if (!slug) {
-    return markdownResponse(request, missingReportMarkdown(site), {
+  const stored = slug ? await loadScan(slug) : null;
+  if (!slug || (!stored && request.method === "HEAD")) {
+    return markdownResponse(request, missingReportMarkdown(slug ?? site), {
       status: 404,
     });
   }
-  // The scan outlives this answer, so the agent finds the report when it asks again.
-  waitUntil(
-    requestScan(slug, {
-      ip: request.headers.get("cf-connecting-ip") ?? "unknown",
-    })
-  );
-  return markdownResponse(request, scoringReportMarkdown(slug), {
-    retryAfter: SCORING_RETRY_AFTER_SECONDS,
-    status: 202,
+  const outcome = stored
+    ? { ok: true as const, result: stored }
+    : await requestScan(slug, {
+        ip: request.headers.get("cf-connecting-ip") ?? "unknown",
+      });
+  if (!outcome.ok) {
+    return markdownResponse(request, scanErrorMarkdown(slug, outcome.error), {
+      status: outcome.refused ? HTTP_TOO_MANY_REQUESTS : HTTP_UNPROCESSABLE,
+    });
+  }
+  return markdownResponse(request, reportMarkdown(outcome.result), {
+    canonical: reportUrl(slug),
   });
 };
 

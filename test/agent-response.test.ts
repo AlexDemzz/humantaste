@@ -1,9 +1,11 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
 import { agentResponse } from "@/lib/agent-response.server";
+import { requestScan } from "@/lib/scan-request.server";
 import { loadScan, recentScans } from "@/lib/store.server";
 import type { AnalysisResult } from "@/lib/types";
 
+vi.mock("@/lib/scan-request.server", () => ({ requestScan: vi.fn() }));
 vi.mock("@/lib/store.server", () => ({
   loadScan: vi.fn(),
   recentScans: vi.fn(),
@@ -27,14 +29,19 @@ const REPORT = {
   visual: { points: 3 },
 } as unknown as AnalysisResult;
 
-const get = (path: string, accept?: string) =>
+const get = (path: string, accept?: string, method = "GET") =>
   agentResponse(
     new Request(`https://humantaste.xyz${path}`, {
-      headers: accept ? { accept } : {},
+      method,
+      headers: {
+        "cf-connecting-ip": "8.8.8.8",
+        ...(accept ? { accept } : {}),
+      },
     })
   );
 
 beforeEach(() => {
+  vi.mocked(requestScan).mockReset();
   vi.mocked(loadScan).mockReset().mockResolvedValue(REPORT);
   vi.mocked(recentScans)
     .mockReset()
@@ -75,13 +82,38 @@ it("serves the home page's Markdown with links to report twins", async () => {
   );
 });
 
-it("says how to get a report that does not exist", async () => {
+it("scores a site nobody has scored and answers its report", async () => {
   vi.mocked(loadScan).mockResolvedValue(null);
-  const response = await get("/md/never-scored.example.md");
+  vi.mocked(requestScan).mockResolvedValue({ ok: true, result: REPORT });
+  const response = await get("/scan/linear.app", "text/markdown");
+  expect(response?.status).toBe(200);
+  expect(await response?.text()).toContain("# linear.app scores 78/100");
+  expect(requestScan).toHaveBeenCalledWith("linear.app", { ip: "8.8.8.8" });
+});
+
+it.each([
+  [{ ok: false, error: "The site took too long to answer." } as const, 422],
+  [{ ok: false, error: "Give it a few minutes.", refused: true } as const, 429],
+])("says why a new score failed", async (outcome, status) => {
+  vi.mocked(loadScan).mockResolvedValue(null);
+  vi.mocked(requestScan).mockResolvedValue(outcome);
+  const response = await get("/md/linear.app.md");
+  expect(response?.status).toBe(status);
+  expect(await response?.text()).toContain(outcome.error);
+});
+
+it("starts no scan for a HEAD", async () => {
+  vi.mocked(loadScan).mockResolvedValue(null);
+  const response = await get("/md/linear.app.md", undefined, "HEAD");
   expect(response?.status).toBe(404);
-  expect(await response?.text()).toContain(
-    "https://humantaste.xyz/scan/never-scored.example"
-  );
+  expect(requestScan).not.toHaveBeenCalled();
+});
+
+it("scores nothing for an address that is not a site", async () => {
+  vi.mocked(loadScan).mockResolvedValue(null);
+  const response = await get("/md/not a site.md");
+  expect(response?.status).toBe(404);
+  expect(requestScan).not.toHaveBeenCalled();
 });
 
 it("serves an info page's Markdown with absolute links", async () => {

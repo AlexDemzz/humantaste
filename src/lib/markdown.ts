@@ -53,6 +53,9 @@ export const missingReportMarkdown = (slug: string) => `# No report for ${slug}
 Nobody has scored this site yet. Open ${reportUrl(slug)} to score it.
 `;
 
+export const scanErrorMarkdown = (slug: string, error: string) =>
+  `# Unable to score ${slug}\n\n${error}\n`;
+
 const partMarkdown = (part: InfoPart) => {
   if (typeof part === "string") {
     return part;

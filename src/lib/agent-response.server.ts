@@ -6,7 +6,9 @@ import {
   llmsTxt,
   missingReportMarkdown,
   reportMarkdown,
+  scanErrorMarkdown,
 } from "./markdown";
+import { requestScan } from "./scan-request.server";
 import { HOME_MARKDOWN_PATH, absolute } from "./seo";
 import { reportUrl } from "./share";
 import { loadScan, recentScans } from "./store.server";
@@ -61,16 +63,30 @@ const parsedSlug = (site: string) => {
   }
 };
 
+const HTTP_UNPROCESSABLE = 422;
+const HTTP_TOO_MANY_REQUESTS = 429;
+
+/** A site nobody has scored yet is scored now, as its HTML page does. A HEAD only asks, so it starts no scan. */
 const reportResponse = async (request: Request, site: string) => {
   const slug = parsedSlug(site);
-  const report = slug ? await loadScan(slug) : null;
-  if (slug && report) {
-    return markdownResponse(request, reportMarkdown(report), {
-      canonical: reportUrl(slug),
+  const stored = slug ? await loadScan(slug) : null;
+  if (!slug || (!stored && request.method === "HEAD")) {
+    return markdownResponse(request, missingReportMarkdown(slug ?? site), {
+      status: 404,
     });
   }
-  return markdownResponse(request, missingReportMarkdown(slug ?? site), {
-    status: 404,
+  const outcome = stored
+    ? { ok: true as const, result: stored }
+    : await requestScan(slug, {
+        ip: request.headers.get("cf-connecting-ip") ?? "unknown",
+      });
+  if (!outcome.ok) {
+    return markdownResponse(request, scanErrorMarkdown(slug, outcome.error), {
+      status: outcome.refused ? HTTP_TOO_MANY_REQUESTS : HTTP_UNPROCESSABLE,
+    });
+  }
+  return markdownResponse(request, reportMarkdown(outcome.result), {
+    canonical: reportUrl(slug),
   });
 };
 

@@ -138,7 +138,10 @@ export const attemptScan = async ({
 /** The stored report without waiting on any rescan, else the site's one running scan. Never throws: errors come back as readable text. */
 export const requestScan = async (
   slug: string,
-  { fresh = false } = {}
+  {
+    fresh = false,
+    ip = getRequestHeader("cf-connecting-ip") ?? "unknown",
+  }: { fresh?: boolean; ip?: string } = {}
 ): Promise<ScanOutcome> => {
   try {
     const target = parseTarget(slug);
@@ -150,7 +153,7 @@ export const requestScan = async (
       await env.SITE_SCAN.getByName(target.slug).scan({
         target,
         fresh,
-        ip: getRequestHeader("cf-connecting-ip") ?? "unknown",
+        ip,
       })
     );
   } catch (error) {

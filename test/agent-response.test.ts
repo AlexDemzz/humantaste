@@ -1,9 +1,13 @@
+import { waitUntil } from "cloudflare:workers";
 import { beforeEach, expect, it, vi } from "vitest";
 
 import { agentResponse } from "@/lib/agent-response.server";
+import { requestScan } from "@/lib/scan-request.server";
 import { loadScan, recentScans } from "@/lib/store.server";
 import type { AnalysisResult } from "@/lib/types";
 
+vi.mock("cloudflare:workers", () => ({ waitUntil: vi.fn() }));
+vi.mock("@/lib/scan-request.server", () => ({ requestScan: vi.fn() }));
 vi.mock("@/lib/store.server", () => ({
   loadScan: vi.fn(),
   recentScans: vi.fn(),
@@ -30,11 +34,16 @@ const REPORT = {
 const get = (path: string, accept?: string) =>
   agentResponse(
     new Request(`https://humantaste.xyz${path}`, {
-      headers: accept ? { accept } : {},
+      headers: {
+        "cf-connecting-ip": "8.8.8.8",
+        ...(accept ? { accept } : {}),
+      },
     })
   );
 
 beforeEach(() => {
+  vi.mocked(waitUntil).mockReset();
+  vi.mocked(requestScan).mockReset();
   vi.mocked(loadScan).mockReset().mockResolvedValue(REPORT);
   vi.mocked(recentScans)
     .mockReset()
@@ -75,13 +84,27 @@ it("serves the home page's Markdown with links to report twins", async () => {
   );
 });
 
-it("says how to get a report that does not exist", async () => {
+it("starts scoring a site nobody has scored and says when to ask again", async () => {
   vi.mocked(loadScan).mockResolvedValue(null);
-  const response = await get("/md/never-scored.example.md");
-  expect(response?.status).toBe(404);
+  const scan = Promise.resolve({ ok: false, error: "pending" } as const);
+  vi.mocked(requestScan).mockReturnValue(scan);
+  const response = await get("/scan/never-scored.example", "text/markdown");
+  expect(response?.status).toBe(202);
+  expect(response?.headers.get("retry-after")).toBe("60");
   expect(await response?.text()).toContain(
     "https://humantaste.xyz/scan/never-scored.example"
   );
+  expect(requestScan).toHaveBeenCalledWith("never-scored.example", {
+    ip: "8.8.8.8",
+  });
+  expect(waitUntil).toHaveBeenCalledWith(scan);
+});
+
+it("scores nothing for an address that is not a site", async () => {
+  vi.mocked(loadScan).mockResolvedValue(null);
+  const response = await get("/md/not a site.md");
+  expect(response?.status).toBe(404);
+  expect(requestScan).not.toHaveBeenCalled();
 });
 
 it("serves an info page's Markdown with absolute links", async () => {

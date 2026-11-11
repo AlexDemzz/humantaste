@@ -1,3 +1,5 @@
+import { waitUntil } from "cloudflare:workers";
+
 import { prefersMarkdown } from "./accept";
 import { isInfoPageSlug } from "./info-pages";
 import {
@@ -6,7 +8,9 @@ import {
   llmsTxt,
   missingReportMarkdown,
   reportMarkdown,
+  scoringReportMarkdown,
 } from "./markdown";
+import { requestScan } from "./scan-request.server";
 import { HOME_MARKDOWN_PATH, absolute } from "./seo";
 import { reportUrl } from "./share";
 import { loadScan, recentScans } from "./store.server";
@@ -14,6 +18,7 @@ import { parseTarget } from "./target";
 
 const READ_METHODS = new Set(["GET", "HEAD"]);
 const RECENT_REPORTS = 12;
+const SCORING_RETRY_AFTER_SECONDS = 60;
 // `/scan/example.md` is a site in Moldova, so a report's Markdown lives under its own prefix.
 const REPORT_MARKDOWN = /^\/md\/(?<site>.+)\.md$/u;
 const REPORT_PAGE = /^\/scan\/(?<site>.+)$/u;
@@ -25,14 +30,21 @@ const textResponse = (
   {
     canonical,
     contentType,
+    retryAfter,
     status = 200,
-  }: { canonical?: string; contentType: string; status?: number }
+  }: {
+    canonical?: string;
+    contentType: string;
+    retryAfter?: number;
+    status?: number;
+  }
 ) =>
   new Response(request.method === "HEAD" ? null : body, {
     headers: {
       "content-type": contentType,
       vary: "Accept",
       ...(canonical && { link: `<${canonical}>; rel="canonical"` }),
+      ...(retryAfter !== undefined && { "retry-after": String(retryAfter) }),
     },
     status,
   });
@@ -40,7 +52,7 @@ const textResponse = (
 const markdownResponse = (
   request: Request,
   body: string,
-  options: { canonical?: string; status?: number }
+  options: { canonical?: string; retryAfter?: number; status?: number }
 ) =>
   textResponse(request, body, {
     ...options,
@@ -69,8 +81,20 @@ const reportResponse = async (request: Request, site: string) => {
       canonical: reportUrl(slug),
     });
   }
-  return markdownResponse(request, missingReportMarkdown(slug ?? site), {
-    status: 404,
+  if (!slug) {
+    return markdownResponse(request, missingReportMarkdown(site), {
+      status: 404,
+    });
+  }
+  // The scan outlives this answer, so the agent finds the report when it asks again.
+  waitUntil(
+    requestScan(slug, {
+      ip: request.headers.get("cf-connecting-ip") ?? "unknown",
+    })
+  );
+  return markdownResponse(request, scoringReportMarkdown(slug), {
+    retryAfter: SCORING_RETRY_AFTER_SECONDS,
+    status: 202,
   });
 };
 

@@ -21,14 +21,12 @@ export interface RecentScan {
 
 const shotKey = (slug: string) => `shots/${encodeURIComponent(slug)}.jpg`;
 
-/** A site's latest scan. One scored under an older methodology counts as missing, so the page offers a new scan. */
+/** A site's latest scan, whatever methodology scored it: "Score again" brings it up to date. */
 export const loadScan = async (
   slug: string
 ): Promise<AnalysisResult | null> => {
-  const row = await env.DB.prepare(
-    "SELECT result FROM scans WHERE slug = ? AND methodology = ?"
-  )
-    .bind(slug, METHODOLOGY)
+  const row = await env.DB.prepare("SELECT result FROM scans WHERE slug = ?")
+    .bind(slug)
     .first<{ result: string }>();
   if (!row) {
     return null;
@@ -93,18 +91,18 @@ export const reportsForSitemap = async (
   limit: number
 ): Promise<{ slug: string; analyzedAt: string }[]> => {
   const { results } = await env.DB.prepare(
-    "SELECT slug, analyzed_at AS analyzedAt FROM scans WHERE methodology = ? ORDER BY analyzed_at DESC LIMIT ?"
+    "SELECT slug, analyzed_at AS analyzedAt FROM scans ORDER BY analyzed_at DESC LIMIT ?"
   )
-    .bind(METHODOLOGY, limit)
+    .bind(limit)
     .all<{ slug: string; analyzedAt: string }>();
   return results;
 };
 
 export const recentScans = async (limit: number): Promise<RecentScan[]> => {
   const { results } = await env.DB.prepare(
-    "SELECT slug, score FROM scans WHERE methodology = ? ORDER BY analyzed_at DESC LIMIT ?"
+    "SELECT slug, score FROM scans ORDER BY analyzed_at DESC LIMIT ?"
   )
-    .bind(METHODOLOGY, limit)
+    .bind(limit)
     .all<RecentScan>();
   return results;
 };

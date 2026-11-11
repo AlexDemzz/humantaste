@@ -19,7 +19,7 @@ export interface RecentScan {
   score: number;
 }
 
-/** Reports scored before this one store points in another shape, so they read as missing and get scored again. */
+/** Reports scored before this one store points in another shape, so they read as missing. */
 const OLDEST_READABLE_METHODOLOGY = "2026-11-10.1";
 
 const shotKey = (slug: string) => `shots/${encodeURIComponent(slug)}.jpg`;

@@ -7,7 +7,8 @@ describe("scan targets", () => {
     ["alexandrejoly.me", "alexandrejoly.me"],
     ["https://www.Vercel.com/", "vercel.com"],
     ["http://example.com/pricing/", "example.com/pricing"],
-    ["example.com/docs?tab=api", "example.com/docs?tab=api"],
+    ["example.com/docs?tab=api", "example.com/docs"],
+    ["example.com/?ref=x#top", "example.com"],
     ["https%3A%2F%2Flinear.app", "linear.app"],
   ])("turns %s into /scan/%s", (raw, slug) => {
     expect(parseTarget(raw).slug).toBe(slug);

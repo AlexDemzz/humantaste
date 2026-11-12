@@ -10,27 +10,16 @@ import {
 } from "@/components/ui/input-group";
 import { parseTarget } from "@/lib/target";
 
-const EXAMPLES = [
-  "linear.app",
-  "raycast.com",
-  "shadcn-landing-page.vercel.app",
-];
-
-export const ScanForm = ({
-  initial = "",
-  examples = true,
-}: {
-  initial?: string;
-  examples?: boolean;
-}) => {
+export const ScanForm = ({ initial = "" }: { initial?: string }) => {
   const navigate = useNavigate();
   const id = useId();
   const [input, setInput] = useState(initial);
   const [error, setError] = useState<string | null>(null);
 
-  const go = (raw: string) => {
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
     try {
-      const { slug } = parseTarget(raw);
+      const { slug } = parseTarget(input);
       setError(null);
       setInput(slug);
       navigate({ params: { _splat: slug }, to: "/scan/$" });
@@ -41,11 +30,6 @@ export const ScanForm = ({
           : "Enter a web address, like linear.app."
       );
     }
-  };
-
-  const onSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    go(input);
   };
 
   return (
@@ -78,21 +62,6 @@ export const ScanForm = ({
       {error && (
         <p id={`${id}-error`} className="text-destructive text-sm">
           {error}
-        </p>
-      )}
-      {examples && (
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <span>Try</span>
-          {EXAMPLES.map((example) => (
-            <button
-              key={example}
-              type="button"
-              className="text-link"
-              onClick={() => go(example)}
-            >
-              {example}
-            </button>
-          ))}
         </p>
       )}
     </div>

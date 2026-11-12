@@ -157,7 +157,7 @@ const ScoreSite = ({ title }: { title: string }) => (
     <h2 id="again" className="text-foreground font-semibold">
       {title}
     </h2>
-    <ScanForm examples={false} />
+    <ScanForm />
   </section>
 );
 

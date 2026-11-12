@@ -7,14 +7,16 @@
 /* Hover effects only where a pointer can hover (DESIGN.md › States). */
 @custom-variant can-hover (@media (hover: hover) and (pointer: fine));
 
-/* Kanit Black Italic (OFL): the score's face and the wordmark's, like a number on a race bike. */
+/* Kanit Black Italic (OFL): the score's face, like a number on a race bike. The file holds the ten digits only, and
+   the report preloads it. block, not swap: a score that waits a moment beats one that changes face. */
 @font-face {
   font-family: "Kanit";
-  src: url("../../assets/fonts/display/Kanit-BlackItalic.ttf")
-    format("truetype");
+  src: url("../../assets/fonts/display/Kanit-BlackItalic-digits.woff2")
+    format("woff2");
   font-weight: 900;
   font-style: italic;
-  font-display: swap;
+  font-display: block;
+  unicode-range: U+30-39;
 }
 
 @theme {

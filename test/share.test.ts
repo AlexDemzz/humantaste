@@ -11,7 +11,7 @@ it("closes the post with the report's URL so X unfurls the score card", () => {
 });
 
 it("keeps a slug with URL syntax inside the text parameter", () => {
-  const url = new URL(shareOnXUrl("example.com/a?b=1&c=2", 40));
+  const url = new URL(shareOnXUrl("example.com/a&b=1", 40));
   expect([...url.searchParams.keys()]).toEqual(["text"]);
-  expect(url.searchParams.get("text")).toContain("example.com/a?b=1&c=2");
+  expect(url.searchParams.get("text")).toContain("example.com/a&b=1");
 });

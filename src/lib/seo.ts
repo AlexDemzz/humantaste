@@ -6,7 +6,6 @@ import { hasSheen } from "./score";
 import {
   cardPath,
   cardVideoPath,
-  pathSlug,
   reportUrl,
   scanPath,
   scoreLine,
@@ -34,7 +33,7 @@ const SITE_CARD_PATH = "/og.png";
 export const HOME_MARKDOWN_PATH = "/index.md";
 
 export const absolute = (path: string) => new URL(path, SITE_URL).href;
-export const reportMarkdownPath = (slug: string) => `/md/${pathSlug(slug)}.md`;
+export const reportMarkdownPath = (slug: string) => `/md/${slug}.md`;
 
 interface PageImage {
   alt: string;

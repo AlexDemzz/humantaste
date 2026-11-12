@@ -28,12 +28,10 @@ export interface ShareCard {
   scanUrl: string;
 }
 
-/** A slug can hold a query string, which has to stay in the path to reach the same report. */
-export const pathSlug = (slug: string) => slug.replaceAll("?", "%3F");
-export const scanPath = (slug: string) => `/scan/${pathSlug(slug)}`;
-export const cardPath = (slug: string) => `/og/${pathSlug(slug)}.png`;
-export const cardVideoPath = (slug: string) => `/og/${pathSlug(slug)}.mp4`;
-export const shotPath = (slug: string) => `/shot/${pathSlug(slug)}.jpg`;
+export const scanPath = (slug: string) => `/scan/${slug}`;
+export const cardPath = (slug: string) => `/og/${slug}.png`;
+export const cardVideoPath = (slug: string) => `/og/${slug}.mp4`;
+export const shotPath = (slug: string) => `/shot/${slug}.jpg`;
 export const reportUrl = (slug: string) => `${SITE_URL}${scanPath(slug)}`;
 export const scoreLine = (slug: string, score: number) =>
   `${slug} scores ${score}/100 on humantaste`;

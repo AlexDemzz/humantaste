@@ -92,12 +92,12 @@ describe("page heads", () => {
 describe("sitemapXml", () => {
   it("lists the home page and each report with its date, escaped", () => {
     const xml = sitemapXml([
-      { slug: "example.com/a?b=1&c=2", analyzedAt: "2026-11-08T18:05:00.000Z" },
+      { slug: "example.com/a&b", analyzedAt: "2026-11-08T18:05:00.000Z" },
     ]);
     expect(xml).toContain("<loc>https://humantaste.xyz/</loc>");
     expect(xml).toContain("<loc>https://humantaste.xyz/privacy</loc>");
     expect(xml).toContain(
-      "<loc>https://humantaste.xyz/scan/example.com/a%3Fb=1&amp;c=2</loc><lastmod>2026-11-08T18:05:00.000Z</lastmod>"
+      "<loc>https://humantaste.xyz/scan/example.com/a&amp;b</loc><lastmod>2026-11-08T18:05:00.000Z</lastmod>"
     );
   });
 });

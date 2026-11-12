@@ -1,6 +1,7 @@
 /**
  * A scan target is the clean path segment after /scan/: a host, optionally with a path.
- * "https://www.Vercel.com/" and "vercel.com" both become "vercel.com".
+ * "https://www.Vercel.com/" and "vercel.com" both become "vercel.com". A query string is dropped, so one page has one
+ * report however it was linked.
  */
 export interface Target {
   /** What goes in the URL: `alexandrejoly.me`, `example.com/pricing`. */
@@ -42,6 +43,6 @@ export const parseTarget = (raw: string): Target => {
     );
   }
   const path = parsed.pathname.replace(/\/+$/u, "");
-  const slug = `${host}${parsed.port ? `:${parsed.port}` : ""}${path}${parsed.search}`;
+  const slug = `${host}${parsed.port ? `:${parsed.port}` : ""}${path}`;
   return { slug, url: `https://${slug}`, host };
 };

@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { HoloCard } from "@/components/holo-card/holo-card";
 import { Page } from "@/components/page";
@@ -56,15 +56,52 @@ const failure = (error: unknown): ScanOutcome => ({
       : "Unable to score this page. Try again in a minute.",
 });
 
+const CARD_LIFT_MS = 300;
+const EVIDENCE_FADE_MS = 180;
+/** `--ease-out` in globals.css. */
+const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+/** The two ends of `card-land` in globals.css: a card leaves by the way it landed. */
+const CARD_FLAT = "perspective(1600px) translateY(0) rotateX(0deg) scale(1)";
+const CARD_TILTED =
+  "perspective(1600px) translateY(28px) rotateX(16deg) scale(0.96)";
+
+const EVIDENCE_ARRIVES =
+  "motion-safe:animate-in motion-safe:fade-in motion-safe:fill-mode-both motion-safe:delay-600 motion-safe:duration-300";
+
+/**
+ * A rescored report's old card tips back and its evidence fades. Both are held out of sight once gone, until the new
+ * report replaces them. Reduced motion keeps the card's fade alone.
+ */
+const leaveReport = async (
+  card: HTMLElement | null,
+  evidence: HTMLElement | null
+) => {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fade = {
+    duration: EVIDENCE_FADE_MS,
+    easing: "ease-out",
+    fill: "forwards",
+  } as const;
+  const leaving = reduced
+    ? [card?.animate({ opacity: [1, 0] }, fade)]
+    : [
+        card?.animate(
+          { opacity: [1, 0], transform: [CARD_FLAT, CARD_TILTED] },
+          { duration: CARD_LIFT_MS, easing: EASE_OUT, fill: "forwards" }
+        ),
+        evidence?.animate({ opacity: [1, 0] }, fade),
+      ];
+  await Promise.all(leaving.map((animation) => animation?.finished));
+};
+
 /** The counts, when the scan ran, and a way to run it again. */
 const ScanMeta = ({
   result,
   onRescored,
 }: {
   result: AnalysisResult;
-  onRescored: () => void;
+  onRescored: () => Promise<void>;
 }) => {
-  const router = useRouter();
   const [rescan, setRescan] = useState<{ busy: boolean; error: string | null }>(
     { busy: false, error: null }
   );
@@ -87,9 +124,7 @@ const ScanMeta = ({
       });
       return;
     }
-    // The cover goes back on before the new score loads, so the reader peels to see it.
-    onRescored();
-    await router.invalidate();
+    await onRescored();
     setRescan({ busy: false, error: null });
   };
 
@@ -132,6 +167,7 @@ const ScoreSite = ({ title }: { title: string }) => (
  */
 const Scan = () => {
   const { slug, stored, invalid } = Route.useLoaderData();
+  const router = useRouter();
   // oxlint-disable-next-line react/hook-use-state -- the first outcome is fixed for this mount; it decides whether the evidence fades in
   const [initial] = useState<ScanOutcome | null>(
     () => invalid ?? (stored ? { ok: true, result: stored } : null)
@@ -143,8 +179,22 @@ const Scan = () => {
     : settled;
   const [revealed, setRevealed] = useState(initial !== null);
   const reveal = useCallback(() => setRevealed(true), []);
-  const [seal, setSeal] = useState(0);
-  const reseal = useCallback(() => setSeal((count) => count + 1), []);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const evidenceRef = useRef<HTMLDivElement>(null);
+  /** The report still on screen while its card leaves, whatever the route has loaded since. */
+  const [leaving, setLeaving] = useState<AnalysisResult | null>(null);
+  /** Each rescore deals a new card: it remounts, so it lands under its cover like a fresh scan's. */
+  const [redeals, setRedeals] = useState(0);
+
+  const redeal = async (old: AnalysisResult) => {
+    setLeaving(old);
+    await Promise.all([
+      leaveReport(cardRef.current, evidenceRef.current),
+      router.invalidate(),
+    ]);
+    setRedeals((count) => count + 1);
+    setLeaving(null);
+  };
 
   // The browser asks for the scan itself: a promise streamed from SSR dies with the stream's 60s serialization timeout.
   useEffect(() => {
@@ -185,9 +235,10 @@ const Scan = () => {
     );
   }
 
-  const scanned = outcome?.result ?? null;
+  const scanned = leaving ?? outcome?.result ?? null;
   const result = revealed ? scanned : null;
   const arrivedOnReport = initial?.ok === true;
+  const underCover = initial === null || redeals > 0;
   return (
     <>
       <section className="flex flex-col gap-4" aria-live="polite">
@@ -210,22 +261,21 @@ const Scan = () => {
           {result && (
             <div
               className={cn(
-                initial === null &&
-                  "motion-safe:animate-card-land motion-reduce:animate-in motion-reduce:fade-in origin-bottom motion-reduce:duration-200"
+                "origin-bottom",
+                underCover &&
+                  "motion-safe:animate-card-land motion-reduce:animate-in motion-reduce:fade-in motion-reduce:duration-200"
               )}
+              key={redeals}
+              ref={cardRef}
             >
-              <HoloCard
-                card={cardFromResult(result)}
-                sealed={initial === null}
-                seal={seal}
-              />
+              <HoloCard card={cardFromResult(result)} sealed={underCover} />
             </div>
           )}
         </div>
         {result && (
           <>
             <ShareActions result={result} />
-            <ScanMeta result={result} onRescored={reseal} />
+            <ScanMeta result={result} onRescored={() => redeal(result)} />
           </>
         )}
       </section>
@@ -233,12 +283,21 @@ const Scan = () => {
         <div
           className={cn(
             "flex flex-col gap-12",
-            initial === null &&
-              "motion-safe:animate-in motion-safe:fade-in motion-safe:fill-mode-both motion-safe:delay-600 motion-safe:duration-300"
+            initial === null && EVIDENCE_ARRIVES
           )}
         >
-          <Patterns result={result} />
-          <Details result={result} />
+          {/* Only what a rescore changes leaves with the old card: the forms under it keep what the reader typed. */}
+          <div
+            className={cn(
+              "flex flex-col gap-12",
+              redeals > 0 && EVIDENCE_ARRIVES
+            )}
+            key={redeals}
+            ref={evidenceRef}
+          >
+            <Patterns result={result} />
+            <Details result={result} />
+          </div>
           {arrivedOnReport && <ScoreSite title="Score your site" />}
           <TasteSkills />
         </div>

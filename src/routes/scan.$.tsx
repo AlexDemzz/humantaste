@@ -18,7 +18,35 @@ import { parseSkillsPage } from "@/lib/taste-skills";
 import type { AnalysisResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import scoreFont from "../../assets/fonts/display/Kanit-BlackItalic-digits.woff2?url";
+import cardScene from "../../assets/images/card-scene.webp?url";
+
 import holoCardCss from "@/components/holo-card/holo-card.css?url";
+
+/**
+ * The card's font and drawing are named inside stylesheets, so the browser would only ask for them once the CSS is
+ * parsed and paint the card without them first. Preloaded, they arrive with the CSS. Fonts and CSS masks are both
+ * fetched in CORS mode, and a preload is only reused when its mode matches.
+ *
+ * Each file must be the one its stylesheet names (the @font-face in globals.css, the masks in holo-card.css): a
+ * preload of any other file is fetched for nothing and the card paints without it again.
+ */
+const CARD_PRELOADS = [
+  {
+    rel: "preload",
+    as: "font",
+    type: "font/woff2",
+    href: scoreFont,
+    crossOrigin: "anonymous",
+  },
+  {
+    rel: "preload",
+    as: "image",
+    type: "image/webp",
+    href: cardScene,
+    crossOrigin: "anonymous",
+  },
+] as const;
 
 const failure = (error: unknown): ScanOutcome => ({
   ok: false,
@@ -264,7 +292,9 @@ export const Route = createFileRoute("/scan/$")({
     }
     const { slug, stored } = loaderData;
     const head = stored ? reportHead(stored) : unscoredHead(slug);
-    return { ...head, links: [...head.links, ...links] };
+    // Only a stored report paints its card first: a fresh scan's card mounts later, under the cover.
+    const preloads = stored ? CARD_PRELOADS : [];
+    return { ...head, links: [...head.links, ...links, ...preloads] };
   },
   component: ScanPage,
 });

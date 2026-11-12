@@ -40,7 +40,8 @@
     }
   }
 
-  /* A sealed card comes down flat from a slight tilt. */
+  /* A sealed card comes down flat from a slight tilt. A rescored card leaves by the same two poses (leaveReport in
+     scan.$.tsx). */
   @keyframes card-land {
     from {
       opacity: 0;

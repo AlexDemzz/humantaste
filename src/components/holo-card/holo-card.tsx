@@ -104,16 +104,24 @@ const Front = ({ card }: { card: ShareCard }) => (
 /**
  * The scan as a score card. The footer's drawing is printed on it in varnish, lit by the pointer, and the score's level
  * is the varnish's material. With `sealed` (a fresh scan), it arrives under a chrome cover the reader peels off.
+ * Each new `seal` value puts the cover back on, without remounting the card.
  */
 export const HoloCard = ({
   card,
   sealed: startSealed = false,
+  seal = 0,
 }: {
   card: ShareCard;
   sealed?: boolean;
+  seal?: number;
 }) => {
   const ref = useRef<HTMLElement>(null);
   const [sealed, setSealed] = useState(startSealed);
+  const [lastSeal, setLastSeal] = useState(seal);
+  if (seal !== lastSeal) {
+    setLastSeal(seal);
+    setSealed(true);
+  }
   const { askingMotion, allowMotion, skipMotion } = useTilt(ref, {
     still: sealed,
   });

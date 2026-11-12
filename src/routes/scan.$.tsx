@@ -29,7 +29,13 @@ const failure = (error: unknown): ScanOutcome => ({
 });
 
 /** The counts, when the scan ran, and a way to run it again. */
-const ScanMeta = ({ result }: { result: AnalysisResult }) => {
+const ScanMeta = ({
+  result,
+  onRescored,
+}: {
+  result: AnalysisResult;
+  onRescored: () => void;
+}) => {
   const router = useRouter();
   const [rescan, setRescan] = useState<{ busy: boolean; error: string | null }>(
     { busy: false, error: null }
@@ -53,6 +59,8 @@ const ScanMeta = ({ result }: { result: AnalysisResult }) => {
       });
       return;
     }
+    // The cover goes back on before the new score loads, so the reader peels to see it.
+    onRescored();
     await router.invalidate();
     setRescan({ busy: false, error: null });
   };
@@ -107,6 +115,8 @@ const Scan = () => {
     : settled;
   const [revealed, setRevealed] = useState(initial !== null);
   const reveal = useCallback(() => setRevealed(true), []);
+  const [seal, setSeal] = useState(0);
+  const reseal = useCallback(() => setSeal((count) => count + 1), []);
 
   // The browser asks for the scan itself: a promise streamed from SSR dies with the stream's 60s serialization timeout.
   useEffect(() => {
@@ -179,6 +189,7 @@ const Scan = () => {
               <HoloCard
                 card={cardFromResult(result)}
                 sealed={initial === null}
+                seal={seal}
               />
             </div>
           )}
@@ -186,7 +197,7 @@ const Scan = () => {
         {result && (
           <>
             <ShareActions result={result} />
-            <ScanMeta result={result} />
+            <ScanMeta result={result} onRescored={reseal} />
           </>
         )}
       </section>

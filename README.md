@@ -59,22 +59,25 @@ In dev, D1 and R2 are local and the browser and Media Transformations are remote
 | `pnpm typecheck` | Checks types |
 | `pnpm check` | Ultracite: oxlint (core, react, tanstack, shadcn) and oxfmt |
 | `pnpm fix` | Applies the fixes Ultracite can make |
-| `pnpm cf-typegen` | Regenerates the bindings' types after a `wrangler.jsonc` edit |
-| `pnpm deploy` | Builds, then runs `wrangler deploy` |
+| `pnpm cf-typegen` | Regenerates the bindings' types after an edit to `wrangler.jsonc` or `wrangler.engine.jsonc` |
+| `pnpm deploy` | Builds, then deploys the engine Worker and the site Worker, in that order |
 
-In production, set the key with `wrangler secret put TYPESAFE_API_KEY`. Share pages emit absolute image URLs on `https://humantaste.xyz`; set `VITE_SITE_URL` to point them elsewhere.
+In production, set the key on the engine Worker with `wrangler secret put TYPESAFE_API_KEY -c wrangler.engine.jsonc`. Share pages emit absolute image URLs on `https://humantaste.xyz`; set `VITE_SITE_URL` to point them elsewhere.
 
 ## Stack
 
 TanStack Start on Vite, running on Cloudflare Workers through `@cloudflare/vite-plugin`, so `pnpm dev` runs in workerd too. The interface is shadcn (`base-nova`, Base UI, Phosphor icons) on Tailwind v4. Read [`DESIGN.md`](DESIGN.md) before any UI change: it says what each token in `src/styles/globals.css` is for and how the pages are laid out.
 
-| Binding        | Service           | Holds or does             |
-| -------------- | ----------------- | ------------------------- |
-| `DB`           | D1                | Scans                     |
-| `SHOTS`        | R2                | Screenshots               |
-| `BROWSER`      | Browser Rendering | Renders pages             |
-| `SITE_SCAN`    | Durable Objects   | One running scan per site |
-| `SCAN_LIMITER` | Rate limiting     | Limits fresh scans        |
+It deploys as two Workers. `humantaste` (`src/server.ts`, `wrangler.jsonc`) serves the pages. `humantaste-engine` (`src/engine.ts`, `wrangler.engine.jsonc`) runs the scans and draws the share images. The browser driver and the image renderer weigh about 10 MB, and a Worker loads all of its code on a cold start, so they stay out of the Worker that serves pages: keep anything heavy on the engine's side. The site reaches the engine through bindings only, and the engine has no public address.
+
+| Binding        | Worker | Service           | Holds or does             |
+| -------------- | ------ | ----------------- | ------------------------- |
+| `DB`           | both   | D1                | Scans                     |
+| `SHOTS`        | both   | R2                | Screenshots               |
+| `SITE_SCAN`    | site   | Durable Objects   | One running scan per site |
+| `ENGINE`       | site   | Service binding   | Draws the share images    |
+| `BROWSER`      | engine | Browser Rendering | Renders pages             |
+| `SCAN_LIMITER` | engine | Rate limiting     | Limits fresh scans        |
 
 The scan's code, in order:
 
@@ -95,11 +98,11 @@ The scan's code, in order:
 ## What a scan keeps
 
 - **Storage.** Each site keeps its latest scan, keyed by the normalised target, until someone presses "Score again".
-- **Methodology.** Each scan keeps the version that scored it (`METHODOLOGY` in `signals.ts`). Bump it whenever a check or weight changes. A report from an older version still shows until someone presses "Score again", except reports from before `2026-11-10.1`, whose points are stored in another shape: those count as missing.
+- **Methodology.** Each scan keeps the version that scored it (`METHODOLOGY` in `methodology.ts`). Bump it whenever a check or weight changes. A report from an older version still shows until someone presses "Score again", except reports from before `2026-11-10.1`, whose points are stored in another shape: those count as missing.
 - **Failed scans.** If no browser can be had, the scan fails and nothing is stored. When the direct fetch was refused too, the scan fails with that refusal.
 - **Degraded scans.** If the render broke after launch, the page's document was missing or answered 400 or above, or the Jev call threw, the scan is never stored, so it can't replace a full score. Without a render there is no score to show: the visitor is told the site couldn't be opened. When only the Jev call failed, the visitor sees the scan with no points given back.
 - **Jev.** A new read is skipped when the screenshot is byte for byte the previous one.
-- **One at a time.** Each site has a `SiteScan` Durable Object (`src/lib/site-scan.server.ts`), in dev too. Anyone who arrives during a scan waits for the same report at no cost, and the scan finishes even if the visitor who started it leaves.
+- **One at a time.** Each site has a `SiteScan` Durable Object (`src/lib/site-scan.server.ts`, in the engine Worker), in dev too. Anyone who arrives during a scan waits for the same report at no cost, and the scan finishes even if the visitor who started it leaves.
 - **Limits.** Outside dev, new scans are limited to 3 per client per minute, 30 per client per day and 3000 per day for the whole site (`src/lib/quota.server.ts`, UTC days). An IPv6 client counts as its /64. A failed scan gets its quota back from both scopes; a degraded scan keeps its charge. A Cloudflare firewall rule on the zone also blocks any IP above 100 requests per 10 seconds.
 
 ## License

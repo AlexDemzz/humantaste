@@ -8,7 +8,10 @@ import arraybuffer from "vite-plugin-arraybuffer";
 export default defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    cloudflare({
+      viteEnvironment: { name: "ssr" },
+      auxiliaryWorkers: [{ configPath: "./wrangler.engine.jsonc" }],
+    }),
     tailwindcss(),
     tanstackStart(),
     viteReact(),

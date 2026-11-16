@@ -6,15 +6,11 @@ import interMedium from "../../assets/fonts/og/Inter-Medium.ttf?arraybuffer";
 import interSemiBold from "../../assets/fonts/og/Inter-SemiBold.ttf?arraybuffer";
 import cardScene from "../../assets/images/og-card-scene.png?arraybuffer";
 import { LOGO, LOGO_HEIGHT_EM } from "./logo";
+import { OG_SIZE } from "./og-format";
 import { tierFor } from "./score";
 import type { CardTier } from "./score";
 import { SITE_CARD } from "./seo";
 import type { ShareCard } from "./share";
-
-export const OG_SIZE = { width: 1200, height: 630 };
-export const OG_CONTENT_TYPE = "image/png";
-/** A scan is kept until it is rescanned, so its card can sit at the edge for a day. */
-export const OG_CACHE = "public, max-age=3600, s-maxage=86400";
 
 /** The light card's tokens from holo-card.css, in hex: the renderer has no oklch(). The share image draws the light
  * card ("Pearl") at rest, whatever the page's theme. */

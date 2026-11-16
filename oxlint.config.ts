@@ -6,7 +6,11 @@ import tanstack from "ultracite/oxlint/tanstack";
 
 export default defineConfig({
   extends: [core, react, tanstack, shadcn],
-  ignorePatterns: [...(core.ignorePatterns ?? []), "src/routeTree.gen.ts"],
+  ignorePatterns: [
+    ...(core.ignorePatterns ?? []),
+    "engine-configuration.d.ts",
+    "src/routeTree.gen.ts",
+  ],
   jsPlugins: shadcn.jsPlugins,
   overrides: [
     {

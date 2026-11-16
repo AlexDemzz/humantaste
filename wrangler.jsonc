@@ -7,7 +7,6 @@
   "workers_dev": false,
   "routes": [{ "pattern": "humantaste.xyz", "custom_domain": true }],
   "observability": { "enabled": true, "traces": { "enabled": true } },
-  "browser": { "binding": "BROWSER", "remote": true },
   "media": { "binding": "MEDIA", "remote": true },
   "d1_databases": [
     {
@@ -22,14 +21,14 @@
     { "binding": "SKILL_STARS", "id": "08bcbe81a0b245ae891882e562a6bcba" },
   ],
   "durable_objects": {
-    "bindings": [{ "name": "SITE_SCAN", "class_name": "SiteScan" }],
+    "bindings": [
+      {
+        "name": "SITE_SCAN",
+        "class_name": "SiteScan",
+        "script_name": "humantaste-engine",
+      },
+    ],
   },
+  "services": [{ "binding": "ENGINE", "service": "humantaste-engine" }],
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SiteScan"] }],
-  "ratelimits": [
-    {
-      "name": "SCAN_LIMITER",
-      "namespace_id": "1001",
-      "simple": { "limit": 3, "period": 60 },
-    },
-  ],
 }

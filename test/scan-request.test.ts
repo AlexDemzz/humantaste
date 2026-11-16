@@ -2,7 +2,8 @@ import { env } from "cloudflare:workers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { reserveDailyScan } from "@/lib/quota.server";
-import { attemptScan, requestScan } from "@/lib/scan-request.server";
+import { attemptScan } from "@/lib/scan-attempt.server";
+import { requestScan } from "@/lib/scan-request.server";
 import { runScan } from "@/lib/scan.server";
 import { loadScan } from "@/lib/store.server";
 import type { AnalysisResult } from "@/lib/types";

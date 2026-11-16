@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { OG_SIZE, renderShareCard } from "@/lib/og.server";
+import { OG_SIZE } from "@/lib/og-format";
+import { renderShareCard } from "@/lib/og.server";
 import type { ShareCard } from "@/lib/share";
 
 const card = (overrides: Partial<ShareCard>): ShareCard => ({

@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 
+import { METHODOLOGY } from "./methodology";
 import { sha256Hex } from "./sha256";
-import { METHODOLOGY } from "./signals";
 import type { AnalysisResult, VisualRead } from "./types";
 
 export interface Screenshot {

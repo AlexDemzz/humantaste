@@ -1,6 +1,7 @@
 import { applyPalette, GIFEncoder, quantize } from "gifenc";
 
-import { OG_SIZE, renderShareCardLayers, rgbAt, sheenLine } from "./og.server";
+import { OG_SIZE } from "./og-format";
+import { renderShareCardLayers, rgbAt, sheenLine } from "./og.server";
 import type { Sheen } from "./og.server";
 import type { ShareCard } from "./share";
 

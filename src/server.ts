@@ -1,4 +1,5 @@
 import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
+import { DurableObject } from "cloudflare:workers";
 
 import { agentResponse, withVaryAccept } from "./lib/agent-response.server";
 import { httpsRedirect, trailingSlashRedirect } from "./lib/redirects";
@@ -14,4 +15,5 @@ export default createServerEntry({
     ),
 });
 
-export { SiteScan } from "./lib/site-scan.server";
+/** Scans run in the engine Worker. This Worker's first migration made the class, so it is exported until a migration deletes it. */
+export class SiteScan extends DurableObject {}

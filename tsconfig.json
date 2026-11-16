@@ -21,6 +21,7 @@
     "test",
     "vite.config.ts",
     "vitest.config.ts",
-    "worker-configuration.d.ts"
+    "worker-configuration.d.ts",
+    "engine-configuration.d.ts"
   ]
 }

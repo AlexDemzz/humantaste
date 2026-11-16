@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 
-import { attemptScan } from "./scan-request.server";
+import { attemptScan } from "./scan-attempt.server";
 import type { ScanOutcome, ScanRequest } from "./scan-request.server";
 import { createSharedScan } from "./shared-scan";
 

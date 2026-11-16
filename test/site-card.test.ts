@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 
-import { OG_SIZE, renderSiteCard } from "@/lib/og.server";
+import { OG_SIZE } from "@/lib/og-format";
+import { renderSiteCard } from "@/lib/og.server";
 
 it("renders the site card as an OG-sized PNG", async () => {
   const view = new DataView(await renderSiteCard());

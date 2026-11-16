@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
+import { OG_SIZE } from "@/lib/og-format";
 import { renderShareCardGif } from "@/lib/og-video.server";
-import { OG_SIZE } from "@/lib/og.server";
 import type { ShareCard } from "@/lib/share";
 
 const card = (score: number): ShareCard => ({

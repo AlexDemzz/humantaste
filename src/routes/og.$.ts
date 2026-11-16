@@ -1,13 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
 
-import { renderShareCardGif } from "@/lib/og-video.server";
-import {
-  OG_CACHE,
-  OG_CONTENT_TYPE,
-  OG_SIZE,
-  renderShareCard,
-} from "@/lib/og.server";
 import { cardFromResult } from "@/lib/share";
 import type { ShareCard } from "@/lib/share";
 import { loadScan } from "@/lib/store.server";
@@ -19,6 +12,10 @@ import { parseTarget } from "@/lib/target";
  * score alone, so the score in the cache key is all it takes for a rescan never to be served the old video.
  */
 const cardVideo = async (card: ShareCard, request: Request) => {
+  const [{ renderShareCardGif }, { OG_CACHE, OG_SIZE }] = await Promise.all([
+    import("@/lib/og-video.server"),
+    import("@/lib/og.server"),
+  ]);
   const key = new URL(`?score=${card.score}`, request.url);
   const ranged = new Request(key, request);
   const cache = await caches.open("card-video");
@@ -65,6 +62,9 @@ export const Route = createFileRoute("/og/$")({
           if (path.endsWith(".mp4")) {
             return await cardVideo(card, request);
           }
+          // Lazy: the renderer's fonts and drawing would otherwise load on every cold start.
+          const { OG_CACHE, OG_CONTENT_TYPE, renderShareCard } =
+            await import("@/lib/og.server");
           const png = await renderShareCard(card);
           return new Response(png, {
             headers: {

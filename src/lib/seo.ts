@@ -13,7 +13,7 @@ import {
 } from "./share";
 import type { AnalysisResult } from "./types";
 
-const X_HANDLE = "@AlexDmzz";
+const X_HANDLE = "@alexandrejoly";
 const SITE_ID = `${SITE_URL}/#website`;
 const CREATOR = {
   "@type": "Person",

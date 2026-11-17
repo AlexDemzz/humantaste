@@ -66,7 +66,7 @@ export const INFO_PAGES: Record<InfoPageSlug, InfoPage> = {
             "Use the same ",
             { href: MAKER_CONTACT_URL, text: "contact page" },
             ", or find Alexandre on ",
-            { href: "https://x.com/AlexDmzz", text: "X as @AlexDmzz" },
+            { href: "https://x.com/alexandrejoly", text: "X as @alexandrejoly" },
             ".",
           ],
         ],
